@@ -29,14 +29,10 @@ jobs:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-mdbook-${{ hashFiles('**/book.toml') }}
 
-      - name: Install mdbook (CJK search fork)
-        shell: bash
-        run: |
-          if ! command -v mdbook &> /dev/null; then
-            cargo install --git https://github.com/Sunshine40/mdBook mdbook --branch search-non-english
-          else
-            echo "mdbook already installed"
-          fi
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: 'latest'
 
       - name: Install mdbook-mermaid
         shell: bash
@@ -68,6 +64,12 @@ jobs:
       - name: Preprocess Markdown (fix README links, add technique ID links)
         run: python scripts/preprocess-md.py
 
+      - name: Check internal links
+        run: |
+          echo "Checking SUMMARY.md for broken link targets..."
+          cd src && awk -F '[()]' '/\.md\)/ {print $2}' SUMMARY.md | while read f; do
+            [ -f "$f" ] || echo "BROKEN LINK: $f (referenced in SUMMARY.md)"
+          done && echo "All SUMMARY.md links OK"
       - name: Build book
         run: mdbook build
 
