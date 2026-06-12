@@ -1,0 +1,26 @@
+# mdBook build output
+/book/
+/book
+_book/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# Rust/Cargo
+target/
+.cargo/
+
+# OMO internal
+.omo/
+
+# Environment
+.env
+.env.local

@@ -1,0 +1,88 @@
+name: Deploy mdBook to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Cache cargo binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-mdbook-${{ hashFiles('**/book.toml') }}
+
+      - name: Install mdbook (CJK search fork)
+        shell: bash
+        run: |
+          if ! command -v mdbook &> /dev/null; then
+            cargo install --git https://github.com/Sunshine40/mdBook mdbook --branch search-non-english
+          else
+            echo "mdbook already installed"
+          fi
+
+      - name: Install mdbook-mermaid
+        shell: bash
+        run: |
+          if ! command -v mdbook-mermaid &> /dev/null; then
+            cargo install mdbook-mermaid
+          else
+            echo "mdbook-mermaid already installed"
+          fi
+
+      - name: Setup theme (Catppuccin)
+        run: |
+          mkdir -p theme
+          curl -sL https://github.com/catppuccin/mdBook/releases/latest/download/catppuccin.css -o theme/catppuccin.css
+          chmod 644 theme/catppuccin.css
+
+      - name: Install mermaid assets
+        run: |
+          mdbook-mermaid install .
+          # Move mermaid files to theme directory if they were created in root
+          if [ -f mermaid.min.js ]; then mv mermaid.min.js theme/; fi
+          if [ -f mermaid-init.js ]; then mv mermaid-init.js theme/; fi
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Preprocess Markdown (fix README links, add technique ID links)
+        run: python scripts/preprocess-md.py
+
+      - name: Build book
+        run: mdbook build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_book
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
