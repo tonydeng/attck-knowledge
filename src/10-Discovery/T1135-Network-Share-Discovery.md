@@ -4,6 +4,16 @@
 
 查看网络上共享的文件夹和资源——攻击者用 `net view` 扫描内网中哪些电脑共享了文件，就像小偷在楼道里逐个试门，看哪些门没锁。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者使用 `net view`、`Get-SmbShare`、PowerView `Find-DomainShare` 扫描内网中所有开放的 SMB 共享文件夹，寻找敏感数据和横向移动入口 |
+| 为什么危险？ | 网络共享发现是横向移动的关键步骤，攻击者通过共享文件夹定位敏感数据、发现管理共享（ADMIN$、C$）作为横向移动通道 |
+| 谁需要关心？ | SOC分析师、AD管理员、网络运维、任何需要检测内网共享枚举行为的安全人员 |
+| 你的第一步防御 | 监控 `net view` 命令的频繁执行和短时间内对多个 IP 的 SMB 连接（Event ID 5140） |
+| 如果只做一件事 | 对短时间内从同一主机对大量不同 IP 发起 SMB 连接的行为立即告警，这是典型的网络共享枚举特征 |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
@@ -17,7 +27,7 @@
 
 **技术原理：**
 1. 在Windows中使用 `net view` 查看网络上的所有计算机和共享资源
-2. 使用 `net view \\\\<computername>` 查看指定电脑上的共享文件夹
+2. 使用 `net view \\\\&lt;computername&gt;` 查看指定电脑上的共享文件夹
 3. 使用 `net share` 查看本机的共享资源
 4. 使用PowerShell的 `Get-SmbShare` 获取SMB共享信息
 5. 使用WMI查询 `SELECT * FROM Win32_Share` 枚举网络共享
@@ -67,7 +77,7 @@ graph TD
 
 3. **访问目标共享**
    - 通俗描述：查看特定计算机上的共享文件夹内容
-   - 技术细节：`net view \\\\<computername>` 或 `dir \\\\<computername>\\<share>`
+   - 技术细节：`net view \\\\&lt;computername&gt;` 或 `dir \\\\&lt;computername&gt;\\`<share>``
    - 常用工具：net.exe, dir.exe
 
 4. **提取有价值信息**
@@ -91,7 +101,7 @@ graph TD
 - **时间**: 2019年-2020年
 - **目标**: 全球科技、制药和游戏公司
 - **攻击组织**: APT41（Winnti）
-- **手法**: APT41使用自定义后门和Cobalt Strike进行网络共享发现。他们执行 `net view /all` 和 `net share` 命令枚举共享资源，特别针对文件服务器和备份服务器的共享资源，使用 `dir \\\\<fileserver>\\<share>` 浏览共享目录内容，寻找包含数据库备份、源代码仓库、财务数据和生产环境配置的共享路径。发现的共享信息被加密回传至C2，用于后续的分阶段数据提取。
+- **手法**: APT41使用自定义后门和Cobalt Strike进行网络共享发现。他们执行 `net view /all` 和 `net share` 命令枚举共享资源，特别针对文件服务器和备份服务器的共享资源，使用 `dir \\\\&lt;fileserver&gt;\\`<share>`` 浏览共享目录内容，寻找包含数据库备份、源代码仓库、财务数据和生产环境配置的共享路径。发现的共享信息被加密回传至C2，用于后续的分阶段数据提取。
 - **影响**: 多家高科技公司敏感数据被窃取
 - **参考链接**: [Mandiant - APT41](https://www.mandiant.com/resources/apt41-global-cyber-espionage)
 
@@ -126,7 +136,7 @@ graph TD
    `Find-DomainShare -CheckShareAccess` 可以在Active Directory环境中自动搜索所有可访问的共享。
 
 3. **快速探测共享是否可访问**
-   使用 `dir \\\\<target>\\<share>` 测试对特定共享的访问权限，返回"访问被拒绝"表示共享存在但无权限。
+   使用 `dir \\\\`<target>`\\`<share>`` 测试对特定共享的访问权限，返回"访问被拒绝"表示共享存在但无权限。
 
 ### 常用工具
 
@@ -184,6 +194,8 @@ tcpdump -nn 'port 445 and not src net <internal_net>'
 - 事件ID 5143：网络共享已修改
 - Sysmon Event ID 3：网络连接
 - Sysmon Event ID 1：进程创建
+
+**用人话说：** 这条规则在监控有人执行 `net view` 命令扫描网络共享。net view 是 Windows 内置的网络浏览工具，IT 运维人员偶尔会用它查看网络资源。但攻击者用它来做完全不同的事情——扫描内网中哪些电脑共享了文件夹，寻找包含敏感数据的文件服务器和可被利用的管理共享。关键判断标准是：谁在扫？扫多少？如果 IT 人员在维护时查看一两个共享，那是正常操作；但如果有人在短时间内用 `net view` 扫描了整个网段，或者在非工作时间执行，那就是攻击者在"踩点"，为后续的横向移动和数据窃取做准备。
 
 **Sigma规则示例：**
 ```yaml
@@ -267,7 +279,7 @@ tags:
 **实验步骤：**
 1. 执行 `Get-SmbShare` 查看SMB共享
 2. 执行 `Get-WmiObject Win32_Share` 通过WMI获取共享信息
-3. 使用 `gwmi Win32_Share -ComputerName <target>` 远程查询
+3. 使用 `gwmi Win32_Share -ComputerName `<target>`` 远程查询
 
 **预期结果：** 通过多种方法获取共享信息，理解各自的优劣。
 

@@ -4,6 +4,16 @@
 
 查看公司里有哪些部门（组）以及谁在管钥匙——攻击者枚举用户组和权限信息。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者使用 `net localgroup`、`net group "Domain Admins" /domain`、`Get-ADGroupMember` 枚举本地组、域组及成员，定位 Domain Admins、Enterprise Admins 等高权限组 |
+| 为什么危险？ | 权限组是攻击者的"寻宝图"——Domain Admins 组成员就是最有价值的凭证目标；嵌套组关系可能暴露隐藏的高权限路径；服务账户组可能有数据库或域控访问权限 |
+| 谁需要关心？ | SOC分析师、AD管理员、蓝队威胁狩猎、任何需要检测组枚举行为的安全人员 |
+| 你的第一步防御 | 监控 `net group "Domain Admins" /domain` 的执行；审计 LDAP 查询中对 group 类对象的批量枚举；配置 SIEM 告警规则 |
+| 如果只做一件事 | 对查询 `Domain Admins`、`Enterprise Admins`、`Schema Admins` 等敏感组成员的命令立即告警——这是攻击者在"找钥匙保管员" |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
@@ -188,6 +198,8 @@ graph TD
 **Windows事件ID：**
 - 事件ID 4688：进程创建（监控net.exe）
 - 事件ID 4104：PowerShell脚本（监控AD模块调用）
+
+**用人话说：** 这条规则在监控有人查询 Domain Admins 组成员。攻击者为什么要查这个？因为 Domain Admins 是 Active Directory 中权限最高的组——它的成员可以登录域中任何一台电脑、修改任何配置、访问任何数据。攻击者拿到一个 Domain Admin 账户就等于拿到了整个域的"万能钥匙"。所以他们一定会先查"谁是域管"，然后对这些账户进行重点攻击（Mimikatz 窃取凭证、Kerberoasting、Pass-the-Hash）。正常情况下，只有 AD 管理员在做权限审计时才会查这个。如果你看到有人在非工作时间查询 Domain Admins 成员，那就是攻击者在"找最有价值的目标"。
 
 **Sigma规则示例：**
 ```yaml

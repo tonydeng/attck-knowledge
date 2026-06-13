@@ -4,6 +4,16 @@
 
 攻击者把偷到的文件打包成一个压缩包（就像你用WinRAR压缩文件一样），方便一次性传输出去。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者把偷到的文件打包成一个压缩包（就像你用WinRAR压缩文件一样），方便一次性传输出去。 |
+| 为什么危险？ | 数据压缩本身不是攻击，而是攻击流程中的一个"辅助步骤"。它帮助攻击者在准备外传数据时提高效率、减小可检测性。加密压缩可以 |
+| 谁需要关心？ | 数据安全团队、SOC分析师 |
+| 你的第一步防御 | 压缩工具的异常启动 |
+| 如果只做一件事 | 偷东西之后怎么运出去？一个一个文件传输太慢了 |
+
 ## 难度等级
 
 ⭐ 初级（新手可学）
@@ -38,26 +48,11 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1560.001 - 使用工具归档
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 攻击者用WinRAR或7-Zip把偷到的文件压成RAR或7z包。
-
-**详细说明：**
-攻击者使用已安装在系统上的压缩工具（如WinRAR、7-Zip、WinZip）对收集的数据进行打包。这种方式比较常用，但有两个明显的缺点：一是这些工具的执行会被EDR记录，二是可能被DLP检测到异常的大批量文件压缩。
-
-### T1560.002 - 通过库归档
-
-**通俗理解：** 攻击者用代码中的压缩库（如Python的zipfile）打包文件，不需要安装额外工具。
-
-**详细说明：**
-攻击者使用编程语言的标准压缩库直接进行文件打包，无需外部工具。Python的`zipfile`和`tarfile`模块、.NET的`System.IO.Compression`命名空间、Java的`java.util.zip`都是常见选择。这种方式的优势是在内存中操作，不写入磁盘压缩包实体，降低被检测的风险。
-
-### T1560.003 - 通过内置命令归档
-
-**通俗理解：** 攻击者用电脑自带的命令（如Linux的tar、Windows的Compress-Archive）打包文件。
-
-**详细说明：**
-攻击者使用操作系统内置的压缩命令进行打包，无需安装额外工具。Linux/macOS的`tar`命令、Windows的`Compress-Archive`（PowerShell）和`compact`命令、macOS的`ditto`和`zip`命令都可以使用。
+- [T1560.001 - 使用工具归档](./T1560/T1560.001-Archive via Utility-使用工具归档.md) — 攻击者用WinRAR或7-Zip把偷到的文件压成RAR或7z包。
+- [T1560.002 - 通过库归档](./T1560/T1560.002-Archive via Library-通过库归档.md) — 攻击者用代码中的压缩库（如Python的zipfile）打包文件，不需要安装额外工具。
+- [T1560.003 - 通过内置命令归档](./T1560/T1560.003-Archive via Built-in Command-通过内置命令归档.md) — 攻击者用电脑自带的命令（如Linux的tar、Windows的Compress-Archive）打包文件。
 
 </details>
 
@@ -255,6 +250,12 @@ Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Sysmon/Operational'; 
 ```
 
 ### 应用层检测
+
+**用人话说：**
+
+> 压缩收集的数据是"打包带走"的最后一步——攻击者把从各处收集来的文件用压缩工具打包成一个zip/rar/tar文件，方便通过C2通道一次性传出。常用工具包括：WinRAR（rar a archive.rar *.docx）、7-Zip（7z a archive.zip -pPassword -mx=5 files）、PowerShell的Compress-Archive、以及Linux的tar czf archive.tar.gz files/。攻击者经常给压缩包设置密码（如-p参数），防止安全设备扫描压缩包内容。压缩包通常被命名伪装成正常文件（如"report.zip"或"backup.7z"）并放在临时目录中。检测方法：监控压缩工具的执行（rar.exe、7z.exe、zip.exe）、PowerShell的Compress-Archive调用、以及短时间内创建的大尺寸zip文件（超过100MB的非正常压缩操作）。
+>
+> **避坑指南**：未区分正常SSH管理连接和异常横向；未启用PowerShell脚本块日志；加密检测阈值设置过高。
 
 **Sigma规则示例：**
 ```yaml

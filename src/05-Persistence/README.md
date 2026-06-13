@@ -92,11 +92,117 @@ graph LR
 | [T1205](./T1205-Traffic-Signaling.md) | 流量信号 | ⭐⭐⭐⭐ | 2 | 发送特定"暗号"网络包来唤醒休眠的后门 | ✅ 已完成 |
 | [T1078](./T1078-Valid-Accounts.md) | 有效账户 | ⭐⭐ | 4 | 直接用偷来的合法账号登录，无需安装任何恶意软件 | ✅ 已完成 |
 
+
+
+## 子技术索引
+
+| 子技术ID | 名称 | 难度 | 一句话理解 | 文档状态 |
+|----------|------|:----:|-----------|:--------:|
+| [T1037.001](./T1037/T1037.001-Logon Script (Windows)-登录脚本（Windows）.md) | 登录脚本（Windows） | ⭐⭐ | Windows域登录脚本和本地登录脚本 | ✅ 已完成 |
+| [T1037.002](./T1037/T1037.002-Logon Script (Mac)-登录脚本（Mac）.md) | 登录脚本（Mac） | ⭐⭐ | macOS的loginhook和启动脚本 | ✅ 已完成 |
+| [T1037.003](./T1037/T1037.003-Logon Script (Linux)-登录脚本（Linux）.md) | 登录脚本（Linux） | ⭐⭐ | Linux的.bashrc、.profile等shell配置 | ✅ 已完成 |
+| [T1037.004](./T1037/T1037.004-Logon Script (Network)-登录脚本（网络）.md) | 登录脚本（网络） | ⭐⭐ | 域控制器上的组策略登录脚本 | ✅ 已完成 |
+| [T1037.005](./T1037/T1037.005-Logon Script (Cross-platform)-登录脚本（跨平台）.md) | 登录脚本（跨平台） | ⭐⭐ | Python/PowerShell等跨平台脚本 | ✅ 已完成 |
+| [T1053.001](./T1053/T1053.001-At (Windows)-At（Windows）.md) | At（Windows） | ⭐ | Windows at.exe调度 | ✅ 已完成 |
+| [T1053.002](./T1053/T1053.002-At (Linux)-At（Linux）.md) | At（Linux） | ⭐ | Linux at命令 | ✅ 已完成 |
+| [T1053.003](./T1053/T1053.003-Cron-Cron.md) | Cron | ⭐ | Unix/Linux cron作业 | ✅ 已完成 |
+| [T1053.005](./T1053/T1053.005-Scheduled Task (Windows)-计划任务（Windows）.md) | 计划任务（Windows） | ⭐ | Windows任务调度器 | ✅ 已完成 |
+| [T1053.006](./T1053/T1053.006-Systemd-Timers.md) | Systemd定时器 | ⭐ | Linux systemd定时器 | ✅ 已完成 |
+| [T1053.007](./T1053/T1053.007-Container-Orchestration-Job.md) | 容器编排作业 | ⭐ | Kubernetes CronJob | ✅ 已完成 |
+| [T1078.001](./T1078/T1078.001-Default-Accounts.md) | 默认账户 | ⭐⭐ | 使用系统预配置的默认账户 | ✅ 已完成 |
+| [T1078.002](./T1078/T1078.002-Domain-Account.md) | 域账户 | ⭐⭐ | 使用Active Directory域账户 | ✅ 已完成 |
+| [T1078.003](./T1078/T1078.003-Local-Account.md) | 本地账户 | ⭐⭐ | 使用本地系统账户 | ✅ 已完成 |
+| [T1078.004](./T1078/T1078.004-Cloud-Account.md) | 云账户 | ⭐⭐ | 使用云平台账户（AWS/Azure/GCP） | ✅ 已完成 |
+| [T1098.001](./T1098/T1098.001-Additional-Cloud-Credentials.md) | 额外云凭据 | ⭐⭐ | 在云环境中创建额外的访问密钥或服务主体 | ✅ 已完成 |
+| [T1098.002](./T1098/T1098.002-Additional-Email-Delegate-Permissions.md) | 额外邮箱委托权限 | ⭐⭐ | 授予攻击者对目标邮箱的读取/发送权限 | ✅ 已完成 |
+| [T1098.003](./T1098/T1098.003-Additional-Cloud-Roles.md) | 额外云角色 | ⭐⭐ | 将恶意账户添加到高权限云角色 | ✅ 已完成 |
+| [T1098.004](./T1098/T1098.004-SSH-Authorized-Keys.md) | SSH授权密钥 | ⭐⭐ | 在Linux系统中添加攻击者的SSH公钥 | ✅ 已完成 |
+| [T1098.005](./T1098/T1098.005-Device-Registration.md) | 设备注册 | ⭐⭐ | 注册攻击者控制的设备到身份提供者 | ✅ 已完成 |
+| [T1098.006](./T1098/T1098.006-Additional-Container-Cluster-Roles.md) | 额外容器集群角色 | ⭐⭐ | 在Kubernetes等容器平台中添加恶意角色 | ✅ 已完成 |
+| [T1098.007](./T1098/T1098.007-Additional-Local-or-Domain-Groups.md) | 额外本地或域组 | ⭐⭐ | 将恶意账户添加到特权组 | ✅ 已完成 |
+| [T1136.001](./T1136/T1136.001-Local-Account.md) | 本地账户 | ⭐ | 在特定工作站或服务器上创建账户 | ✅ 已完成 |
+| [T1136.002](./T1136/T1136.002-Domain-Account.md) | 域账户 | ⭐ | 在Active Directory中创建账户 | ✅ 已完成 |
+| [T1136.003](./T1136/T1136.003-Cloud-Account.md) | 云账户 | ⭐ | 在云环境中创建账户 | ✅ 已完成 |
+| [T1137.001](./T1137/T1137.001-Office-Template-Macros.md) | Office模板宏 | ⭐⭐ | 修改Normal.dotm等全局模板 | ✅ 已完成 |
+| [T1137.002](./T1137/T1137.002-Office-Add-ins.md) | Office加载项 | ⭐⭐ | 安装恶意COM/VBA加载项 | ✅ 已完成 |
+| [T1137.003](./T1137/T1137.003-Outlook-Forms.md) | Outlook表单 | ⭐⭐ | 创建恶意自定义表单 | ✅ 已完成 |
+| [T1137.004](./T1137/T1137.004-Outlook-Home-Page.md) | Outlook主页 | ⭐⭐ | 设置文件夹自定义主页 | ✅ 已完成 |
+| [T1137.005](./T1137/T1137.005-Outlook-Rules.md) | Outlook规则 | ⭐⭐ | 创建恶意邮件规则 | ✅ 已完成 |
+| [T1137.006](./T1137/T1137.006-Outlook-API-Outlook-API.md) | Outlook API | ⭐⭐ | 使用OOM/MAPI注册事件处理程序 | ✅ 已完成 |
+| [T1176.001](./T1176/T1176.001-Microsoft-Office-Add-in.md) | Microsoft Office加载项 | ⭐⭐ | 恶意Office COM/VSTO加载项 | ✅ 已完成 |
+| [T1176.002](./T1176/T1176.002-Browser-Extensions.md) | 浏览器扩展 | ⭐⭐ | 恶意浏览器扩展程序 | ✅ 已完成 |
+| [T1205.001](./T1205/T1205.001-Port-Knocking.md) | 端口敲门 | ⭐⭐⭐ | 发送特定端口序列激活后门 | ✅ 已完成 |
+| [T1205.002](./T1205/T1205.002-Socket-Filters.md) | 套接字过滤器 | ⭐⭐⭐ | 使用BPF/WFP过滤器触发操作 | ✅ 已完成 |
+| [T1505.001](./T1505/T1505.001-SQL-Stored-Procedures.md) | SQL存储过程 | ⭐⭐⭐ | 创建恶意数据库存储过程 | ✅ 已完成 |
+| [T1505.002](./T1505/T1505.002-Transport-Agent.md) | 传输代理 | ⭐⭐⭐ | 安装恶意邮件传输代理 | ✅ 已完成 |
+| [T1505.003](./T1505/T1505.003-Web-Shell-Web-Shell.md) | Web Shell | ⭐⭐⭐ | 部署Web后门脚本 | ✅ 已完成 |
+| [T1505.004](./T1505/T1505.004-IIS-Components.md) | IIS组件 | ⭐⭐⭐ | 安装恶意IIS模块 | ✅ 已完成 |
+| [T1505.005](./T1505/T1505.005-Terminal-Services.md) | 终端服务 | ⭐⭐⭐ | 修改RDP组件 | ✅ 已完成 |
+| [T1542.001](./T1542/T1542.001-System-Firmware.md) | 系统固件 | ⭐⭐⭐ | 修改BIOS/UEFI固件 | ✅ 已完成 |
+| [T1542.002](./T1542/T1542.002-Component-Firmware.md) | 组件固件 | ⭐⭐⭐ | 修改硬盘/网卡等硬件固件 | ✅ 已完成 |
+| [T1542.003](./T1542/T1542.003-Bootkit-Bootkit.md) | Bootkit | ⭐⭐⭐ | 修改启动加载程序 | ✅ 已完成 |
+| [T1542.004](./T1542/T1542.004-ROMMONkit-ROMMONkit.md) | ROMMONkit | ⭐⭐⭐ | 修改网络设备固件 | ✅ 已完成 |
+| [T1542.005](./T1542/T1542.005-TFTP-Boot.md) | TFTP启动 | ⭐⭐⭐ | 配置网络设备从TFTP启动 | ✅ 已完成 |
+| [T1543.001](./T1543/T1543.001-Launch-Agent-Launch-Agent.md) | Launch Agent | ⭐⭐ | macOS用户级自动启动代理 | ✅ 已完成 |
+| [T1543.002](./T1543/T1543.002-SystemD-Service.md) | SystemD服务 | ⭐⭐ | Linux系统服务 | ✅ 已完成 |
+| [T1543.003](./T1543/T1543.003-Windows-Service.md) | Windows服务 | ⭐⭐ | Windows系统服务 | ✅ 已完成 |
+| [T1543.004](./T1543/T1543.004-Launch-Daemon-Launch-Daemon.md) | Launch Daemon | ⭐⭐ | macOS系统级守护进程 | ✅ 已完成 |
+| [T1543.005](./T1543/T1543.005-Containers.md) | 容器 | ⭐⭐ | Docker/Kubernetes容器持久化 | ✅ 已完成 |
+| [T1546.001](./T1546/T1546.001-Change-Default-File-Association.md) | 更改默认文件关联 | ⭐⭐⭐ | 修改文件类型打开方式 | ✅ 已完成 |
+| [T1546.002](./T1546/T1546.002-Screensaver.md) | 屏幕保护程序 | ⭐⭐⭐ | 替换屏幕保护程序为恶意程序 | ✅ 已完成 |
+| [T1546.003](./T1546/T1546.003-WMI-Event-Subscription.md) | WMI事件订阅 | ⭐⭐⭐ | 使用WMI创建事件触发器 | ✅ 已完成 |
+| [T1546.004](./T1546/T1546.004-Unix-Shell-Configuration-Modification.md) | Unix Shell配置修改 | ⭐⭐⭐ | 修改.bashrc等shell配置文件 | ✅ 已完成 |
+| [T1546.005](./T1546/T1546.005-Trap-Trap.md) | Trap | ⭐⭐⭐ | 使用Unix trap命令捕获信号 | ✅ 已完成 |
+| [T1546.006](./T1546/T1546.006-LC_LOAD_DYLIB-Addition.md) | LC_LOAD_DYLIB添加 | ⭐⭐⭐ | macOS动态库注入 | ✅ 已完成 |
+| [T1546.007](./T1546/T1546.007-Netsh-Helper-DLL.md) | Netsh辅助DLL | ⭐⭐⭐ | 注册netsh辅助DLL | ✅ 已完成 |
+| [T1546.008](./T1546/T1546.008-Accessibility-Features.md) | 辅助功能 | ⭐⭐⭐ | 替换辅助功能二进制文件 | ✅ 已完成 |
+| [T1546.009](./T1546/T1546.009-AppInit-DLLs-AppInit-DLLs.md) | AppInit DLLs | ⭐⭐⭐ | 注册AppInit DLL | ✅ 已完成 |
+| [T1546.010](./T1546/T1546.010-AppCert-DLLs-AppCert-DLLs.md) | AppCert DLLs | ⭐⭐⭐ | 注册AppCert DLL | ✅ 已完成 |
+| [T1546.011](./T1546/T1546.011-Application-Shim.md) | 应用程序兼容性垫片 | ⭐⭐⭐ | 使用sdbinst安装垫片 | ✅ 已完成 |
+| [T1546.012](./T1546/T1546.012-Image-File-Execution-Options.md) | 映像文件执行选项 | ⭐⭐⭐ | 使用IFEO调试器劫持 | ✅ 已完成 |
+| [T1546.013](./T1546/T1546.013-PowerShell-Profile.md) | PowerShell配置文件 | ⭐⭐⭐ | 修改PowerShell启动脚本 | ✅ 已完成 |
+| [T1546.014](./T1546/T1546.014-Email.md) | 电子邮件 | ⭐⭐⭐ | 利用邮件规则触发代码 | ✅ 已完成 |
+| [T1546.015](./T1546/T1546.015-Update-Orchestrator.md) | 更新编排器 | ⭐⭐⭐ | 滥用Windows更新服务 | ✅ 已完成 |
+| [T1547.001](./T1547/T1547.001-Registry-Run-Keys---Startup-Folder-注册表Run键.md) | 注册表Run键/启动文件夹 | ⭐⭐ | 最常见的自动启动位置 | ✅ 已完成 |
+| [T1547.002](./T1547/T1547.002-Authentication-Package.md) | 认证包 | ⭐⭐ | 加载到LSASS进程中的DLL | ✅ 已完成 |
+| [T1547.003](./T1547/T1547.003-Time-Providers.md) | 时间提供者 | ⭐⭐ | 系统时间同步相关的DLL | ✅ 已完成 |
+| [T1547.004](./T1547/T1547.004-Winlogon-Helper-DLL.md) | Winlogon辅助DLL | ⭐⭐ | 用户登录时加载的DLL | ✅ 已完成 |
+| [T1547.005](./T1547/T1547.005-Security-Support-Provider.md) | 安全支持提供者 | ⭐⭐ | 认证相关的安全DLL | ✅ 已完成 |
+| [T1547.006](./T1547/T1547.006-Kernel-Modules-and-Extensions.md) | 内核模块和扩展 | ⭐⭐ | Linux内核模块（.ko文件） | ✅ 已完成 |
+| [T1547.007](./T1547/T1547.007-Re-opened-Applications.md) | 重新打开的应用程序 | ⭐⭐ | macOS应用恢复功能 | ✅ 已完成 |
+| [T1547.008](./T1547/T1547.008-LSASS-Driver.md) | LSASS驱动程序 | ⭐⭐ | LSASS进程加载的驱动 | ✅ 已完成 |
+| [T1547.009](./T1547/T1547.009-Shortcut-Modification.md) | 快捷方式修改 | ⭐⭐ | 修改桌面快捷方式指向恶意程序 | ✅ 已完成 |
+| [T1547.010](./T1547/T1547.010-Port-Monitors.md) | 端口监视器 | ⭐⭐ | 打印相关的系统DLL | ✅ 已完成 |
+| [T1547.012](./T1547/T1547.012-Print-Processors.md) | 打印处理器 | ⭐⭐ | 打印处理相关的DLL | ✅ 已完成 |
+| [T1547.013](./T1547/T1547.013-XDG-Autostart-Entries.md) | XDG自动启动条目 | ⭐⭐ | Linux桌面环境自动启动 | ✅ 已完成 |
+| [T1547.014](./T1547/T1547.014-Active-Setup-Active-Setup.md) | Active Setup | ⭐⭐ | Windows组件自动安装机制 | ✅ 已完成 |
+| [T1547.015](./T1547/T1547.015-Login-Items.md) | 登录项 | ⭐⭐ | macOS登录时自动启动的应用 | ✅ 已完成 |
+| [T1556.001](./T1556/T1556.001-Domain-Controller-Authentication.md) | 域控制器认证 | ⭐⭐⭐ | 修改DC认证机制（Skeleton Key） | ✅ 已完成 |
+| [T1556.002](./T1556/T1556.002-Password-Filter.md) | 密码过滤器 | ⭐⭐⭐ | 安装恶意密码过滤器DLL | ✅ 已完成 |
+| [T1556.003](./T1556/T1556.003-Pluggable-Authentication-Modules-PAM.md) | PAM | ⭐⭐⭐ | 修改Linux/macOS认证模块 | ✅ 已完成 |
+| [T1556.004](./T1556/T1556.004-Network-Device-Authentication.md) | 网络设备认证 | ⭐⭐⭐ | 修改路由器/交换机认证 | ✅ 已完成 |
+| [T1556.005](./T1556/T1556.005-Multi-Factor-Authentication.md) | 多因素认证 | ⭐⭐⭐ | 绕过或操纵MFA | ✅ 已完成 |
+| [T1556.006](./T1556/T1556.006-Hybrid-Identity.md) | 混合身份 | ⭐⭐⭐ | 修改AD FS联合认证 | ✅ 已完成 |
+| [T1556.007](./T1556/T1556.007-Hybrid-Identity-Sync.md) | 混合身份同步 | ⭐⭐⭐ | 修改Azure AD Connect | ✅ 已完成 |
+| [T1556.008](./T1556/T1556.008-Network-Provider-DLL.md) | 网络提供程序DLL | ⭐⭐⭐ | 注册恶意网络认证DLL | ✅ 已完成 |
+| [T1556.009](./T1556/T1556.009-Conditional-Access-Policy.md) | 条件访问策略 | ⭐⭐⭐ | 修改云环境条件访问策略 | ✅ 已完成 |
+| [T1574.001](./T1574/T1574.001-DLL-Search-Order-Hijacking.md) | DLL搜索顺序劫持 | ⭐⭐⭐ | 利用Windows DLL搜索顺序 | ✅ 已完成 |
+| [T1574.002](./T1574/T1574.002-DLL-Side-Loading.md) | DLL侧加载 | ⭐⭐⭐ | 利用合法程序加载恶意DLL | ✅ 已完成 |
+| [T1574.004](./T1574/T1574.004-Dylib-Hijacking.md) | Dylib劫持 | ⭐⭐⭐ | macOS动态库劫持 | ✅ 已完成 |
+| [T1574.005](./T1574/T1574.005-Executable-Installer-File-Permissions-Weakness.md) | 可执行安装程序文件权限弱点 | ⭐⭐⭐ | 利用安装程序弱权限 | ✅ 已完成 |
+| [T1574.006](./T1574/T1574.006-Dynamic-Linker-Hijacking.md) | 动态链接器劫持 | ⭐⭐⭐ | 利用LD_PRELOAD等机制 | ✅ 已完成 |
+| [T1574.007](./T1574/T1574.007-Path-Interception-by-PATH-Environment-Variable.md) | PATH环境变量路径拦截 | ⭐⭐⭐ | 修改PATH变量 | ✅ 已完成 |
+| [T1574.008](./T1574/T1574.008-Search-Order-Interception.md) | 搜索顺序路径拦截 | ⭐⭐⭐ | 利用应用搜索顺序 | ✅ 已完成 |
+| [T1574.009](./T1574/T1574.009-Unquoted-Path-Interception.md) | 未引用路径路径拦截 | ⭐⭐⭐ | 利用路径中的空格 | ✅ 已完成 |
+| [T1574.010](./T1574/T1574.010-Service-File-Permissions-Weakness.md) | 服务文件权限弱点 | ⭐⭐⭐ | 利用服务二进制弱权限 | ✅ 已完成 |
+| [T1574.011](./T1574/T1574.011-PLAT (Android)-PLAT（Android）.md) | PLAT（Android） | ⭐⭐⭐ | Android系统级加载劫持 | ✅ 已完成 |
+| [T1574.012](./T1574/T1574.012-COR_PROFILER-COR_PROFILER.md) | COR_PROFILER | ⭐⭐⭐ | .NET CLR配置劫持 | ✅ 已完成 |
+
 ### 统计信息
 
 - **技术总数**：25 个
-- **子技术总数**：106 个
-- **已完成文档**：26 个
+- **子技术总数**：99 个
+- **已完成文档**：99 个
 - **进行中文档**：0 个
 - **待编写文档**：0 个
 

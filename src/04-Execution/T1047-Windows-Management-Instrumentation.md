@@ -4,6 +4,16 @@
 
 **WMI是Windows内置的"万能管理遥控器"，攻击者用它可以远程执行命令、收集信息、横向移动——而且几乎不留痕迹。**
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | Windows内置的管理框架，攻击者用它远程执行命令、查询系统信息、横向移动 |
+| 为什么危险？ | WMI是系统核心组件，安全软件通常不拦截；支持远程操作，通过端口135/5985通信 |
+| 谁需要关心？ | Windows管理员、SOC分析师、任何维护Windows环境的安全人员 |
+| 你的第一步防御 | 监控wmic.exe异常执行和WMI事件订阅创建（事件ID 5861） |
+| 如果只做一件事 | 检查wmiprvse.exe是否生成powershell.exe、cmd.exe等子进程 |
+
 ## 难度等级
 
 ⭐️⭐️ 中级（需要一定基础）
@@ -223,7 +233,7 @@ Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-WMI-Activity/Operatio
 
 ### 应用层检测
 
-**检测方法：** 监控PowerShell WMI调用
+**用人话说：** 这条规则在监控两种可疑的WMI使用方式。第一种是wmic.exe带"process call create"参数，这是攻击者用WMI在远程机器上创建进程的标准命令。第二种是PowerShell调用Invoke-WmiMethod或Get-WmiObject等WMI cmdlet。正常管理员也会用WMI，但通常不会从非管理工具调用，也不会频繁创建远程进程。如果你看到wmic.exe从Word、浏览器或者奇怪的父进程启动，那基本就是攻击者在用WMI当"跳板"。
 
 **Sigma规则示例：**
 ```yaml

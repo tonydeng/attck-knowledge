@@ -39,23 +39,11 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1543.001 - Windows 服务
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 给 Windows 注册一个"永远开机自启的程序"。
-
-**详细说明：** 攻击者使用 `sc create`、`net start` 命令或 `CreateService` API 创建恶意 Windows 服务。配置为以 LocalSystem（最高本地权限）身份运行，服务指向恶意可执行文件。这样恶意代码在系统启动时自动加载，并在后台以 SYSTEM 权限持续运行。
-
-### T1543.002 - 系统守护进程
-
-**通俗理解：** 在 Linux 上注册一个"系统级别"的自启脚本。
-
-**详细说明：** 攻击者创建 systemd 服务单元文件（.service）或使用 init.d 脚本注册持久化服务。配置为在系统引导时启动，以 root 权限运行恶意进程。在 macOS 上使用 launchd plist 文件注册守护进程。
-
-### T1543.004 - launchd
-
-**通俗理解：** 在 Mac 上注册一个"系统级"的后台程序。
-
-**详细说明：** macOS 使用 launchd 管理守护进程（系统级）和代理（用户级）。攻击者在 `/Library/LaunchDaemons/` 或 `/Library/LaunchAgents/` 目录放置 plist 配置文件，注册恶意程序在系统启动时自动执行。以 root 权限运行的恶意守护进程可以持续控制 macOS 系统。
+- [T1543.001 - Windows 服务](./T1543/T1543.001-Windows-Service.md) — 给 Windows 注册一个"永远开机自启的程序"。
+- [T1543.002 - 系统守护进程](./T1543/T1543.002-System-Daemon.md) — 在 Linux 上注册一个"系统级别"的自启脚本。
+- [T1543.004 - 启动守护进程](./T1543/T1543.004-launchd-launchd.md) — 在 Mac 上注册一个"系统级"的后台程序。
 
 </details>
 
@@ -166,7 +154,7 @@ graph TD
    PowerShell 提供了更灵活的服务创建方式：`New-Service -Name "Backdoor" -BinaryPathName "C:\path\to\malware.exe" -StartupType Automatic`
 
 4. **服务 Dll 劫持（ServiceDLL）**
-   在注册表 `HKLM\SYSTEM\CurrentControlSet\Services\<Service>\Parameters` 中修改 `ServiceDll` 值，比直接修改服务二进制更隐蔽。
+   在注册表 `HKLM\SYSTEM\CurrentControlSet\Services\&lt;Service&gt;\Parameters` 中修改 `ServiceDll` 值，比直接修改服务二进制更隐蔽。
 
 ### 常用工具
 
@@ -244,9 +232,9 @@ Get-WinEvent -FilterHashtable @{LogName='System'; ID=7045} |
 Get-Service | Where-Object {$_.StartType -eq 'Automatic' -and $_.Name -notlike "Microsoft*"}
 ```
 
-### 应用层检测
+**用人话说：** 创建或修改系统进程是指攻击者通过添加或篡改系统服务、守护进程来获得持久化的高权限访问。Windows服务（services.exe）以SYSTEM权限运行，Linux systemd服务以root权限运行。攻击者创建一个伪装成正常系统服务的恶意服务，或修改现有服务的二进制路径指向恶意程序。这就像在公司的IT基础设施中安装了一个假的电力系统监控器——表面上看起来是合法的系统组件，实际上在帮攻击者开门。
 
-**Sigma规则示例：**
+**Sigma规则示例：**
 ```yaml
 title: Suspicious Service Installation
 status: experimental

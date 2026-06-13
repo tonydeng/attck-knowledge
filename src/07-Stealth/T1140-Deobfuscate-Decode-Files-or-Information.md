@@ -96,7 +96,7 @@ graph TD
 - **时间**: 2018年至今
 - **目标**: 全球Windows用户
 - **攻击组织**: 未知攻击组织（疑似APT相关）
-- **手法**: 大量恶意软件使用PowerShell执行Base64编码的命令行。攻击者将恶意PowerShell代码进行Base64编码后，通过`powershell -enc <Base64>`或`IEX ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("...")))`执行解码后的代码。这种技术完全无文件，仅驻留在内存中。
+- **手法**: 大量恶意软件使用PowerShell执行Base64编码的命令行。攻击者将恶意PowerShell代码进行Base64编码后，通过`powershell -enc &lt;Base64&gt;`或`IEX ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("...")))`执行解码后的代码。这种技术完全无文件，仅驻留在内存中。
 - **影响**: 无文件攻击成为主流，传统的文件扫描失效
 - **参考链接**: [PowerShell Exploit - MITRE](https://attack.mitre.org/techniques/T1059/001/)
 

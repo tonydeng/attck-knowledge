@@ -4,18 +4,40 @@
 
 > **清除痕迹就是删掉监控录像和进出记录** -- 偷完东西之后把摄像头录像删了、把指纹擦了、把门禁记录清了，让警察找不到证据。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者通过清除事件日志、删除文件、篡改时间戳来消除入侵证据，让安全团队无法追溯攻击路径 |
+| 为什么危险？ | 成功的痕迹清除让安全团队无法还原入侵路径，延长攻击者驻留时间，增加取证难度，甚至导致完全无法发现入侵 |
+| 谁需要关心？ | SOC分析师、取证调查员、系统管理员、任何负责安全事件响应的安全人员 |
+| 你的第一步防御 | 将日志实时转发到外部SIEM或不可变存储，确保攻击者无法删除已收集的日志 |
+| 如果只做一件事 | 对事件ID 1102（安全日志被清除）设置即时告警，这是攻击者清理痕迹的最高优先级操作 |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
 
 操作不复杂，但需要了解不同日志系统的存储位置和清除方法。
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 系统日志（System Logs）：操作系统记录所有事件（登录、程序执行）的日记本，攻击者要删的就是这个
+- [ ] 取证痕迹（Forensic Evidence）：入侵者在系统上留下的各种"指纹"，如文件创建时间、Prefetch文件、USN Journal等
+- [ ] 文件系统（File System）：操作系统用来组织和管理文件的"目录系统"，了解文件创建、修改、删除的基本概念
+
 ## 技术描述
 
 清除痕迹（Indicator Removal，T1070）是MITRE ATT&CK框架中防御削弱战术的重要技术。
 
+> 📚 **打个比方**：就像小偷在作案后擦掉指纹、删掉监控录像、清理掉鞋印——清除痕迹就是攻击者在完成恶意操作后，删除系统日志、清除命令历史、抹去时间戳，让安全团队无法追溯入侵过程和来源。
+
 **通俗解释：**
 小偷偷完东西会擦掉指纹、删掉监控录像。攻击者也是一样 -- 在完成恶意操作后消除入侵证据，清除各种系统日志、删除上传的工具文件、修改文件时间戳等，让安全团队无法追溯入侵过程。
+
+**过渡段：** 上面的比喻直观地说明了痕迹清除的核心目的。现在从技术层面看：攻击者清除痕迹的手段远不止删日志——他们需要清除Windows事件日志、删除命令历史、篡改文件时间戳（timestomp）、删除卷影副本（vssadmin），甚至要处理清除操作本身产生的新日志（如事件ID 1102）。不同操作系统、不同攻击场景下，清除目标的选择和操作顺序各不相同。只有理解这些技术细节，才能制定有效的检测和防御策略。
 
 **技术原理：**
 攻击者从多个维度清除痕迹：
@@ -269,6 +291,6 @@ Get-Item C:\Windows\notepad.exe | Select-Object CreationTime, LastWriteTime
 
 ## 参考资料
 
-- [MITRE ATT&CK - T1070 Indicator Removal](https://attack.mitre.org/techniques/T1070/)
-- [CISA - Akira Ransomware Advisory (2024)](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-131a)
-- [CrowdStrike - Scattered Spider Analysis](https://www.crowdstrike.com/blog/scattered-spider-attack-analysis/)
+- 📚 [MITRE ATT&CK - T1070 Indicator Removal](https://attack.mitre.org/techniques/T1070/) - 深入了解技术细节
+- 📰 [CISA - Akira Ransomware Advisory (2024)](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-131a) - 真实攻击案例
+- 📰 [CrowdStrike - Scattered Spider Analysis](https://www.crowdstrike.com/blog/scattered-spider-attack-analysis/) - 真实攻击案例

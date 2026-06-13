@@ -41,29 +41,12 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1548.001 - 绕过 UAC
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 让 Windows 的"管理员确认弹窗"不弹出来——但程序已经以管理员身份运行了。
-
-**详细说明：** Windows UAC（用户账户控制）在程序请求管理员权限时会弹出一个确认对话框。绕过 UAC 的技术通过利用系统标记为"自动提升"（auto-elevate）的程序或 COM 对象，让恶意程序在不触发 UAC 弹窗地情况下以管理员权限运行。常见方法包括使用 fodhelper.exe、computerdefaults.exe 等微软签名程序的自动提升特性。
-
-### T1548.002 - 绕过 sudo
-
-**通俗理解：** 发现 sudo 允许的"白名单"程序中有漏洞，利用它偷偷执行其他命令。
-
-**详细说明：** sudo 配置文件（/etc/sudoers）中有些规则允许特定用户以 root 权限运行特定程序而不需要密码。攻击者利用这些程序的漏洞或 sudo 配置的通配符问题，在允许的范围内执行实际未授权的命令。
-
-### T1548.003 - Sudo 权限缓存
-
-**通俗理解：** 趁别人刚输入过 sudo 密码的"缓存期"，直接执行 sudo 命令不需要密码。
-
-**详细说明：** sudo 默认有 5 分钟的"密码缓存"——输入一次密码后，后续的 sudo 操作不再重复询问。攻击者可以利用这个窗口期（通常通过计划任务或脚本来卡时间）在用户主动使用 sudo 后立即执行恶意命令，不需要用户再次输入密码。
-
-### T1548.004 - 绕过系统授权组件
-
-**通俗理解：** 发现大楼的"VIP 认证系统"本身有安全漏洞，利用它获得 VIP 权限。
-
-**详细说明：** Linux 系统的授权框架 Polkit（以前叫 PolicyKit）在 2021-2024 年间被发现多个内存损坏漏洞（CVE-2021-3560、CVE-2022-22645、CVE-2024-21819 等）。攻击者通过在 Polkit 服务处理授权请求时制造竞态条件，绕过正常的授权检查，直接以 root 权限执行命令。
+- [T1548.001 - 绕过 UAC](./T1548/T1548.001-Bypass-User-Account-Control.md) — 让 Windows 的"管理员确认弹窗"不弹出来——但程序已经以管理员身份运行了。
+- [T1548.002 - 绕过 sudo](./T1548/T1548.002-Bypass-sudo.md) — 发现 sudo 允许的"白名单"程序中有漏洞，利用它偷偷执行其他命令。
+- [T1548.003 - Sudo 权限缓存](./T1548/T1548.003-Sudo-Caching.md) — 趁别人刚输入过 sudo 密码的"缓存期"，直接执行 sudo 命令不需要密码。
+- [T1548.004 - 绕过系统授权组件](./T1548/T1548.004-Bypass-System-Authorization-Components.md) — 发现大楼的"VIP 认证系统"本身有安全漏洞，利用它获得 VIP 权限。
 
 </details>
 
@@ -246,9 +229,9 @@ Get-ItemProperty "HKCU:\Software\Classes\mscfile\shell\open\command"
 Get-ItemProperty "HKCU:\Software\Classes\mshta\shell\open\command"
 ```
 
-### 应用层检测
+**用人话说：** 滥用提升控制机制是攻击者绕过操作系统权限验证机制的技术总称。包括绕过Windows UAC（用户账户控制）、绕过sudo密码验证、利用sudo缓存、以及绕过Polkit等系统授权组件。目标是以低权限用户的身份执行需要管理员/root权限的操作，而不弹出确认提示或输入密码。这就像骗过大楼的门卫让他以为你是VIP——不需要真正的VIP卡，只需要让门禁系统误判你的身份。
 
-**Sigma规则示例：**
+**Sigma规则示例：**
 ```yaml
 title: FodHelper UAC Bypass
 status: experimental

@@ -4,9 +4,27 @@
 
 就像小偷偷到了员工的工牌，然后大摇大摆地刷卡进入各个办公室——攻击者偷到账号密码后，直接用RDP、SSH等远程管理工具登录其他电脑。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者偷到账号密码后，用RDP、SSH、SMB、WinRM等远程管理工具像"合法管理员"一样登录内网其他电脑，在一台台机器之间跳跃 |
+| 为什么危险？ | 远程服务是企业日常管理的必需品（RDP连服务器、SSH连Linux、SMB共享文件），几乎不可能完全禁用；攻击者使用合法凭据登录，行为与正常管理员无异，传统检测规则无法区分 |
+| 谁需要关心？ | 安全监控团队、SOC分析师、IT运维管理员 |
+| 你的第一步防御 | 部署堡垒机/跳板机作为所有远程管理连接的唯一入口，限制谁可以从哪里连接到哪台服务器 |
+| 如果只做一件事 | 监控登录类型10（RDP远程交互登录）的非预期来源——尤其是非管理工作站发起的RDP连接 |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络协议基本概念: 就像知道"打电话需要拨号才能接通"一样，了解客户端和服务器通过约定的规则（协议）通信，每种远程服务有自己的协议和端口
+- [ ] 身份认证基础: 就像用密码登录邮箱一样，理解系统通过用户名和密码（或更复杂的机制如Kerberos票据）验证你是谁
+- [ ] 远程桌面/SSH基本认知: 就像用遥控器操作电视一样，知道可以通过网络远程操作另一台电脑——即使没实践过，至少听说过RDP和SSH这两个名词
 
 ## 技术描述
 
@@ -14,6 +32,8 @@
 
 **通俗解释：**
 企业在日常管理中，IT管理员需要用远程桌面（RDP）连到服务器、用SSH连到Linux系统、用SMB共享文件。这些"远程管理工具"就像管理员的一串钥匙。攻击者如果偷到了这些钥匙（账号密码），就可以像合法管理员一样开门进入任何系统。更狡猾的是，这些工具本来就是正常工具，所以攻击者的行为很难被察觉。
+
+**过渡段：** 上面的"钥匙"比喻帮你建立了直观理解——有了正确的凭据就能通过远程管理通道进入其他系统。但这里有一个认知陷阱需要警惕：**把远程服务攻击想象成"捡到钥匙开门"会低估攻击者的技术门槛**。真实的横向移动中，攻击者不仅要"有钥匙"，还要知道哪扇门开着（端口扫描）、用哪把钥匙开哪扇门（选择正确的协议和凭据类型）、开门后怎么不被保安发现（绕过行为检测）。而且攻击者不是只用一种远程协议——他们会交叉使用RDP、SMB、WinRM、SSH等不同协议来规避单一协议的检测规则。下面的技术原理将带你从"钥匙开门"的具体想象过渡到攻击者实际的操作流程。
 
 **技术原理：**
 
@@ -43,61 +63,16 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1021.001 - Remote Desktop Protocol
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 就像用远程遥控器操作另一台电脑的屏幕。
-
-**详细说明：**
-RDP是Windows系统内置的远程桌面协议，允许用户通过网络连接到远程计算机并获得完整的图形化桌面界面。攻击者使用窃取的凭据通过RDP登录远程系统后，可以像坐在那台电脑前一样操作——运行程序、访问文件、窃取数据。RDP特别危险的地方在于：它提供完整的桌面访问权限，攻击者可以在RDP会话中绕过许多基于主机的安全控制（如屏幕保护、会话锁定），而且RDP连接通常不会被网络监控工具标记为可疑，因为管理员也天天在用。
-
-### T1021.002 - SMB/Windows Admin Shares
-
-**通俗理解：** 利用Windows系统默认开启的"后门共享文件夹"来传文件和执行命令。
-
-**详细说明：**
-Windows系统默认创建了一些隐藏的管理共享（ADMIN$、C$、IPC$），只有管理员才能访问。攻击者可以用`net use`命令映射远程系统的C$共享，然后像操作本地文件一样复制恶意工具；或者通过PsExec等工具，利用SMB协议在远程系统上创建服务并执行命令。SMB横向移动是Windows网络中最常见的方式，因为它使用内置功能、速度极快、且通常不会被防火墙阻止。
-
-### T1021.003 - Distributed Component Object Model
-
-**通俗理解：** 利用Windows的"远程组件调用"功能，让远程电脑帮你执行程序。
-
-**详细说明：**
-DCOM允许一台电脑上的程序调用另一台电脑上的程序功能。攻击者可以通过PowerShell在远程系统上创建COM对象（如MMC20.Application），然后调用这个对象的方法来执行任意命令。这种方法的优势是：它使用PowerShell脚本调用，可以绕过基于文件扫描的检测；而且DCOM流量混合在正常的Windows管理流量中，难以识别。
-
-### T1021.004 - SSH
-
-**通俗理解：** 用加密通道安全地登录远程Linux/Unix系统，还可以建立隧道绕过防火墙。
-
-**详细说明：**
-SSH是Linux/Unix系统最常用的远程管理协议，也越来越多地用于Windows（通过OpenSSH）。攻击者可以用窃取的SSH密钥或密码登录远程系统，通过SCP/SFTP传输文件，或者建立SSH隧道来访问被网络防火墙隔离的内部系统。SSH流量是加密的，所以安全设备无法检查其内容，这使得SSH成为攻击者最喜欢的横向移动通道之一。
-
-### T1021.005 - VNC
-
-**通俗理解：** 一个跨平台的远程桌面工具，可以远程控制其他电脑的屏幕。
-
-**详细说明：**
-VNC是一种跨平台的图形化桌面共享协议。攻击者在已入侵系统上安装VNC服务器，或者使用窃取的VNC凭据连接到其他系统上已有的VNC服务器。VNC在以下场景中被使用：目标环境使用Linux或macOS（VNC在这些平台上比RDP更常见）；攻击者需要避免RDP的检测特征；或者目标环境使用VNC作为合法的远程访问方案。
-
-### T1021.006 - Windows Remote Management
-
-**通俗理解：** 通过HTTP协议在远程Windows系统上执行PowerShell命令，就像远程操作PowerShell一样。
-
-**详细说明：**
-WinRM是Microsoft实现的WS-Management协议，是PowerShell远程管理（PowerShell Remoting）的基础。攻击者可以使用`Enter-PSSession`或`Invoke-Command`在远程系统上执行PowerShell命令。WinRM在现代Windows环境中越来越常见，因为：PowerShell Remoting是微软推荐的管理方法；WinRM使用HTTP(S)协议，可以穿过大多数防火墙；WinRM支持Kerberos认证，允许单点登录。
-
-### T1021.007 - Microsoft Management Console
-
-**通俗理解：** 利用Windows管理控制台远程连接到其他系统进行管理操作。
-
-**详细说明：**
-MMC提供标准化的管理界面，可以承载各种管理插件（如计算机管理、事件查看器、设备管理器等）。攻击者可以利用MMC的"连接到其他计算机"功能，以管理员的身份远程管理目标系统。这种方法的优势在于使用了合法的Windows管理工具，更难被检测。
-
-### T1021.008 - Remote Desktop Gateway
-
-**通俗理解：** 利用RDP网关服务器作为跳板，穿透网络防火墙连接到内部RDP资源。
-
-**详细说明：**
-RD Gateway（远程桌面网关）是一个充当RDP连接代理的服务器角色，位于网络边界，允许外部用户通过HTTPS加密的RDP连接访问内部资源。攻击者如果获取了RD Gateway服务器的访问权限，就可以利用它来访问内部网络中原本受防火墙保护的RDP服务，实现网络边界穿透。
+- [T1021.001 - Remote Desktop Protocol](./T1021/T1021.001-Remote Desktop Protocol-Remote Desktop Protocol.md) — 就像用远程遥控器操作另一台电脑的屏幕。
+- [T1021.002 - SMB/Windows Admin Shares](./T1021/T1021.002-SMB-Windows Admin Shares-SMB-Windows Admin Shares.md) — 利用Windows系统默认开启的"后门共享文件夹"来传文件和执行命令。
+- [T1021.003 - Distributed Component Object Model](./T1021/T1021.003-Distributed-Component-Object-Model-Distributed-Component-Object-Model.md) — 利用Windows的"远程组件调用"功能，让远程电脑帮你执行程序。
+- [T1021.004 - SSH](./T1021/T1021.004-SSH-SSH.md) — 用加密通道安全地登录远程Linux/Unix系统，还可以建立隧道绕过防火墙。
+- [T1021.005 - VNC](./T1021/T1021.005-VNC-VNC.md) — 一个跨平台的远程桌面工具，可以远程控制其他电脑的屏幕。
+- [T1021.006 - Windows Remote Management](./T1021/T1021.006-Windows Remote Management-Windows Remote Management.md) — 通过HTTP协议在远程Windows系统上执行PowerShell命令，就像远程操作PowerShell一样。
+- [T1021.007 - Microsoft Management Console](./T1021/T1021.007-Microsoft-Management-Console-Microsoft-Management-Console.md) — 利用Windows管理控制台远程连接到其他系统进行管理操作。
+- [T1021.008 - Remote Desktop Gateway](./T1021/T1021.008-Remote Desktop Gateway-Remote Desktop Gateway.md) — 利用RDP网关服务器作为跳板，穿透网络防火墙连接到内部RDP资源。
 
 </details>
 
@@ -270,6 +245,12 @@ Get-WinEvent -FilterHashtable @{LogName='Security'; ID=4624} | Where-Object {$_.
 
 ### 应用层检测
 
+**用人话说：**
+
+> 远程服务（T1021）是横向移动的"万能钥匙"——攻击者利用合法的远程管理协议（RDP、SSH、SMB、WinRM、VNC）登录其他机器执行操作。这些服务本身就是Windows/Linux的正常管理功能，所以攻击者不需要使用任何恶意软件或漏洞，只需要窃取到有效的凭据。实战中，攻击者常用CrackMapExec等工具自动化扫描内网中的开放远程服务，然后用之前窃取的密码哈希或明文密码批量尝试登录。一旦成功，立即用wmic、schtasks或PowerShell远程执行命令部署后门。正因为用的是"合法"的远程管理通道，检测难度很高，需要将登录事件与用户行为基线进行对比。
+>
+> **避坑指南**：只监控外部RDP，忽略内网横向RDP；忽略SMB管理共享异常访问；未区分正常SSH管理连接和异常横向。
+
 **Sigma规则示例：**
 ```yaml
 title: RDP Lateral Movement from Non-Workstation
@@ -392,26 +373,26 @@ netsh advfirewall firewall add rule name="Restrict RDP" dir=in protocol=tcp loca
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档
 
-- [MITRE ATT&CK - Remote Services](https://attack.mitre.org/techniques/T1021/)
-- [Remote Desktop Protocol - Microsoft Docs](https://docs.microsoft.com/en-us/windows/win32/termserv/remote-desktop-protocol)
-- [WinRM 文档 - Microsoft](https://docs.microsoft.com/en-us/windows/win32/winrm/portal)
+- [MITRE ATT&CK - Remote Services](https://attack.mitre.org/techniques/T1021/) - 深入了解技术细节
+- [Remote Desktop Protocol - Microsoft Docs](https://docs.microsoft.com/en-us/windows/win32/termserv/remote-desktop-protocol) - 深入了解技术细节
+- [WinRM 文档 - Microsoft](https://docs.microsoft.com/en-us/windows/win32/winrm/portal) - 深入了解技术细节
 
-### 安全报告
+### 📰 APT案例分析
 
-- [SolarWinds事件横向移动分析 - CrowdStrike](https://www.crowdstrike.com/blog/sunburst-indicators-of-compromise/)
-- [CISA Black Basta联合公告 - CISA](https://www.cisa.gov/news-events/alerts/2024/05/10/cisa-and-partners-release-advisory-black-basta-ransomware)
-- [FIN6使用DCOM进行横向移动 - Mandiant](https://www.mandiant.com/resources/blog/fin6-navigating-the-digital-payment-ecosystem.html)
+- [SolarWinds事件横向移动分析 - CrowdStrike](https://www.crowdstrike.com/blog/sunburst-indicators-of-compromise/) - 真实攻击案例
+- [CISA Black Basta联合公告 - CISA](https://www.cisa.gov/news-events/alerts/2024/05/10/cisa-and-partners-release-advisory-black-basta-ransomware) - 真实攻击案例
+- [FIN6使用DCOM进行横向移动 - Mandiant](https://www.mandiant.com/resources/blog/fin6-navigating-the-digital-payment-ecosystem.html) - 真实攻击案例
 
-### 工具与资源
+### 🔧 工具与实验
 
-- [Impacket - GitHub](https://github.com/fortra/impacket) - 横向移动工具套件
-- [CrackMapExec - GitHub](https://github.com/byt3bl33d3r/CrackMapExec) - 自动化横向移动工具
-- [evil-winrm - GitHub](https://github.com/Hackplayers/evil-winrm) - WinRM远程连接工具
+- [Impacket - GitHub](https://github.com/fortra/impacket) - 横向移动工具套件（动手试试）
+- [CrackMapExec - GitHub](https://github.com/byt3bl33d3r/CrackMapExec) - 自动化横向移动工具（动手试试）
+- [evil-winrm - GitHub](https://github.com/Hackplayers/evil-winrm) - WinRM远程连接工具（动手试试）
 
-### 学习资料
+### 📚 学习资料
 
-- [DCOM横向移动技术分析 - Mandiant](https://www.mandiant.com/resources/blog/dcom-lateral-movement)
-- [WinRM for Lateral Movement - SpecterOps](https://posts.specterops.io/lateral-movement-using-winrm-and-psremoting-3f46e5e3e386)
-- [SSH隧道在横向移动中的应用 - Detect FYI](https://detect.fyi/ssh-lateral-movement-techniques/)
+- [DCOM横向移动技术分析 - Mandiant](https://www.mandiant.com/resources/blog/dcom-lateral-movement) - 深入了解技术细节
+- [WinRM for Lateral Movement - SpecterOps](https://posts.specterops.io/lateral-movement-using-winrm-and-psremoting-3f46e5e3e386) - 深入了解技术细节
+- [SSH隧道在横向移动中的应用 - Detect FYI](https://detect.fyi/ssh-lateral-movement-techniques/) - 深入了解技术细节

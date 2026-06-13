@@ -104,7 +104,7 @@ graph TD
 **具体实施步骤：**
 1. 通过组策略禁用Office DDE功能，阻止攻击者利用DDE字段执行恶意命令
 2. 在Word、Excel、Outlook中禁用DDEAUTO和DDE字段更新
-3. 配置注册表禁用DDE：`HKEY_CURRENT_USER\Software\Microsoft\Office\<version>\Word\Security\DisableDDEServerLookup`
+3. 配置注册表禁用DDE：`HKEY_CURRENT_USER\Software\Microsoft\Office\&lt;version&gt;\Word\Security\DisableDDEServerLookup`
 
 ### 优先级2：重要措施
 

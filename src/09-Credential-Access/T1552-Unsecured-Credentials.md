@@ -4,6 +4,16 @@
 
 **攻击者在配置文件、脚本、日志和系统各处翻找别人不小心留下的密码——就像在别人办公室抽屉里找到写着密码的便签纸。**
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 在配置文件、脚本里找到别人留下的密码 |
+| 为什么危险？ | 开发者经常把密码写在配置文件里，攻击者只需要找到这些文件就能拿到大量凭证 |
+| 谁需要关心？ | 开发人员、DevOps工程师、SOC分析师 |
+| 你的第一步防御 | 使用密钥管理工具替代明文存储，扫描代码仓库中的敏感信息 |
+| 如果只做一件事 | 使用git-secrets或trufflehog扫描代码仓库，确保密码和密钥不会被提交到版本控制 |
+
 ## 难度等级
 
 - ⭐ 初级（新手可学）
@@ -43,40 +53,13 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1552.001 - Credentials in Files
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 在代码和配置文件中搜索不小心留下的密码。
-
-**详细说明：**
-攻击者使用搜索工具（Windows上用`findstr`，Linux上用`grep`）扫描文件系统中的目标文件。常见目标包括：Web应用配置文件（web.config、app.config、database.yml）、SSH私钥（~/.ssh/id_rsa）、云服务CLI凭证文件（~/.aws/credentials、~/.azure/credentials）、备份文件（.bak、.dump）、源代码中的硬编码API密钥。攻击者会用关键字列表（password、pwd、secret、connection string、access_key）精准定位。
-
-### T1552.002 - Credentials in Registry
-
-**通俗理解：** 在Windows注册表里翻找旧软件留下的密码。
-
-**详细说明：**
-某些老旧或配置不当的应用程序会将登录凭据（包括明文密码）写入Windows注册表。常见位置：`HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon`（默认密码）、`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`等。VNC、SQL Server、Oracle等第三方软件的旧版本也经常在注册表中保存凭据。
-
-### T1552.003 - Bash History
-
-**通俗理解：** 从命令行记录里翻出曾经输入过的密码。
-
-**详细说明：**
-用户在命令行中经常直接输入密码：`mysql -u root -p'password'`、`curl -u user:password`、通过`sshpass`自动登录等。这些命令会被记录在`~/.bash_history`、`~/.zsh_history`等历史文件中。攻击者读取这些文件即可提取明文密码。
-
-### T1552.005 - Cloud Instance Metadata API
-
-**通俗理解：** 云服务器内部有个"小窗口"会告诉攻击者当前机器的访问密钥。
-
-**详细说明：**
-云服务商（AWS、Azure、GCP）为计算实例分配一个特殊的IP地址（169.254.169.254），称为实例元数据服务（IMDS）。当实例绑定了IAM角色时，攻击者只需向该地址发送HTTP请求即可获取临时访问密钥和令牌。这些凭证可用于访问云存储、数据库和其他云资源。
-
-### T1552.007 - Container Credentials
-
-**通俗理解：** 从容器和Kubernetes环境中提取硬编码的密钥。
-
-**详细说明：**
-容器镜像中经常包含硬编码的密码和API密钥。在Kubernetes环境中，Pod默认自动挂载Service Account令牌（在`/var/run/secrets/kubernetes.io/serviceaccount/token`），攻击者使用此令牌可访问Kubernetes API服务器，列举所有namespace中的Secret对象。
+- [T1552.001 - 文件中的凭证](./T1552/T1552.001-Credentials-in-Files-Credentials-in-Files.md) — 在代码和配置文件中搜索不小心留下的密码。
+- [T1552.002 - 注册表中的凭证](./T1552/T1552.002-Credentials-in-Registry-Credentials-in-Registry.md) — 在Windows注册表里翻找旧软件留下的密码。
+- [T1552.003 - Bash历史记录](./T1552/T1552.003-Bash-History-Bash-History.md) — 从命令行记录里翻出曾经输入过的密码。
+- [T1552.005 - 云实例元数据API](./T1552/T1552.005-Cloud-Instance-Metadata-API-Cloud-Instance-Metadata-API.md) — 云服务器内部有个"小窗口"会告诉攻击者当前机器的访问密钥。
+- [T1552.007 - 容器凭证](./T1552/T1552.007-Container-Credentials-Container-Credentials.md) — 从容器和Kubernetes环境中提取硬编码的密钥。
 
 </details>
 
@@ -243,6 +226,11 @@ ausearch -k cred_search | grep -i "grep.*password"
 # AWS CloudWatch告警规则 - 检测IMDS请求
 sourceIPAddress = "169.254.169.254" AND eventName = "AssumeRole"
 ```
+
+
+
+
+**用人话说：** 这条规则在扫描代码仓库和配置文件中是否包含明文密码。很多开发者为了方便，会把数据库密码、API密钥直接写在代码或配置文件里。如果这些文件被攻击者找到，就等于把密码直接送给了他们。定期扫描代码仓库中的敏感信息，能提前发现这些'密码泄露点'。
 
 ### 应用层检测
 

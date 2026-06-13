@@ -4,11 +4,31 @@
 
 > 就像给你的电脑设了个"闹钟"——但这个闹钟不是叫你起床，而是在特定时间自动执行恶意代码。每天凌晨3点、每次你登录、或者每次系统启动，恶意程序都会准时"打卡上班"。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者利用系统内置的任务调度功能（Windows计划任务、Linux cron、Kubernetes CronJob）来定时自动执行恶意代码，实现持久化访问 |
+| 为什么危险？ | 因为是系统自带功能，杀毒软件不会拦截；可设置启动时、登录时、定时触发，系统重启也不会丢失访问 |
+| 谁需要关心？ | 系统管理员、安全运维人员、Kubernetes集群管理员 |
+| 你的第一步防御 | 监控计划任务创建事件（Windows事件ID 4698），定期审计crontab和systemd定时器的变更 |
+| 如果只做一件事 | 建立计划任务基线，用自动化工具定期对比当前任务列表与基线，发现新增或修改立即告警 |
+
 ## 难度等级
 
 ⭐ 简单（需要用户级或管理员权限）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 操作系统权限模型：知道什么是用户权限、管理员/SYSTEM/root权限的区别（就像普通员工 vs 老板的权限差别）
+- [ ] 命令行基础：会用schtasks.exe（Windows）和crontab（Linux）查看系统计划任务（就像会查看手机的"定时任务"列表）
+- [ ] 进程与服务概念：知道程序可以"在后台偷偷运行"（就像手机App在后台运行但不显示在前台）
+
 ## 技术描述
+
+**过渡段：** 上面的"闹钟"比喻帮你建立了直观印象，但现实中的计划任务机制远比闹钟复杂——它不只是定时响铃。攻击者可以精确控制何时触发（系统启动、用户登录、特定事件）、以什么权限运行（普通用户甚至SYSTEM/root）、执行什么操作（运行脚本、启动程序、下载payload）。更关键的是，每种操作系统都有自己的调度系统（Windows Task Scheduler、Linux cron/systemd timer、Kubernetes CronJob），它们的配置方式、检测方法和防御策略各不相同。下面我们来深入技术细节。
 
 攻击者可能滥用任务调度机制以在预定时间或间隔执行恶意代码，通过确保代码定期运行来实现持久性。任务调度设施内置于大多数操作系统和容器编排平台中，允许程序或脚本自动运行并具有可配置的触发器（如登录时、每天、空闲时、系统启动时）。这些机制通常被系统管理员用于合法维护任务，使其成为寻求隐蔽持久性的攻击者常用的"离地攻击"技术。
 
@@ -269,8 +289,11 @@ Invoke-AtomicTest T1053
 
 ## 参考资料
 
-- [MITRE ATT&CK T1053 计划任务/作业](https://attack.mitre.org/techniques/T1053/)
-- [APT29 SolarWinds活动分析 - Mandiant](https://www.mandiant.com/resources/evasive-attacker-leverages-solarwinds-supply-chain-compromises)
-- [TrickBot分析 - FireEye](https://www.fireeye.com/blog/threat-research/2020/02/trickbot-malware-analysis.html)
-- [Volt Typhoon Advisory - CISA](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a)
-- [Atomic Red Team - T1053](https://github.com/redcanaryco/atomic-red-tree/tree/master/atomics/T1053)
+### 分类标注
+| 类别 | 链接 |
+|------|------|
+| 📚 深入了解 | [MITRE ATT&CK T1053 计划任务/作业](https://attack.mitre.org/techniques/T1053/) - 如果你想深入了解技术细节 |
+| 🔧 动手试试 | [Atomic Red Team - T1053](https://github.com/redcanaryco/atomic-red-tree/tree/master/atomics/T1053) - 如果你想动手测试计划任务攻击 |
+| 📰 真实攻击 | [APT29 SolarWinds活动分析 - Mandiant](https://www.mandiant.com/resources/evasive-attacker-leverages-solarwinds-supply-chain-compromises) - 真实APT组织如何滥用计划任务 |
+| 📰 真实攻击 | [TrickBot分析 - FireEye](https://www.fireeye.com/blog/threat-research/2020/02/trickbot-malware-analysis.html) - TrickBot勒索软件中的计划任务使用 |
+| 📰 真实攻击 | [Volt Typhoon Advisory - CISA](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a) - Volt Typhoon在Linux服务器上用cron持久化 |

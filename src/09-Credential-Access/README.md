@@ -86,11 +86,71 @@ graph LR
 | [T1606](./T1606-Forge-Web-Credentials.md) | 伪造Web凭证 | ⭐⭐⭐ | 2 | 伪造SAML/OAuth令牌冒充任何用户 | ✅ 已完成 |
 | [T1649](./T1649-Steal-Authentication-Certificate.md) | 窃取或伪造认证证书 | ⭐⭐⭐ | 0 | 偷走数字证书的私钥 | ✅ 已完成 |
 
+
+
+## 子技术索引
+
+| 子技术ID | 名称 | 难度 | 一句话理解 | 文档状态 |
+|----------|------|:----:|-----------|:--------:|
+| [T1003.001](./T1003/T1003.001-LSASS-Memory-Dump.md) | LSASS内存转储 | ⭐⭐ | 从系统内存中提取正在使用的密码哈希 | ✅ 已完成 |
+| [T1003.002](./T1003/T1003.002-Security-Account-Manager.md) | SAM注册表 | ⭐⭐ | 从本地账户数据库中提取密码哈希 | ✅ 已完成 |
+| [T1003.003](./T1003/T1003.003-NTDS-Database.md) | NTDS数据库 | ⭐⭐ | 从域控制器中提取所有域用户的密码哈希 | ✅ 已完成 |
+| [T1003.004](./T1003/T1003.004-LSA-Secrets-LSA-Secrets.md) | LSA Secrets | ⭐⭐ | 提取系统服务账户的密码 | ✅ 已完成 |
+| [T1003.005](./T1003/T1003.005-Cached-Domain-Credentials.md) | 缓存域凭证 | ⭐⭐ | 提取缓存的域登录凭证 | ✅ 已完成 |
+| [T1003.006](./T1003/T1003.006-DCSync-DCSync.md) | DCSync | ⭐⭐ | 模拟域控制器"复制"所有域凭证 | ✅ 已完成 |
+| [T1003.007](./T1003/T1003.007--proc-Filesystem-.md) | /proc文件系统 | ⭐⭐ | 从Linux进程内存中提取凭证 | ✅ 已完成 |
+| [T1003.008](./T1003/T1003.008--etc-passwd-and--etc-shadow--etc-passwd和-etc-shadow.md) | /etc/passwd和/etc/shadow | ⭐⭐ | 读取Linux密码文件并离线破解 | ✅ 已完成 |
+| [T1056.001](./T1056/T1056.001-Web-Portal-Capture.md) | Web门户捕获 | ⭐⭐ | 创建假的登录页面骗取真实密码 | ✅ 已完成 |
+| [T1056.002](./T1056/T1056.002-GUI-Input-Capture.md) | GUI输入捕获 | ⭐⭐ | 用键盘记录器记录所有按键 | ✅ 已完成 |
+| [T1056.003](./T1056/T1056.003-Web-Credential-API.md) | Web凭证API | ⭐⭐ | 利用浏览器API窃取保存的凭证 | ✅ 已完成 |
+| [T1056.004](./T1056/T1056.004-Credential-API-Hooking.md) | 凭证API钩子 | ⭐⭐ | 拦截系统认证函数的调用 | ✅ 已完成 |
+| [T1110.001](./T1110/T1110.001-Password-Guessing.md) | 密码猜测 | ⭐ | 根据目标信息（生日、公司名）猜测可能的密码 | ✅ 已完成 |
+| [T1110.002](./T1110/T1110.002-Password-Cracking.md) | 密码破解 | ⭐ | 离线破解已获取的密码哈希 | ✅ 已完成 |
+| [T1110.003](./T1110/T1110.003-Password-Spraying.md) | 密码喷射 | ⭐ | 用少数常见密码对大量账户尝试 | ✅ 已完成 |
+| [T1110.004](./T1110/T1110.004-Credential-Stuffing.md) | 凭证填充 | ⭐ | 用泄露的密码库直接尝试登录 | ✅ 已完成 |
+| [T1550.001](./T1550/T1550.001-Application-Access-Token-Application-Access-Token.md) | Application Access Token | ⭐⭐⭐ | 用偷来的OAuth令牌访问云API | ✅ 已完成 |
+| [T1550.002](./T1550/T1550.002-Pass-the-Hash-Pass-the-Hash.md) | Pass the Hash | ⭐⭐⭐ | 用密码哈希代替密码登录Windows系统 | ✅ 已完成 |
+| [T1550.003](./T1550/T1550.003-Pass-the-Ticket-Pass-the-Ticket.md) | Pass the Ticket | ⭐⭐⭐ | 用Kerberos票据代替密码登录域资源 | ✅ 已完成 |
+| [T1550.004](./T1550/T1550.004-Web-Session-Cookie-Web-Session-Cookie.md) | Web Session Cookie | ⭐⭐⭐ | 用偷来的会话Cookie登录Web应用 | ✅ 已完成 |
+| [T1552.001](./T1552/T1552.001-Credentials-in-Files-Credentials-in-Files.md) | Credentials in Files | ⭐ | 在配置文件和脚本中找到明文密码 | ✅ 已完成 |
+| [T1552.002](./T1552/T1552.002-Credentials-in-Registry-Credentials-in-Registry.md) | Credentials in Registry | ⭐ | 从Windows注册表里提取保存的密码 | ✅ 已完成 |
+| [T1552.003](./T1552/T1552.003-Bash-History-Bash-History.md) | Bash History | ⭐ | 从命令行历史记录中翻出输入过的密码 | ✅ 已完成 |
+| [T1552.004](./T1552/T1552.004-Certificates-Certificates.md) | Certificates | ⭐ | 窃取数字证书的私钥 | ✅ 已完成 |
+| [T1552.005](./T1552/T1552.005-Cloud-Instance-Metadata-API-Cloud-Instance-Metadata-API.md) | Cloud Instance Metadata API | ⭐ | 从云服务器"元数据"接口获取临时凭证 | ✅ 已完成 |
+| [T1552.006](./T1552/T1552.006-Group-Policy-Preferences-Group-Policy-Preferences.md) | Group Policy Preferences | ⭐ | 从域策略文件中解密管理员密码 | ✅ 已完成 |
+| [T1552.007](./T1552/T1552.007-Container-Credentials-Container-Credentials.md) | Container Credentials | ⭐ | 从容器环境中提取硬编码密钥 | ✅ 已完成 |
+| [T1552.008](./T1552/T1552.008-Chat-Platform-Credentials-Chat-Platform-Credentials.md) | Chat Platform Credentials | ⭐ | 从聊天记录里找到不小心发出的密码 | ✅ 已完成 |
+| [T1555.001](./T1555/T1555.001-Keychain-Keychain.md) | Keychain | ⭐⭐ | 窃取macOS系统钥匙串中的所有密码 | ✅ 已完成 |
+| [T1555.002](./T1555/T1555.002-Securityd-Securityd.md) | Securityd | ⭐⭐ | 直接从macOS安全服务进程内存中提取密码 | ✅ 已完成 |
+| [T1555.003](./T1555/T1555.003-Web-Browsers-Web-Browsers.md) | Web Browsers | ⭐⭐ | 从Chrome/Firefox/Edge保存的密码中提取明文 | ✅ 已完成 |
+| [T1555.004](./T1555/T1555.004-Windows-Credential-Manager-Windows-Credential-Manager.md) | Windows Credential Manager | ⭐⭐ | 提取Windows凭据管理器中保存的登录信息 | ✅ 已完成 |
+| [T1555.005](./T1555/T1555.005-Password-Managers-Password-Managers.md) | Password Managers | ⭐⭐ | 从1Password/LastPass/KeePass等工具中提取密码 | ✅ 已完成 |
+| [T1555.006](./T1555/T1555.006-Group-Policies-Group-Policies.md) | Group Policies | ⭐⭐ | 解密域策略中嵌入的管理员密码 | ✅ 已完成 |
+| [T1556.001](./T1556/T1556.001-Domain-Controller-Authentication-Domain-Controller-Authentication.md) | Domain Controller Authentication | ⭐⭐⭐ | 修改域控的认证流程以捕获所有登录密码 | ✅ 已完成 |
+| [T1556.002](./T1556/T1556.002-Password-Filter-DLL-Password-Filter-DLL.md) | Password Filter DLL | ⭐⭐⭐ | 安装密码过滤器，在用户改密码时记录新密码 | ✅ 已完成 |
+| [T1556.003](./T1556/T1556.003-Pluggable-Authentication-Modules-Pluggable-Authentication-Modules.md) | Pluggable Authentication Modules | ⭐⭐⭐ | 修改Linux的认证模块，添加后门密码 | ✅ 已完成 |
+| [T1556.004](./T1556/T1556.004-Network-Device-Authentication-Network-Device-Authentication.md) | Network Device Authentication | ⭐⭐⭐ | 在路由器/交换机上添加后门用户或改认证配置 | ✅ 已完成 |
+| [T1556.005](./T1556/T1556.005-Reversible-Encryption-Reversible-Encryption.md) | Reversible Encryption | ⭐⭐⭐ | 将域账户密码改为可解密格式存储在AD中 | ✅ 已完成 |
+| [T1556.006](./T1556/T1556.006-Multi-Factor-Authentication-Multi-Factor-Authentication.md) | Multi-Factor Authentication | ⭐⭐⭐ | 修改或绕过多因素认证配置 | ✅ 已完成 |
+| [T1556.007](./T1556/T1556.007-Hybrid-Identity-Hybrid-Identity.md) | Hybrid Identity | ⭐⭐⭐ | 在混合云身份环境中添加受控的信任关系 | ✅ 已完成 |
+| [T1556.008](./T1556/T1556.008-Network-Provider-DLL-Network-Provider-DLL.md) | Network Provider DLL | ⭐⭐⭐ | 安装恶意网络提供程序捕获网络认证密码 | ✅ 已完成 |
+| [T1556.009](./T1556/T1556.009-Conditional-Access-Policy-Conditional-Access-Policy.md) | Conditional Access Policy | ⭐⭐⭐ | 修改云端的条件访问策略绕过安全限制 | ✅ 已完成 |
+| [T1557.001](./T1557/T1557.001-LLMNR-NBT-NS-Poisoning-and-SMB-Relay-LLMNR-NBT-NS-Poisoning-and-SMB-Relay.md) | LLMNR/NBT-NS Poisoning and SMB Relay | ⭐⭐ | 毒化名称解析，骗你的电脑把密码发给攻击者的机器 | ✅ 已完成 |
+| [T1557.002](./T1557/T1557.002-ARP-Cache-Poisoning-ARP-Cache-Poisoning.md) | ARP Cache Poisoning | ⭐⭐ | 伪造IP和MAC地址的对应关系，让流量走攻击者的机器 | ✅ 已完成 |
+| [T1557.003](./T1557/T1557.003-DHCP-Spoofing-DHCP-Spoofing.md) | DHCP Spoofing | ⭐⭐ | 用假的DHCP服务器分配恶意网络配置 | ✅ 已完成 |
+| [T1557.004](./T1557/T1557.004-Mutual-Authentication-Impairment-Mutual-Authentication-Impairment.md) | Mutual Authentication Impairment | ⭐⭐ | 破坏双向证书验证，让攻击者能解密加密流量 | ✅ 已完成 |
+| [T1558.001](./T1558/T1558.001-Golden-Ticket-Golden-Ticket.md) | Golden Ticket | ⭐⭐⭐ | 伪造Kerberos通票，可以冒充任何域用户 | ✅ 已完成 |
+| [T1558.002](./T1558/T1558.002-Silver-Ticket-Silver-Ticket.md) | Silver Ticket | ⭐⭐⭐ | 伪造服务票，不用联系域控也能访问特定服务 | ✅ 已完成 |
+| [T1558.003](./T1558/T1558.003-Kerberoasting-Kerberoasting.md) | Kerberoasting | ⭐⭐⭐ | 申请服务票据离线破解服务账户密码 | ✅ 已完成 |
+| [T1558.004](./T1558/T1558.004-AS-REP-Roasting-AS-REP-Roasting.md) | AS-REP Roasting | ⭐⭐⭐ | 针对不需要预认证的账户直接破解密码 | ✅ 已完成 |
+| [T1606.001](./T1606/T1606.001-SAML-Tokens-SAML-Tokens.md) | SAML Tokens | ⭐⭐⭐ | 伪造SAML单点登录断言，冒充任何用户访问企业应用 | ✅ 已完成 |
+| [T1606.002](./T1606/T1606.002-OAuth-Tokens-OAuth-Tokens.md) | OAuth Tokens | ⭐⭐⭐ | 伪造OAuth访问令牌，未经授权访问云API和资源 | ✅ 已完成 |
+
 ### 统计信息
 
 - **技术总数**：19 个
-- **子技术总数**：63 个
-- **已完成文档**：19 个
+- **子技术总数**：53 个
+- **已完成文档**：53 个
 - **进行中文档**：0 个
 - **待编写文档**：0 个
 

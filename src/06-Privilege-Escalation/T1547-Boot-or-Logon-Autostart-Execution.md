@@ -49,23 +49,11 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1547.001 - 注册表自启项
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 在系统的"开机启动清单"上加一行恶意程序的路径。
-
-**详细说明：** 攻击者在注册表项 `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` 或 `HKLM\Software\Microsoft\Windows\CurrentVersion\Run` 中添加恶意程序的路径。系统启动或用户登录时，自动运行注册表中列出的所有程序。
-
-### T1547.006 - 启动文件夹
-
-**通俗理解：** 在"启动"文件夹中贴一张"自启纸条"。
-
-**详细说明：** 攻击者将恶意程序的快捷方式或可执行文件放入启动文件夹。用户启动文件夹路径：`%AppData%\Microsoft\Windows\Start Menu\Programs\Startup`。所有用户启动文件夹路径：`%ProgramData%\Microsoft\Windows\Start Menu\Programs\Startup`。
-
-### T1547.009 - 快捷方式修改
-
-**通俗理解：** 把"开机自启程序"的快捷方式偷偷改成指向恶意软件。
-
-**详细说明：** 攻击者不创建新的自启动项，而是修改已有的系统级快捷方式（如所有用户启动文件夹中的快捷方式），将其目标路径改为恶意程序。这样启动时看起来在运行合法程序，实际上执行的是恶意代码。
+- [T1547.001 - 注册表自启项](./T1547/T1547.001-Registry-Auto-start-Entry.md) — 在系统的"开机启动清单"上加一行恶意程序的路径。
+- [T1547.006 - 启动文件夹](./T1547/T1547.006-Enable-Startup-Folder.md) — 在"启动"文件夹中贴一张"自启纸条"。
+- [T1547.009 - 快捷方式修改](./T1547/T1547.009-Shortcut-Modification.md) — 把"开机自启程序"的快捷方式偷偷改成指向恶意软件。
 
 </details>
 
@@ -242,9 +230,9 @@ Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Run"
 Get-ChildItem "$env:AppData\Microsoft\Windows\Start Menu\Programs\Startup"
 ```
 
-### 应用层检测
+**用人话说：** 启动或登录自动启动执行是一大类持久化技术的总称，攻击者在系统启动或用户登录时自动执行恶意代码。包括注册表Run键、启动文件夹、Winlogon辅助DLL、内核模块加载、LSASS驱动等。这些机制的共同点是：每次系统启动或用户登录时，恶意代码自动以当前用户的权限或更高权限运行，无需攻击者手动干预。这就像在汽车的点火系统上加装了一个外挂装置——每次打火启动时，外挂自动开始工作。
 
-**Sigma规则示例：**
+**Sigma规则示例：**
 ```yaml
 title: Registry Run Key Modification
 status: experimental

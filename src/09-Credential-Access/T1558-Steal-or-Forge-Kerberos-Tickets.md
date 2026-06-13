@@ -4,6 +4,16 @@
 
 **攻击者伪造了"域通行证"——不需要知道密码，拿着这张假票就能进入域里的任何系统，就像拿着伪造的工牌混进公司大楼。**
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 伪造域认证的'通行证' |
+| 为什么危险？ | Kerberos票据是域环境的认证核心，伪造它就能冒充任何域用户 |
+| 谁需要关心？ | 域管理员、Active Directory安全工程师、SOC分析师 |
+| 你的第一步防御 | 监控异常的Kerberos票据使用，启用PAC验证 |
+| 如果只做一件事 | 监控Windows事件ID 4769，关注异常的票据请求和使用模式 |
+
 ## 难度等级
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
@@ -38,33 +48,12 @@ Kerberos票据攻击是域渗透中最核心的技术之一。金票攻击可以
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1558.001 - Golden Ticket
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 伪造了一张"万能通行证"，可以在整个域中自由出入。
-
-**详细说明：**
-金票（Golden Ticket）攻击需要获取域控上KRBTGT账户的密码哈希。KRBTGT是域中负责签发所有Kerberos票据的账户，其密码哈希相当于整个域的"签名密钥"。攻击者通过DCSync或NTDS.dit提取KRBTGT哈希后，使用mimikatz的`kerberos::golden`命令伪造任意域用户的TGT票据。伪造的TGT可以指定任意SID（安全标识符，即用户的数字身份编号）和组成员身份（包括域管理员组）。金票的过期时间由攻击者指定（最长可达10年），且KRBTGT密码不随用户密码更改而改变。
-
-### T1558.002 - Silver Ticket
-
-**通俗理解：** 伪造了一张"项目票"——只能玩一个项目，但好处是不用去售票处验票。
-
-**详细说明：**
-银票（Silver Ticket）攻击只需要目标服务账户的NTLM哈希（如SQL Server服务账户、IIS应用池账户、CIFS文件共享账户）。攻击者用这个哈希伪造访问该服务的TGS票据。与金票不同，银票只针对特定服务有效（如只能访问SQL Server），但好处是不需要和域控通信——银票验证不需要KRBTGT参与，因此域控上没有相关日志。银票常用于横向移动到特定服务端点。
-
-### T1558.003 - Kerberoasting
-
-**通俗理解：** 向售票处要一张游戏项目的门票，然后拿着门票回家慢慢试密码。
-
-**详细说明：**
-Kerberoasting利用了Kerberos协议的一个特性：任何域用户都可以向域控请求某个服务账户的服务票据。域控会用该服务账户的NTLM哈希加密票据的一部分。攻击者将加密的票据下载到本地，使用Hashcat或John the Ripper进行离线破解。因为服务账户的密码通常由管理员设置（非用户自选），往往不够复杂，更容易被破解。常用工具有Impacket的`GetUserSPNs.py`和Rubeus的`kerberoast`命令。
-
-### T1558.004 - AS-REP Roasting
-
-**通俗理解：** 找到没有上锁的房间，直接拿走里面的密码慢慢试。
-
-**详细说明：**
-Active Directory中的用户账户可以配置为"不需要Kerberos预认证"（不验证请求者身份就发放加密回复）。对于这些账户，攻击者可以直接向域控发送AS-REQ请求并获得AS-REP回复，回复中包含使用账户密码哈希加密的数据。攻击者不需要任何域凭据就可以发起此攻击。常用工具有Impacket的`GetNPUsers.py`和Rubeus的`asreproast`命令。
+- [T1558.001 - 黄金票据](./T1558/T1558.001-Golden-Ticket-Golden-Ticket.md) — 伪造了一张"万能通行证"，可以在整个域中自由出入。
+- [T1558.002 - 白银票据](./T1558/T1558.002-Silver-Ticket-Silver-Ticket.md) — 伪造了一张"项目票"——只能玩一个项目，但好处是不用去售票处验票。
+- [T1558.003 - Kerberoasting攻击](./T1558/T1558.003-Kerberoasting-Kerberoasting.md) — 向售票处要一张游戏项目的门票，然后拿着门票回家慢慢试密码。
+- [T1558.004 - AS-REP Roasting攻击](./T1558/T1558.004-AS-REP-Roasting-AS-REP-Roasting.md) — 找到没有上锁的房间，直接拿走里面的密码慢慢试。
 
 </details>
 
@@ -229,6 +218,11 @@ Get-WinEvent -FilterHashtable @{LogName='Security';ID=4769} |
     Group-Object {$_.Properties[0].Value} |
     Where-Object Count -gt 10
 ```
+
+
+
+
+**用人话说：** 这条规则在监控Kerberos票据的异常使用。Kerberos是Windows域环境的认证协议。正常情况下票据会在固定设备上使用，而且每次使用都会关联到TGT请求。如果发现票据使用异常（如从不同设备使用、没有对应TGT请求），那就是攻击者在使用伪造的Kerberos票据。
 
 ### 应用层检测
 

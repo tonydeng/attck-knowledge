@@ -4,15 +4,35 @@
 
 **攻击者利用系统自带的命令行工具（PowerShell、cmd、Python等）来执行恶意命令——就像用你家的菜刀来做坏事，刀本身是合法的工具。**
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者利用操作系统自带的命令行工具和脚本解释器（PowerShell、cmd、bash、Python等）来执行恶意代码，核心是"就地取材"（Living off the Land），用合法工具干非法勾当 |
+| 为什么危险？ | 这些工具本身就是操作系统的一部分，安全软件无法彻底禁用它们。90%以上的攻击活动使用至少一种脚本解释器，从钓鱼邮件中的VBA宏到数据窃取的PowerShell下载，覆盖攻击全链条 |
+| 谁需要关心？ | 系统管理员、安全运营中心（SOC）分析师、红蓝队渗透测试人员、负责端点安全的企业安全团队 |
+| 你的第一步防御 | 启用PowerShell脚本块日志（Event ID 4104）并集中收集到SIEM，打开Windows的"黑匣子"记录所有脚本执行 |
+| 如果只做一件事 | 监控Microsoft Office程序（winword.exe、excel.exe）启动powershell.exe或cmd.exe——这是钓鱼攻击中最强烈的可疑信号之一 |
+
 ## 难度等级
 
 ⭐️ 初级（新手可学）
 
 大部分命令和脚本解释器系统自带，无需额外工具，入门门槛低。
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 命令行基础：了解什么是命令行界面（CLI），就像知道遥控器上的按钮是干什么的——你不用记住每个按钮，但要懂基本操作逻辑
+- [ ] 进程与父进程关系：理解程序之间是谁"生"了谁——就像知道孩子（子进程）的父母（父进程）是谁，Word启动PowerShell就是可疑信号
+- [ ] 编码与混淆概念：了解Base64编码的基本原理——就像把一句话翻译成看不懂但机器能还原的"密语"，攻击者用它来绕过关键字匹配检测
+
 ## 技术描述
 
 命令和脚本解释器是攻击者最常用的执行技术，没有之一。所有操作系统都自带命令行工具和脚本解释器：Windows有PowerShell和cmd.exe，Linux有bash/zsh，macOS有zsh，还有跨平台的Python、JavaScript等。攻击者直接利用这些"合法工具"来执行恶意命令，因为这些工具本身就是系统正常运行的一部分，安全软件很难把它们全部拦截。
+
+**过渡段：** 不要误以为脚本解释器只是"执行命令"这么简单——在攻击者手中，它是一个完整的攻击平台。PowerShell可以通过`[Reflection.Assembly]::Load()`在内存中加载C#编译的恶意DLL，bash脚本配合curl/wget可以从远程服务器下载并执行任意程序，Python丰富的第三方库生态让攻击者能在几分钟内编写出功能完善的定制后门。这意味着：检测脚本解释器的"启动"只是第一步，更关键的是分析它"启动之后做了什么"——API调用序列、网络连接模式、进程链关系才是判断善恶的关键依据。
 
 **通俗解释：**
 就像家里的菜刀——它本身是合法的厨房工具，但坏人可以用它来做坏事。系统自带的命令行工具也是合法的系统工具，攻击者"就地取材"，用这些工具来执行恶意操作。这就是所谓"Living off the Land"（就地取材）攻击策略。
@@ -357,22 +377,22 @@ Invoke-AtomicTest T1059 -TestNumbers 1
 
 ### 官方文档
 
-- [MITRE ATT&CK T1059官方页面](https://attack.mitre.org/techniques/T1059/)
-- [PowerShell日志记录最佳实践](https://docs.microsoft.com/en-us/powershell/scripting/windows-powershell/wmf/overview)
+- 📚 [MITRE ATT&CK T1059官方页面](https://attack.mitre.org/techniques/T1059/) - 深入了解技术细节
+- 📚 [PowerShell日志记录最佳实践](https://docs.microsoft.com/en-us/powershell/scripting/windows-powershell/wmf/overview) - 深入了解技术细节
 
 ### 安全报告
 
-- [Volt Typhoon攻击分析](https://www.microsoft.com/en-us/security/blog/2023/05/24/volt-typhoon-targets-us-critical-infrastructure-with-living-off-the-land-techniques/)
-- [ClickFix攻击技术分析](https://www.proofpoint.com/us/blog/threat-insight/clickfix-social-engineering-lures-are-here-stay)
-- [CISA Scattered Spider公告](https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-320a)
+- 📰 [Volt Typhoon攻击分析](https://www.microsoft.com/en-us/security/blog/2023/05/24/volt-typhoon-targets-us-critical-infrastructure-with-living-off-the-land-techniques/) - 真实攻击案例
+- 📰 [ClickFix攻击技术分析](https://www.proofpoint.com/us/blog/threat-insight/clickfix-social-engineering-lures-are-here-stay) - 真实攻击案例
+- 📰 [CISA Scattered Spider公告](https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-320a) - 真实攻击案例
 
 ### 工具与资源
 
-- [LOLBins项目](https://lolbas-project.github.io/)
-- [Atomic Red Team T1059测试](https://www.atomicredteam.io/atomics/T1059/)
-- [PowerShell安全最佳实践](https://docs.microsoft.com/en-us/powershell/scripting/learn/remoting/winrmsecurity)
+- 🔧 [LOLBins项目](https://lolbas-project.github.io/) - 动手试试
+- 🔧 [Atomic Red Team T1059测试](https://www.atomicredteam.io/atomics/T1059/) - 动手试试
+- 📚 [PowerShell安全最佳实践](https://docs.microsoft.com/en-us/powershell/scripting/learn/remoting/winrmsecurity) - 深入了解技术细节
 
 ### 学习资料
 
-- [PowerShell攻击与防御系列](https://www.youtube.com/playlist?list=PL6XzfVJxv_Cj29M4FniBtRlP7OimhH3W2)
-- [Living off the Land攻击哲学](https://www.elastic.co/blog/embracing-offensive-tools-in-your-defensive-arsenal)
+- 📚 [PowerShell攻击与防御系列](https://www.youtube.com/playlist?list=PL6XzfVJxv_Cj29M4FniBtRlP7OimhH3W2) - 深入了解技术细节
+- 📚 [Living off the Land攻击哲学](https://www.elastic.co/blog/embracing-offensive-tools-in-your-defensive-arsenal) - 深入了解技术细节

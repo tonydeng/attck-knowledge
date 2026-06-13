@@ -44,27 +44,11 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1611.001 - 虚拟机逃逸
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 从 VM 虚拟机中"钻出来"到宿主机上。
-
-**详细说明：** 虚拟机管理程序（Hypervisor）是运行在宿主机上的软件层，负责管理虚拟机的 CPU、内存和 I/O 操作。虚拟机逃逸漏洞通常出现在 Hypervisor 处理特定指令或设备模拟时。最著名的例子是 CVE-2017-5715（Spectre）和 CVE-2023-20871（VMware Escape），攻击者在虚拟机中执行恶意代码，利用 Hypervisor 的内存处理漏洞突破隔离。
-
-### T1611.002 - 容器逃逸
-
-**通俗理解：** 从 Docker 容器中"走出来"，进入宿主机。
-
-**详细说明：** 容器共享宿主机的内核，但通过命名空间和控制组（cgroups）隔离。容器逃逸通常利用：
-1. 挂载卷越权（如将宿主机根目录挂载到容器中）
-2. 内核漏洞（如 CVE-2022-0492、CVE-2024-1086）
-3. 容器运行时配置错误（如 privileged 模式、cap_sys_admin）
-4. 不安全的 Docker.sock 访问
-
-### T1611.003 - 应用程序沙箱逃逸
-
-**通俗理解：** 从浏览器的"安全牢笼"中跳出来，进入操作系统中。
-
-**详细说明：** 浏览器沙箱通过进程隔离和限制系统调用来保护操作系统不被恶意网页代码影响。应用程序沙箱逃逸利用渲染进程或浏览器内核中的漏洞，绕过这些限制，执行系统级操作。
+- [T1611.001 - 虚拟机逃逸](./T1611/T1611.001-Virtual-Machine-Escape.md) — 从 VM 虚拟机中"钻出来"到宿主机上。
+- [T1611.002 - 容器逃逸](./T1611/T1611.002-Container-Escape.md) — 从 Docker 容器中"走出来"，进入宿主机。
+- [T1611.003 - 应用程序沙箱逃逸](./T1611/T1611.003-Application-Sandbox-Escape.md) — 从浏览器的"安全牢笼"中跳出来，进入操作系统中。
 
 </details>
 
@@ -252,9 +236,9 @@ dmesg | grep -i "namespace\|container\|escape"
 falco --list
 ```
 
-### 应用层检测
+**用人话说：** 逃逸到主机是攻击者从虚拟化环境（VMware、Hyper-V）或容器环境（Docker、Kubernetes）中突破隔离，获得宿主机操作系统访问权限的技术总称。包括利用虚拟机管理程序的漏洞逃逸到宿主机、利用容器配置缺陷（如特权容器、挂载docker.sock）逃逸到宿主机、从浏览器或应用沙箱中逃逸到操作系统。这就像犯人从监狱牢房（虚拟机/容器）中越狱到监狱大院（宿主机），获得更大的自由度和控制权。
 
-**Falco 规则示例：**
+**Falco 规则示例：**
 ```yaml
 title: Container Escape via Mount Namespace
 description: Detects attempts to escape container by manipulating mount namespace

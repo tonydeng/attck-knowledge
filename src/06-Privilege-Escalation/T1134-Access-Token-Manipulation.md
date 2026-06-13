@@ -40,23 +40,11 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1134.001 - 令牌冒充/盗取
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 趁管理员不注意，"借"他的工牌用一下。
-
-**详细说明：** 攻击者使用 `OpenProcessToken` 打开高权限进程（如 SYSTEM 服务）的令牌，然后使用 `DuplicateTokenEx` 复制令牌，最后通过 `ImpersonateLoggedOnUser` 冒充该令牌的身份。这是最常用的令牌操纵技术。
-
-### T1134.002 - 使用令牌创建进程
-
-**通俗理解：** 用偷来的工牌去注册一个新员工，这个新员工也是管理员。
-
-**详细说明：** 攻击者使用 `CreateProcessWithTokenW` 或 `CreateProcessAsUser` API，以窃取到的令牌启动一个新进程。新进程继承了令牌的权限，以高权限用户的身份运行。
-
-### T1134.004 - 父进程ID欺骗
-
-**通俗理解：** 让新进程假装是系统合法程序（如 explorer.exe）的儿子。
-
-**详细说明：** 通过 `CreateProcess` 的 `STARTUPINFOEXT` 参数指定父进程，使新创建的进程呈现为可信父进程（如 explorer.exe）的子进程。这可以绕过基于父进程信任的安全策略。
+- [T1134.001 - 令牌冒充/盗取](./T1134/T1134.001-Token-Impersonation-Theft-令牌冒充.md) — 趁管理员不注意，"借"他的工牌用一下。
+- [T1134.002 - 使用令牌创建进程](./T1134/T1134.002-Create-Process-with-Token.md) — 用偷来的工牌去注册一个新员工，这个新员工也是管理员。
+- [T1134.004 - 父进程ID欺骗](./T1134/T1134.004-Parent-PID-Spoofing.md) — 让新进程假装是系统合法程序（如 explorer.exe）的儿子。
 
 </details>
 
@@ -221,9 +209,9 @@ Get-WinEvent -FilterHashtable @{LogName='Security'; ID=4688} |
     Select-Object -First 10 | Format-List
 ```
 
-### 应用层检测
+**用人话说：** 访问令牌操纵是Windows平台上的核心提权技术。Windows中的访问令牌（Access Token）包含了用户的安全标识和权限信息，攻击者通过窃取高权限令牌、伪造令牌或利用令牌继承机制提升权限。最著名的工具有Mimikatz的token::elevate和Windows API的ImpersonateLoggedOnUser。这就像在机场偷了一张VIP的登机牌——安检系统认牌不认人，拿到谁的令牌就拥有谁的权限。
 
-**Sigma规则示例：**
+**Sigma规则示例：**
 ```yaml
 title: Suspicious Token Manipulation via SeImpersonatePrivilege
 status: experimental

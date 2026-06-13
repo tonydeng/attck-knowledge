@@ -4,9 +4,27 @@
 
 攻击者把你的所有文件都加上密码锁，然后贴纸条说"给钱就给你钥匙"——这就是勒索软件的核心技术。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者用高强度加密算法（AES-256/RSA-4096）锁死你的所有文件，然后贴纸条说"给钱就给钥匙"——勒索软件的核心技术 |
+| 为什么危险？ | 勒索软件会加密你所有的文档、数据库、备份文件甚至虚拟机磁盘，导致业务完全中断；攻击者还采用"双重勒索"——不给钱就公开你的敏感数据；2025年全球超过4,700起勒索事件，损失高达数百亿美元 |
+| 谁需要关心？ | 安全运维团队、系统管理员、业务负责人、CIO/CISO——因为勒索不仅影响IT，还直接威胁业务连续性 |
+| 你的第一步防御 | 实施3-2-1备份策略（至少3份副本、2种介质、1份离线不可变备份），确保被加密后能恢复数据 |
+| 如果只做一件事 | 监控卷影副本删除命令（vssadmin delete shadows）和批量文件重命名行为——这两步通常是勒索软件加密前的前兆信号 |
+
 ## 难度等级
 
 ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 加密的基本概念: 就像"把文件装进保险箱，只有钥匙能打开"——至少知道加密是用算法把数据变成乱码，解密是变回来，而且没有密钥就解不开
+- [ ] 文件系统基础: 就像知道"文件存在硬盘的文件夹里"——了解文件有扩展名（.docx、.pdf、.xlsx），理解卷影副本是Windows的自动备份机制
+- [ ] 网络共享基本认知: 就像知道"办公室的共享文件夹"——了解NAS、网络映射盘的概念，因为勒索软件会加密本地和网络上的所有文件
 
 ## 技术描述
 
@@ -14,6 +32,8 @@
 
 **通俗解释：**
 想象你回到家，发现家门被换成了一把密码锁，门上贴着纸条："转账10万比特币，我就告诉你密码。"攻击者做的事情类似——他们入侵你的电脑后，用加密算法把你的所有文档、照片、数据库文件都锁住，只有他们手里的密钥才能解开。与数据销毁（T1485）不同，加密后的数据理论上还能恢复（只要有密钥），但攻击者通常要求支付赎金才给密钥。
+
+**过渡段（认知偏差提醒）：** 上面的"家门上锁"比喻虽然直观，但它可能触发一种危险的认知偏差——**恐惧驱动下的"支付捷径"思维**。当比喻中的"锁门要钱"场景激发恐惧和焦虑时，人很容易跳过技术分析，直接思考"要不要交钱"这个错误问题。这不是你的错——勒索软件的设计者深谙人性弱点，他们故意用恐惧制造紧迫感，让你来不及理性思考。事实上，勒索攻击远不止"交钱拿钥匙"这么简单：攻击者可能在加密前就窃取了你数TB的数据（双重勒索），即使支付赎金也可能拿不到解密工具（有1/3的受害者付了钱仍无法恢复数据），而且交了钱你会被标记为"愿意付款"成为下一次攻击的目标。下面的技术原理将帮助你建立理性认知——只有理解了攻击者的技术操作，才能做出正确的防御和响应决策。
 
 **技术原理：**
 
@@ -208,6 +228,8 @@ Get-WinEvent -FilterHashtable @{LogName='Security'; ID=4663} | Where-Object {$_.
 
 ### 应用层检测
 
+**用人话说：** 这条规则在检测勒索软件的加密行为。勒索软件入侵后会先停掉数据库和备份服务（避免文件被锁定），然后用AES/RSA混合加密算法批量扫描并加密文档、数据库和备份文件，最后在每个目录释放README赎金通知。检测的关键信号是：vssadmin delete shadows删除卷影副本的操作（加密前几乎必做）、大量文件在同一时间被修改扩展名（如.docx→.encrypted）、或者服务器上出现名为HOW_TO_DECRYPT/README的txt或html文件。勒索软件通常会先窃取敏感数据再加密，实现"双重勒索"——不交钱就公开数据。
+
 **Sigma规则示例：**
 ```yaml
 title: 检测卷影副本删除 - 勒索软件前兆
@@ -346,24 +368,24 @@ rsync -avz --delete /data /mnt/offline-backup/
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档
 
-- [MITRE ATT&CK - Data Encrypted for Impact](https://attack.mitre.org/techniques/T1486/)
+- [MITRE ATT&CK - Data Encrypted for Impact](https://attack.mitre.org/techniques/T1486/) - 深入了解技术细节
 
-### 安全报告
+### 📰 APT案例分析
 
-- [GRIT 2026 Ransomware Report](https://www.guidepointsecurity.com/wp-content/uploads/2026/01/GRIT-2026-Ransomware-and-Cyber-Threat-Report.pdf) - 2026年度勒索软件报告
-- [LockBit 3.0 Analysis - Trend Micro](https://www.trendmicro.com/vinfo/us/security/news/ransomware-spotlight/lockbit-3-0)
-- [BlackCat/ALPHV Analysis - Mandiant](https://www.mandiant.com/resources/blog/alphv-ransomware-bold-affiliates)
-- [2025年勒索软件流行态势报告 - 360](https://www.360.cn/n/12899.html)
+- [GRIT 2026 Ransomware Report](https://www.guidepointsecurity.com/wp-content/uploads/2026/01/GRIT-2026-Ransomware-and-Cyber-Threat-Report.pdf) - 2026年度勒索软件报告（真实攻击案例）
+- [LockBit 3.0 Analysis - Trend Micro](https://www.trendmicro.com/vinfo/us/security/news/ransomware-spotlight/lockbit-3-0) - 真实攻击案例
+- [BlackCat/ALPHV Analysis - Mandiant](https://www.mandiant.com/resources/blog/alphv-ransomware-bold-affiliates) - 真实攻击案例
+- [2025年勒索软件流行态势报告 - 360](https://www.360.cn/n/12899.html) - 真实攻击案例
 
-### 工具与资源
+### 🔧 工具与实验
 
-- [MalwareBazaar](https://bazaar.abuse.ch/) - 恶意软件样本库
-- [Any.Run](https://any.run/) - 在线恶意软件沙箱
-- [IDA Free](https://hex-rays.com/ida-free/) - 恶意软件逆向分析工具
+- [MalwareBazaar](https://bazaar.abuse.ch/) - 恶意软件样本库（动手试试）
+- [Any.Run](https://any.run/) - 在线恶意软件沙箱（动手试试）
+- [IDA Free](https://hex-rays.com/ida-free/) - 恶意软件逆向分析工具（动手试试）
 
-### 学习资料
+### 📚 学习资料
 
-- [TryHackMe - Ransomware Room](https://tryhackme.com/) - 勒索软件攻防实验室
-- [Ransomware Overview - CISA](https://www.cisa.gov/stopransomware) - CISA反勒索软件指南
+- [TryHackMe - Ransomware Room](https://tryhackme.com/) - 勒索软件攻防实验室（动手试试）
+- [Ransomware Overview - CISA](https://www.cisa.gov/stopransomware) - CISA反勒索软件指南（深入了解技术细节）

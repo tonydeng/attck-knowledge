@@ -4,6 +4,16 @@
 
 攻击者访问你们公司内部共享文件夹（就像部门公用的网盘），把里面的文件全部下载走。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者访问你们公司内部共享文件夹（就像部门公用的网盘），把里面的文件全部下载走。 |
+| 为什么危险？ | 网络共享是企业的数据金矿——财务数据、客户信息、产品设计、源代码备份、运维脚本等往往都存在共享服务器上。攻击者从共享中收 |
+| 谁需要关心？ | 数据安全团队、SOC分析师 |
+| 你的第一步防御 | 异常的SMB枚举行为 |
+| 如果只做一件事 | 公司内部通常会有"共享文件夹"——员工可以访问的公共存储空间，用来存放团队文档、项目资料、备份文件等 |
+
 ## 难度等级
 
 ⭐⭐ 中级（需要一定基础）
@@ -55,7 +65,7 @@ graph TD
 
 2. **枚举网络共享**
    - 通俗描述：查看内网上有哪些共享文件夹可以访问
-   - 技术细节：使用`net view \\<server>`查询指定服务器上的共享资源
+   - 技术细节：使用`net view \\&lt;server&gt;`查询指定服务器上的共享资源
    - 常用工具：`net view`、`net share`、SMB扫描器
 
 3. **映射驱动器**
@@ -98,7 +108,7 @@ graph TD
 - **时间**: 2020年-2021年
 - **目标**: 美国政府机构、IT企业、智库
 - **攻击组织**: APT29 (Cozy Bear / Nobelium，俄罗斯背景)
-- **手法**: APT29在SolarWinds供应链攻击后，使用Cobalt Strike的SMB扫描模块发现内部文件服务器的共享资源。攻击者使用PowerShell命令`Copy-Item -Path \\<server>\<share>\* -Destination C:\temp\staging -Recurse`批量将共享中的敏感文件复制到中间系统。APT29特别关注研发文档、项目管理文件和与SolarWinds相关的内部代码共享。收集的数据经过加密、分段压缩后逐步渗漏至攻击者C2基础设施。
+- **手法**: APT29在SolarWinds供应链攻击后，使用Cobalt Strike的SMB扫描模块发现内部文件服务器的共享资源。攻击者使用PowerShell命令`Copy-Item -Path \\&lt;server&gt;\&lt;share&gt;\* -Destination C:\temp\staging -Recurse`批量将共享中的敏感文件复制到中间系统。APT29特别关注研发文档、项目管理文件和与SolarWinds相关的内部代码共享。收集的数据经过加密、分段压缩后逐步渗漏至攻击者C2基础设施。
 - **影响**: 美国多家政府机构（包括财政部、商务部、能源部）的敏感数据被窃取
 - **参考链接**: [SolarWinds Supply Chain Attack - Mandiant](https://www.mandiant.com/resources/evasive-attacker-leverages-solarwinds-supply-chain-compromises)
 
@@ -199,6 +209,12 @@ Get-WinEvent -FilterHashtable @{LogName='Security'; ID=5140} |
 ```
 
 ### 应用层检测
+
+**用人话说：**
+
+> 网络共享数据收集是"顺手牵羊"式的窃取——攻击者攻陷一台机器后，通过net use或PowerShell访问公司内部的文件服务器共享目录（如\\fileserver\share），批量下载共享中的敏感文件。很多企业将项目文档、财务数据、客户信息存放在共享文件夹中，且权限配置往往过于宽松，普通员工账号就能读取全公司的数据。攻击者常用robocopy或PowerShell的Copy-Item -Recurse递归复制整个共享目录，或者用Get-ChildItem -Recurse先搜索出所有感兴趣的文件再选择性下载。检测方法：监控非文件服务器对共享目录的批量文件访问（事件ID 5145）、单台机器在短时间内从共享下载大量文件、以及net use命令连接到非工作相关的共享路径。
+>
+> **避坑指南**：忽略SMB管理共享异常访问；未区分正常SSH管理连接和异常横向；未启用PowerShell脚本块日志。
 
 **Sigma规则示例：**
 ```yaml

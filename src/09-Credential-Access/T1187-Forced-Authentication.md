@@ -4,6 +4,16 @@
 
 **逼你的电脑自动把密码发给攻击者——诱导你的系统向攻击者的服务器发起认证请求，你还没反应过来密码就丢了。**
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 逼你的电脑自动把密码发给攻击者 |
+| 为什么危险？ | 强制认证不需要用户交互，电脑会自动把密码哈希发送给攻击者 |
+| 谁需要关心？ | 网络管理员、SOC分析师 |
+| 你的第一步防御 | 禁用LLMNR和NetBIOS，部署SMB签名 |
+| 如果只做一件事 | 禁用LLMNR和NetBIOS协议，部署SMB签名 |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
@@ -175,6 +185,11 @@ graph TD
 Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Sysmon/Operational';ID=3} |
     Where-Object { $_.Properties[4].Value -match 'WINWORD|EXCEL' }
 ```
+
+
+
+
+**用人话说：** 这条规则在监控网络中是否有LLMNR/NBT-NS投毒活动。LLMNR和NBT-NS是Windows的本地名称解析协议，当DNS查询失败时会使用。攻击者用Responder等工具回复这些广播请求，冒充目标服务器，诱骗用户电脑发送密码哈希。禁用这些协议是最有效的防御。
 
 ### 应用层检测
 

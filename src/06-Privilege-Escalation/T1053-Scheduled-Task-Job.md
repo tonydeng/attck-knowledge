@@ -41,41 +41,14 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1053.001 - At (Windows)
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 使用 Windows 的 at 命令（已弃用但仍然可能可用）创建一个一次性计划任务。
-
-**详细说明：** Windows 的 `at` 命令是旧版的任务调度工具，在 Windows 8+ 中已被弃用但部分系统仍然可用。`at` 命令默认以 SYSTEM 权限运行任务，因此只要普通用户有权限使用 `at`，就可以创建以 SYSTEM 权限执行的任务。
-
-### T1053.002 - At (Linux)
-
-**通俗理解：** 使用 Linux 的 at 命令创建一个在未来某个时间执行一次的定时任务。
-
-**详细说明：** Linux 的 `at` 命令允许用户在指定时间执行一次性任务。`at` 守护进程（atd）以 root 权限运行，但用户的 at 任务通常以用户自身权限执行。`at` 提权的关键在于找到可以写入系统级 at 目录（如 `/etc/cron.allow`）的漏洞。
-
-### T1053.003 - Cron
-
-**通俗理解：** 在 Linux 的"定时任务列表"（crontab）里添加一条定期执行的恶意命令。
-
-**详细说明：** Cron 是 Linux/macOS 中最常用的定时任务调度器。攻击者如果可以写入 `/etc/crontab` 或 `/etc/cron.d/` 目录，就可以创建以 root 权限定时执行的恶意任务。
-
-### T1053.005 - 计划任务 (Windows)
-
-**通俗理解：** 使用 Windows 任务计划程序创建一个"隐藏"的自动任务，配置为以 SYSTEM 权限运行。
-
-**详细说明：** Windows 任务计划程序（Task Scheduler）是最常用的计划任务管理工具。通过 `schtasks.exe` 或 PowerShell 的 `New-ScheduledTask`，攻击者可以创建配置为以 SYSTEM 用户、最高权限运行的计划任务。
-
-### T1053.006 - Systemd 定时器
-
-**通俗理解：** 利用 Linux systemd 的定时器功能替代 cron，在指定时间运行恶意服务。
-
-**详细说明：** Systemd 定时器（timer）是 modern Linux 发行版中替代 cron 的任务调度机制。定时器通过 `.timer` 单元文件配置，关联到对应的 `.service` 单元，在指定时间触发服务执行。
-
-### T1053.007 - 容器编排作业
-
-**通俗理解：** 在 Kubernetes 集群中创建一个定时运行的恶意容器。
-
-**详细说明：** Kubernetes 的 CronJob 资源允许在集群中定期运行容器化任务。攻击者如果获得了 Kubernetes API 的访问权限，可以创建使用高权限服务账户的 CronJob，在集群中执行特权操作。
+- [T1053.001 - At计划任务(Windows)](./T1053/T1053.001-At-Windows-At-(Windows).md) — 使用 Windows 的 at 命令（已弃用但仍然可能可用）创建一个一次性计划任务。
+- [T1053.002 - At计划任务(Linux)](./T1053/T1053.002-At-Linux-At-(Linux).md) — 使用 Linux 的 at 命令创建一个在未来某个时间执行一次的定时任务。
+- [T1053.003 - 定时任务](./T1053/T1053.003-Cron-Cron.md) — 在 Linux 的"定时任务列表"（crontab）里添加一条定期执行的恶意命令。
+- [T1053.005 - 计划任务 (Windows)](./T1053/T1053.005-Windows-计划任务-(Windows).md) — 使用 Windows 任务计划程序创建一个"隐藏"的自动任务，配置为以 SYSTEM 权限运行。
+- [T1053.006 - Systemd 定时器](./T1053/T1053.006-Systemd-定时器.md) — 利用 Linux systemd 的定时器功能替代 cron，在指定时间运行恶意服务。
+- [T1053.007 - 容器编排作业](./T1053/T1053.007-Container-Orchestration-Job.md) — 在 Kubernetes 集群中创建一个定时运行的恶意容器。
 
 </details>
 
@@ -266,9 +239,9 @@ ls -la /etc/cron.hourly/
 grep CRON /var/log/syslog | tail -20
 ```
 
-### 应用层检测
+**用人话说：** 计划任务/作业是操作系统和容器平台中用于在指定时间或条件下自动执行程序的机制，包括Windows任务计划程序（schtasks）、Linux cron/systemd timer和Kubernetes CronJob。攻击者在获得低权限访问后，利用这些机制创建以更高权限（如SYSTEM或root）执行的任务。这就像在公司的自动化运维系统中添加了一条隐藏的定时指令——系统认为这是合法的运维任务，但实际上它在执行恶意操作。
 
-**Sigma规则示例：**
+**Sigma规则示例：**
 ```yaml
 title: Suspicious Scheduled Task Creation
 status: experimental

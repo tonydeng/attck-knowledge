@@ -4,6 +4,16 @@
 
 查看系统上安装了哪些软件——攻击者检查系统中安装的软件列表，特别关注安全产品的存在和版本，就像小偷先查看屋里有没有报警系统。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者使用 `wmic product get`、注册表 `Uninstall` 键、`Get-WmiObject Win32_Product` 枚举已安装软件列表，特别关注安全产品（EDR/AV）和业务软件 |
+| 为什么危险？ | 软件发现帮助攻击者选择规避策略（有EDR则绕过）、定位高价值目标（有备份软件则优先加密）、发现旧版本软件（有已知漏洞则利用） |
+| 谁需要关心？ | SOC分析师、终端安全运维、威胁狩猎团队、任何需要检测安全产品规避行为的安全人员 |
+| 你的第一步防御 | 监控 WMI 查询 `AntiVirusProduct`、`Win32_Product` 的异常执行，审计注册表 `Uninstall` 键的批量访问 |
+| 如果只做一件事 | 对新启动的进程立即查询安全产品信息（AntiVirusProduct）并随后长时间 Sleep 的行为立即告警，这是典型的恶意软件初始化特征 |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
@@ -37,19 +47,10 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1518.001 - 安全软件发现
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 检查电脑上装了哪些杀毒软件和安全产品。
-
-**详细说明：**
-攻击者会专门枚举安全产品信息。通过WMI查询 `SELECT * FROM AntiVirusProduct`（root\SecurityCenter2）获取防病毒产品信息。检查安全产品进程（如MsMpEng.exe、bdagent.exe、ccSvcHst.exe）。检测结果用于决定是否停止运行恶意软件、隐藏行为或禁用安全产品。如果检测到高级EDR产品，攻击者可能选择更隐蔽的绕过技术。
-
-### T1518.002 - 已安装软件
-
-**通俗理解：** 查看电脑上安装了哪些应用程序。
-
-**详细说明：**
-攻击者通过多种方法获取完整的软件安装列表。使用WMI查询 `SELECT * FROM Win32_Product`，或遍历注册表 `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\`。在Linux中使用 `dpkg -l`（Debian系）或 `rpm -qa`（Red Hat系）。macOS使用 `system_profiler SPApplicationsDataType`。软件列表帮助攻击者判断目标的价值和定位可利用的软件。
+- [T1518.001 - 安全软件发现](./T1518/T1518.001-Security-Software-Discovery.md) — 检查电脑上装了哪些杀毒软件和安全产品。
+- [T1518.002 - 已安装软件](./T1518/T1518.002-Installed-Software.md) — 查看电脑上安装了哪些应用程序。
 
 </details>
 
@@ -207,6 +208,8 @@ graph TD
 - 事件ID 5861：WMI活动
 - 事件ID 4104：PowerShell脚本
 - Sysmon Event ID 1：进程创建
+
+**用人话说：** 这条规则在监控有人用 WMI 查询系统上安装的安全产品信息。攻击者为什么要查这个？因为他们想知道这台电脑装了什么杀毒软件、EDR 是不是开着，这样才能选择对应的绕过手段。如果发现有 CrowdStrike、SentinelOne 这些高级 EDR，攻击者就会选择更隐蔽的执行方式（比如内存执行、进程注入）；如果发现没有安全产品，那就直接"裸奔"。正常情况下，只有安全管理员在做资产盘点时才会查这个。如果你看到一个新进程启动后第一件事就是查 AntiVirusProduct，那就是恶意软件在"探路"。
 
 **Sigma规则示例：**
 ```yaml

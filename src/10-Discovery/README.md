@@ -96,11 +96,34 @@ graph LR
 | [T1673](./T1673-Virtual-Machine-Discovery.md)              | 虚拟机发现      | ⭐⭐  |  0   | 检测当前是否运行在虚拟机中             | ✅ 已完成 |
 | [T1680](./T1680-Local-Storage-Discovery.md)                | 本地存储发现     |  ⭐  |  0   | 查看电脑连接的磁盘和存储设备            | ✅ 已完成 |
 
+
+
+## 子技术索引
+
+| 子技术ID | 名称 | 难度 | 一句话理解 | 文档状态 |
+|----------|------|:----:|-----------|:--------:|
+| [T1016.001](./T1016/T1016.001-Internet-Connection-Discovery-Internet-Connection-Discovery.md) | Internet Connection Discovery | ⭐ | 测试系统能不能连上互联网 | ✅ 已完成 |
+| [T1016.002](./T1016/T1016.002-Wi-Fi-Discovery-Wi-Fi-Discovery.md) | Wi-Fi Discovery | ⭐ | 查看WiFi网络配置和已保存的WiFi密码 | ✅ 已完成 |
+| [T1016.003](./T1016/T1016.003-Workstation-Discovery-Workstation-Discovery.md) | Workstation Discovery | ⭐ | 发现网络中的工作站和其他计算设备 | ✅ 已完成 |
+| [T1069.001](./T1069/T1069.001-Local-Groups-Local-Groups.md) | Local Groups | ⭐⭐ | 查看本机上的用户组和成员 | ✅ 已完成 |
+| [T1069.002](./T1069/T1069.002-Domain-Groups-Domain-Groups.md) | Domain Groups | ⭐⭐ | 查看域中的安全组和成员 | ✅ 已完成 |
+| [T1069.003](./T1069/T1069.003-Cloud-Groups-Cloud-Groups.md) | Cloud Groups | ⭐⭐ | 查看云平台中的组和权限 | ✅ 已完成 |
+| [T1087.001](./T1087/T1087.001-Local-Account-Local-Account.md) | Local Account | ⭐ | 查看本机上的用户账户 | ✅ 已完成 |
+| [T1087.002](./T1087/T1087.002-Domain-Account-Domain-Account.md) | Domain Account | ⭐ | 查看域中的所有用户账户 | ✅ 已完成 |
+| [T1087.003](./T1087/T1087.003-Email-Account-Email-Account.md) | Email Account | ⭐ | 查看邮件系统中的账户 | ✅ 已完成 |
+| [T1087.004](./T1087/T1087.004-Cloud-Account-Cloud-Account.md) | Cloud Account | ⭐ | 查看云平台中的用户账户 | ✅ 已完成 |
+| [T1497.001](./T1497/T1497.001-System-Checks.md) | 系统检查 | ⭐⭐⭐ | 检查CPU、BIOS、MAC地址等硬件特征判断是否在虚拟机中 | ✅ 已完成 |
+| [T1497.002](./T1497/T1497.002-User-Activity-Checks.md) | 基于用户活动的检查 | ⭐⭐⭐ | 检查鼠标移动、键盘输入等用户行为判断是否在沙箱中 | ✅ 已完成 |
+| [T1497.003](./T1497/T1497.003-Time-based-Evasion.md) | 基于时间的规避 | ⭐⭐⭐ | 通过Sleep调用和计时器检测时间是否被沙箱加速 | ✅ 已完成 |
+| [T1518.001](./T1518/T1518.001-Security-Software-Discovery.md) | 安全软件发现 | ⭐⭐ | 专门检测杀毒软件、EDR等安全产品的存在 | ✅ 已完成 |
+| [T1518.002](./T1518/T1518.002-Installed-Software.md) | 已安装软件 | ⭐⭐ | 枚举系统上安装的所有软件列表 | ✅ 已完成 |
+| [T1614.001](./T1614/T1614.001-System-Language-Discovery.md) | 系统语言发现 | ⭐ | 通过系统语言和区域设置推断系统的大致地理位置 | ✅ 已完成 |
+
 ### 统计信息
 
-- **技术总数**：35 个
-- **子技术总数**：24 个
-- **已完成文档**：35 个
+- **技术总数**：34 个
+- **子技术总数**：16 个
+- **已完成文档**：16 个
 - **进行中文档**：0 个
 - **待编写文档**：0 个
 

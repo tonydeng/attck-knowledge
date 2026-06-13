@@ -4,6 +4,16 @@
 
 攻击者翻看你公司放在云上的"共享文件夹"——S3存储桶、Azure Blob、Google Cloud Storage里的数据。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者翻看你公司放在云上的"共享文件夹"——S3存储桶、Azure Blob、Google Cloud Storage里 |
+| 为什么危险？ | 云存储通常存储着各种数据——数据库备份、日志文件、用户上传的文件、静态资源。一次云存储数据的泄露可能导致数百万用户的个人 |
+| 谁需要关心？ | 数据安全团队、SOC分析师 |
+| 你的第一步防御 | 异常的S3/Blob API调用 |
+| 如果只做一件事 | 很多公司把文件和数据存在云存储服务上——Amazon S3、Azure Blob Storage、G |
+
 ## 难度等级
 
 ⭐⭐ 中级（需要一定基础）
@@ -231,6 +241,12 @@ aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,Attribut
 ```
 
 ### 应用层检测
+
+**用人话说：**
+
+> 云存储数据收集是"上云时代的数据金矿"——攻击者访问企业的OneDrive、Google Drive、Amazon S3或阿里云OSS等云存储服务批量下载文件。攻击者使用窃取到的OAuth Token或云服务API密钥，通过rclone、aws s3 sync、gsutil等命令行工具把整个云存储桶同步到本地。rclone是攻击者常用的工具，因为它支持30多种云存储服务且可以配置并发下载。检测方法：监控云存储API的异常大量调用（单个用户在短时间内下载数百个文件）、来自非预期地理位置或IP的云服务访问、以及使用rclone或s3cmd等工具的特征User-Agent。云服务的访问日志（如AWS CloudTrail、Office 365 Audit Log）是主要检测源。
+>
+> **避坑指南**：未启用PowerShell脚本块日志；未监控异常会话令牌使用；加密检测阈值设置过高。
 
 **Sigma规则示例：**
 ```yaml

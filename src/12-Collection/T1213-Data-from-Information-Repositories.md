@@ -4,6 +4,16 @@
 
 攻击者偷偷翻看你公司内部的"百宝箱"——Wiki、Confluence、SharePoint、Git仓库里的机密文档和数据。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者偷偷翻看你公司内部的"百宝箱"——Wiki、Confluence、SharePoint、Git仓库里的机密文档和数 |
+| 为什么危险？ | 信息仓库是企业知识的集散地，通常包含大量高价值的敏感数据。攻击者从信息仓库获取的数据可能包括：源代码和API密钥、客户数 |
+| 谁需要关心？ | 数据安全团队、SOC分析师 |
+| 你的第一步防御 | 异常的批量数据访问 |
+| 如果只做一件事 | 几乎每家公司都有内部的"知识库"——Confluence用于写技术文档，SharePoint用于共享 |
+
 ## 难度等级
 
 ⭐⭐ 中级（需要一定基础）
@@ -39,33 +49,12 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1213.001 - 从Confluence/Wiki收集
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 攻击者登录你们公司的Confluence，把技术文档和设计文档全部下载走。
-
-**详细说明：**
-Confluence是企业常用的知识库系统，通常包含产品文档、技术方案、API文档、运维手册等。攻击者通过窃取的凭据登录Confluence后，可以使用Confluence REST API搜索和导出所有页面内容。API调用如`GET /rest/api/content`可以列出空间中的所有页面，`GET /rest/api/content/{id}?expand=body.storage`可以获取页面正文。
-
-### T1213.002 - 从SharePoint收集
-
-**通俗理解：** 攻击者登录你们公司的SharePoint，把共享文件夹中的所有文件下载走。
-
-**详细说明：**
-SharePoint是微软的文档管理和协作平台。攻击者通过Microsoft 365凭据或OAuth令牌登录后，可以使用Microsoft Graph API访问SharePoint站点和文档库。API调用如`GET /sites/{site-id}/drives/{drive-id}/items/{item-id}/content`可以下载文件。
-
-### T1213.003 - 从代码仓库收集
-
-**通俗理解：** 攻击者克隆(下载)你们公司的私有代码仓库，把源代码全部偷走。
-
-**详细说明：**
-GitHub/GitLab/Bitbucket等代码仓库中包含了源代码、配置文件和硬编码的凭据。攻击者通过窃取的SSH密钥、个人访问令牌(PAT)或OAuth应用令牌克隆私有仓库。使用`git clone`命令即可下载完整的代码库和历史记录。
-
-### T1213.004 - 从Jira收集
-
-**通俗理解：** 攻击者登录你们公司的Jira，查看所有的项目计划和敏感讨论。
-
-**详细说明：**
-Jira是Atlassian的项目管理工具，通常包含项目计划、任务分配、Bug报告和讨论。攻击者通过凭据登录Jira后，可以使用Jira REST API搜索和导出issue。API调用如`GET /rest/api/2/search?jql=`可以搜索所有问题，`GET /rest/api/2/issue/{issueKey}`可以获取问题详情。
+- [T1213.001 - 从Confluence/Wiki收集](./T1213/T1213.001-Confluence-Wiki Data-从Confluence-Wiki收集.md) — 攻击者登录你们公司的Confluence，把技术文档和设计文档全部下载走。
+- [T1213.002 - 从SharePoint收集](./T1213/T1213.002-SharePoint Data-从SharePoint收集.md) — 攻击者登录你们公司的SharePoint，把共享文件夹中的所有文件下载走。
+- [T1213.003 - 从代码仓库收集](./T1213/T1213.003-Code Repository Data-从代码仓库收集.md) — 攻击者克隆(下载)你们公司的私有代码仓库，把源代码全部偷走。
+- [T1213.004 - 从Jira收集](./T1213/T1213.004-Jira Data-从Jira收集.md) — 攻击者登录你们公司的Jira，查看所有的项目计划和敏感讨论。
 
 </details>
 
@@ -265,6 +254,12 @@ Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-PowerShell/Operationa
 ```
 
 ### 应用层检测
+
+**用人话说：**
+
+> 信息仓库是企业的"知识金矿"——Confluence/Wiki存有项目文档和技术方案、SharePoint存有公司政策和部门报告、Git仓库存有源代码和CI/CD配置、Jira存有项目管理和工单数据。攻击者利用窃取到的API Token或OAuth授权，通过REST API批量导出这些平台的数据。比如使用Confluence的/csv或/pdf导出功能批量拉取页面，或者git clone整个代码仓库。这类收集通常不涉及恶意软件，攻击者用curl、wget或Postman就能完成。检测方法：监控API调用的异常频率和范围（如一个用户在5分钟内导出了50个Confluence页面）、代码仓库的git clone操作的来源IP和用户不属于开发团队。
+>
+> **避坑指南**：未区分正常SSH管理连接和异常横向；未启用PowerShell脚本块日志；未监控异常会话令牌使用。
 
 **Sigma规则示例：**
 ```yaml

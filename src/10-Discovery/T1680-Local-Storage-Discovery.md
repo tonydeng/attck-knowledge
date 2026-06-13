@@ -4,6 +4,16 @@
 
 查看电脑连接的磁盘和存储设备——攻击者用 `wmic logicaldisk` 列出所有磁盘分区，就像小偷查看屋子里有哪些柜子和抽屉。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者使用 `wmic logicaldisk`、`Get-PSDrive`、`fsutil volume list` 枚举所有磁盘分区，识别本地硬盘、可移动磁盘、网络映射驱动器的类型和容量 |
+| 为什么危险？ | 勒索软件在加密前必须知道"要加密哪些盘"——数据盘优先加密、系统盘跳过防止崩溃、网络驱动器扩大影响面、USB 设备防止离线恢复 |
+| 谁需要关心？ | SOC分析师、终端安全运维、勒索软件防护团队、备份管理员 |
+| 你的第一步防御 | 监控 `wmic logicaldisk`、`fsutil volume`、`Get-PSDrive` 的批量执行；关注勒索软件常见的"枚举存储→删除卷影副本→加密"命令序列 |
+| 如果只做一件事 | 对 `wmic logicaldisk` 紧接着 `vssadmin delete shadows` 的命令序列立即告警——这是勒索软件加密前的标准准备动作 |
+
 ## 难度等级
 
 - ⭐ 初级（新手可学）
@@ -62,7 +72,7 @@ graph TD
 
 2. **查看卷详细信息**
    - 通俗描述：查看每个盘的详细信息和容量
-   - 技术细节：`fsutil volume list` 和 `fsutil volume diskfree <drive>:`
+   - 技术细节：`fsutil volume list` 和 `fsutil volume diskfree &lt;drive&gt;:`
    - 常用工具：fsutil.exe
 
 3. **识别驱动器类型**
@@ -183,6 +193,8 @@ graph TD
 - 事件ID 4688：进程创建（监控wmic.exe, vssadmin.exe）
 - 事件ID 4104：PowerShell脚本执行
 - Sysmon Event ID 1：进程创建
+
+**用人话说：** 这条规则在监控有人用 `wmic logicaldisk` 查看磁盘分区信息。为什么要关注这个？因为勒索软件在加密之前，必须先搞清楚"这台电脑有几个盘、每个盘多大、哪些是数据盘、哪些是系统盘"。它会跳过系统盘（防止电脑蓝屏无法显示勒索信息），优先加密大容量数据盘。正常情况下，只有 IT 运维在做资产盘点或磁盘管理时才会用这个命令。如果你看到有人在非工作时间执行，或者紧接着就去执行 `vssadmin delete shadows`，那就是勒索软件在"清点要加密的目标"。
 
 **Sigma规则示例：**
 ```yaml

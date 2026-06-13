@@ -18,15 +18,11 @@ echo ==========================================
 echo  ATT^&CK 知识库 - 构建
 echo ==========================================
 
-REM 1. 预处理 Markdown
-echo [1/3] 预处理 Markdown 文件...
-python "%SCRIPT_DIR%preprocess-md.py"
-if %ERRORLEVEL% neq 0 (
-    echo 预处理失败!
-    exit /b 1
-)
+REM 预处理由 book.toml 中配置的 preprocessor.attck-preprocess 自动执行:
+REM   - gen-summary.py  自动生成 SUMMARY.md
+REM   - preprocess-md.py 修正 README.md 链接
 
-REM 2. 确定命令
+REM 1. 确定命令
 set "CMD=%~1"
 if "%CMD%"=="" set "CMD=build"
 if not "%CMD%"=="build" if not "%CMD%"=="serve" if not "%CMD%"=="watch" (
@@ -34,10 +30,10 @@ if not "%CMD%"=="build" if not "%CMD%"=="serve" if not "%CMD%"=="watch" (
     exit /b 1
 )
 
-REM 3. 执行 mdbook
-echo [2/3] 执行 mdbook %CMD%...
+REM 2. 执行 mdbook（自动触发预处理器）
+echo [1/2] 执行 mdbook %CMD%...
 mdbook %CMD%
 
-echo [3/3] 完成
+echo [2/2] 完成
 
 popd

@@ -4,9 +4,27 @@
 
 就像把恶意代码"寄生"在合法的高权限程序里——攻击者把自己的代码塞进系统进程（如 svchost.exe），让它借用系统进程的权限偷偷运行。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者把自己的恶意代码"塞进"合法的系统进程（如 svchost.exe）中，借用高权限进程的身份偷偷运行。 |
+| 为什么危险？ | 恶意代码在合法进程内部运行，安全软件看到的是"svchost.exe"在活动，不会深究里面是否藏了恶意代码——而且还能继承目标进程的高权限。 |
+| 谁需要关心？ | 系统管理员、EDR/SOC安全分析师、Windows/Linux系统运维工程师。 |
+| 你的第一步防御 | 启用 Windows Defender 攻击面减少（ASR）规则，阻止 Office 应用程序创建子进程。 |
+| 如果只做一件事 | 监控 CreateRemoteThread 和 WriteProcessMemory 这对API的组合调用——这是多数进程注入技术的"指纹"。 |
+
 ## 难度等级
 
 ⭐⭐⭐ **高级** - 需要深入理解操作系统进程机制和内存管理，是最复杂的提权技术之一。
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] **Windows进程和内存管理基础**: 就像知道"每个程序有自己的独立房间"——进程注入就是把恶意代码偷偷塞进别人的房间里运行。
+- [ ] **Windows API调用概念**: 就像知道"打电话需要先拨号再说话"——进程注入涉及固定的API调用序列：OpenProcess → VirtualAllocEx → WriteProcessMemory → CreateRemoteThread。
+- [ ] **权限级别理解（用户/SYSTEM/管理员）**: 就像知道"普通员工 vs 总经理"的区别——注入的目的是借用总经理（SYSTEM进程）的权限办事。
 
 ## 技术描述
 
@@ -14,6 +32,8 @@
 
 **通俗解释：**
 就像犯罪分子把自己的同伙伪装成政府官员的随行人员。检查站看到"官员"就直接放行了，不会仔细检查随行人员是否真的是官员的团队。恶意代码在系统进程的内部运行，安全软件看到的是"svchost.exe"这个合法进程在活动，不会深究它里面是否藏了恶意代码。
+
+**过渡段：** 从操作系统层面看，每个 Windows 进程都运行在独立的虚拟地址空间中，正常情况下互不干扰——这是系统的基本安全边界。但 Windows 同时也提供了一系列"合法"的跨进程操作 API（OpenProcess、VirtualAllocEx、WriteProcessMemory、CreateRemoteThread），供调试器、性能分析工具等正常软件使用。攻击者巧妙地将这些本用于软件开发的 API 组合起来，形成了一条完整的恶意注入链。下面从 Windows API 调用序列的角度来拆解经典注入流程。
 
 **技术原理：**
 
@@ -48,23 +68,11 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1055.001 - DLL 注入
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 让系统进程加载一个恶意的 DLL 文件。
-
-**详细说明：** DLL 注入是最经典的进程注入方式。攻击者使用 `CreateRemoteThread` 在目标进程中调用 `LoadLibrary` 来加载恶意 DLL。这种方法实现简单，但会触发 `LoadLibrary` 的 `DLL_PROCESS_ATTACH` 通知，容易被安全软件 Hook 检测。
-
-### T1055.004 - 异步过程调用 (APC)
-
-**通俗理解：** 把恶意代码"排队"到目标进程的执行队列中，等它有空时自动执行。
-
-**详细说明：** APC 注入利用 Windows 的异步过程调用机制。每个线程都有一个 APC 队列，通过 `QueueUserAPC` 可以将恶意代码排队到目标线程的 APC 队列中。当目标线程进入可报警等待状态时，系统会执行队列中的 APC 例程。
-
-### T1055.010 - 进程空心化
-
-**通俗理解：** 创建一个合法的空壳程序（如 svchost.exe），然后把它的内部替换成恶意代码。
-
-**详细说明：** 进程空心化是最隐蔽的注入技术之一。攻击者创建一个挂起状态的合法进程，卸载其原始映像，写入恶意代码，然后恢复执行。从外部看，运行的是一个合法的系统进程，但实际执行的是恶意代码。
+- [T1055.001 - DLL 注入](./T1055/T1055.001-DLL-Injection.md) — 让系统进程加载一个恶意的 DLL 文件。
+- [T1055.004 - 异步过程调用 (APC)](./T1055/T1055.004-Asynchronous Procedure Call-异步过程调用 (APC).md) — 把恶意代码"排队"到目标进程的执行队列中，等它有空时自动执行。
+- [T1055.010 - 进程空心化](./T1055/T1055.010-Process-Hollowing.md) — 创建一个合法的空壳程序（如 svchost.exe），然后把它的内部替换成恶意代码。
 
 </details>
 
@@ -245,9 +253,9 @@ alert tcp $HOME_NET any -> $EXTERNAL_NET !80,!443 (msg:"Svchost outbound to non-
 sudo auditctl -a always,exit -S ptrace -k ptrace_trace
 ```
 
-### 应用层检测
+**用人话说：** 进程注入是一类技术的总称，攻击者将恶意代码注入到其他合法进程的内存空间中执行，从而获得目标进程的权限并绕过安全检测。主要手法包括DLL注入、PE注入、进程空心化、APC注入、线程劫持、ptrace和VDSO劫持等。这就像黑客把自己伪装成大楼里的合法员工（高权限进程），借用别人的工牌进出各个区域——安全系统看到的是合法员工在活动，实际上背后是攻击者在操控。
 
-**Sigma规则示例：**
+**Sigma规则示例：**
 ```yaml
 title: Suspicious CreateRemoteThread Detection
 status: experimental
@@ -374,18 +382,18 @@ tags:
 
 ### 官方文档
 
-- [MITRE ATT&CK T1055 - Process Injection](https://attack.mitre.org/techniques/T1055/)
-- [MITRE ATT&CK T1055.001 - DLL Injection](https://attack.mitre.org/techniques/T1055/001/)
-- [MITRE ATT&CK T1055.010 - Process Hollowing](https://attack.mitre.org/techniques/T1055/010/)
+- 📚 [MITRE ATT&CK T1055 - Process Injection](https://attack.mitre.org/techniques/T1055/)
+- 📚 [MITRE ATT&CK T1055.001 - DLL Injection](https://attack.mitre.org/techniques/T1055/001/)
+- 📚 [MITRE ATT&CK T1055.010 - Process Hollowing](https://attack.mitre.org/techniques/T1055/010/)
 
 ### 安全报告
 
-- [CISA - Lazarus Group Analysis](https://www.cisa.gov/news-events/analysis-reports/ar21-126s)
-- [Microsoft - TrickBot Evolution](https://www.microsoft.com/en-us/security/blog/2020/10/15/trickbot-banking-malware-evolves-with-new-modules-and-techniques/)
-- [Red Canary - Process Injection Detection](https://redcanary.com/blog/process-injection-detection-and-response/)
+- 📰 [CISA - Lazarus Group Analysis](https://www.cisa.gov/news-events/analysis-reports/ar21-126s)
+- 📰 [Microsoft - TrickBot Evolution](https://www.microsoft.com/en-us/security/blog/2020/10/15/trickbot-banking-malware-evolves-with-new-modules-and-techniques/)
+- 📰 [Red Canary - Process Injection Detection](https://redcanary.com/blog/process-injection-detection-and-response/)
 
 ### 学习资料
 
-- [Elastic - Process Hollowing Explained](https://www.elastic.co/blog/process-hollowing-and-how-to-detect-it)
-- [CrowdStrike - DarkSide TTPs](https://www.crowdstrike.com/blog/darkside-ransomware-tactics-techniques-and-procedures/)
-- [Atomic Red Team - T1055 Tests](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics/T1055)
+- 🔧 [Elastic - Process Hollowing Explained](https://www.elastic.co/blog/process-hollowing-and-how-to-detect-it)
+- 🔧 [CrowdStrike - DarkSide TTPs](https://www.crowdstrike.com/blog/darkside-ransomware-tactics-techniques-and-procedures/)
+- 🔧 [Atomic Red Team - T1055 Tests](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics/T1055)

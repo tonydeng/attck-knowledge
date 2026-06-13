@@ -4,6 +4,16 @@
 
 **攻击者修改了门锁的构造，让自己的钥匙也能开门——改掉认证系统本身，即使不知道密码也能登录。**
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 改掉门锁的结构，让自己的钥匙能开门 |
+| 为什么危险？ | 修改认证系统本身是最高级的攻击，所有基于该系统的认证都会被攻破 |
+| 谁需要关心？ | 域管理员、安全工程师、SOC分析师 |
+| 你的第一步防御 | 监控认证流程的变更，启用文件完整性检测 |
+| 如果只做一件事 | 监控域控制器上lsass.exe进程的异常修改和DLL注入 |
+
 ## 难度等级
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
@@ -43,54 +53,15 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1556.001 - Domain Controller Authentication
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 在"中央门禁系统"上加装窃听器，每次有人刷卡进门都记录下密码。
-
-**详细说明：**
-攻击者在域控制器（DC）上安装恶意安全支持提供程序（SSP）或替换LSA认证包。SSP是Windows中处理不同类型认证的插件（如Kerberos、NTLM）。攻击者安装一个自定义SSP后，每次用户登录时都会调用该SSP，恶意SSP将用户的明文密码保存到文件中。常用工具有mimikatz的`misc::memssp`命令，它会在内存中安装一个SSP，记录所有登录密码到`c:\windows\temp\`。
-
-### T1556.002 - Password Filter DLL
-
-**通俗理解：** 用户在改密码时，恶意软件会把新密码偷偷记下来。
-
-**详细说明：**
-Windows系统允许安装自定义密码过滤器（Password Filter DLL）来验证新密码的强度。攻击者注册一个恶意密码过滤器到注册表（`HKLM\SYSTEM\CurrentControlSet\Control\Lsa\Notification Packages`），该过滤器在每次用户更改密码时被调用。恶意过滤器把新密码的明文保存到攻击者可控的位置。此技术的可怕之处在于：即使用户定期更改密码（安全最佳实践），每次更改的新密码都会被攻击者捕获。
-
-### T1556.003 - Pluggable Authentication Modules
-
-**通俗理解：** 修改Linux系统的"门锁"，用自己的密码也能开门。
-
-**详细说明：**
-PAM是Linux/macOS的认证框架，支持通过插件扩展认证方式。攻击者可以修改`/etc/pam.d/`下的配置文件，添加一个新的认证条目，允许一个特定的后门密码通过认证。或者替换`pam_unix.so`等核心库文件，在其中硬编码一个万能密码。修改PAM后，任何知道后门密码的人都可以登录任意系统用户账户。
-
-### T1556.005 - Reversible Encryption
-
-**通俗理解：** 让Active Directory用明文保存密码——这样攻击者就能直接读了。
-
-**详细说明：**
-Active Directory默认使用不可逆哈希（NTLM hash）存储密码，这意味即使拿到数据库（NTDS.dit）也无法还原明文密码。但AD支持为特定账户启用"使用可还原加密存储密码"选项，该选项使密码以可解密格式存储在AD中。攻击者如果拥有域管理员权限，可以修改此选项，等待用户下次登录或改密码后，通过DCSync提取密码并解密为明文。
-
-### T1556.006 - Multi-Factor Authentication
-
-**通俗理解：** 绕过第二道验证——让双因子认证变成单因子。
-
-**详细说明：**
-攻击者登录身份提供商的管理控制台后，可以为现有用户添加攻击者控制的MFA设备（如攻击者的手机号码或认证器应用），修改MFA策略降低认证要求，或禁用特定用户的MFA。2024年Scattered Spider攻击案例中，攻击者在受害者Okta租户中注册了自己的MFA设备，从而绕过了MFA保护。
-
-### T1556.007 - Hybrid Identity
-
-**通俗理解：** 在公司的云和本地之间的"信任通道"上加个假门。
-
-**详细说明：**
-在混合云身份环境中，企业使用AD FS等联合服务在本地AD和云服务（Azure AD）之间建立信任关系。攻击者如果攻破AD FS服务器，可以添加受自己控制的身份提供商（IdP），或修改联合信任配置。这样攻击者就可以用伪造的SAML断言登录任何与Azure AD集成的云应用。
-
-### T1556.009 - Conditional Access Policy
-
-**通俗理解：** 修改云服务的"安检规则"，让自己不被安检。
-
-**详细说明：**
-条件访问策略是云端的安全规则，规定了"什么样的人、从什么地方、用什么设备才能登录"。攻击者登录Azure AD或Okta管理控制台后，可以修改这些策略——如添加绕过MFA的IP地址、延长登录会话有效期、或禁用风险检测。修改后攻击者使用窃取的凭证登录时，不再需要满足原有的安全要求。
+- [T1556.001 - 域控制器认证](./T1556/T1556.001-Domain-Controller-Authentication-Domain-Controller-Authentication.md) — 在"中央门禁系统"上加装窃听器，每次有人刷卡进门都记录下密码。
+- [T1556.002 - 密码过滤器DLL](./T1556/T1556.002-Password-Filter-DLL-Password-Filter-DLL.md) — 用户在改密码时，恶意软件会把新密码偷偷记下来。
+- [T1556.003 - Pluggable认证模块](./T1556/T1556.003-Pluggable-Authentication-Modules-Pluggable-Authentication-Modules.md) — 修改Linux系统的"门锁"，用自己的密码也能开门。
+- [T1556.005 - 可逆加密](./T1556/T1556.005-Reversible-Encryption-Reversible-Encryption.md) — 让Active Directory用明文保存密码——这样攻击者就能直接读了。
+- [T1556.006 - 多因素认证](./T1556/T1556.006-Multi-Factor-Authentication-Multi-Factor-Authentication.md) — 绕过第二道验证——让双因子认证变成单因子。
+- [T1556.007 - 混合身份](./T1556/T1556.007-Hybrid-Identity-Hybrid-Identity.md) — 在公司的云和本地之间的"信任通道"上加个假门。
+- [T1556.009 - 条件访问策略](./T1556/T1556.009-Conditional-Access-Policy-Conditional-Access-Policy.md) — 修改云服务的"安检规则"，让自己不被安检。
 
 </details>
 
@@ -264,6 +235,11 @@ Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\ `
 auditctl -w /etc/pam.d/ -p wa -k pam_modification
 ausearch -k pam_modification
 ```
+
+
+
+
+**用人话说：** 这条规则在监控认证系统是否被篡改。认证系统是验证用户身份的'门卫'。正常情况下认证系统的配置和代码不会被修改。如果发现认证相关的配置被修改、DLL被注入、或者认证流程被篡改，那就是攻击者在修改认证系统，准备截获所有用户的登录密码。
 
 ### 应用层检测
 

@@ -4,13 +4,33 @@
 
 **就像从保险箱里倒出所有钥匙——攻击者把系统内存或数据库中存储的密码哈希"倒"出来，直接用来开门。**
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 从Windows/Linux系统内存或数据库中提取密码哈希，用于离线破解或横向移动 |
+| 为什么危险？ | 密码哈希存储在内存和文件中，攻击者可以用mimikatz等工具轻松提取，拿到哈希就能冒充任何登录过的用户 |
+| 谁需要关心？ | 域管理员、Windows安全工程师、SOC分析师 |
+| 你的第一步防御 | 启用Credential Guard保护内存中的凭证，部署EDR监控lsass.exe的异常访问 |
+| 如果只做一件事 | 监控对lsass.exe进程的异常内存访问（Sysmon事件ID 10），任何非系统进程打开lsass都值得立即告警 |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 进程与内存空间：了解每个程序有自己独立的内存"工作区"——就像每个办公桌属于不同员工，管理员可以查看任何人的桌面
+- [ ] NTLM认证基础：了解Windows网络认证的核心概念——用密码的"指纹"（NTLM哈希）来证明身份，而不是直接用原始密码
+- [ ] 权限级别概念：理解Windows管理员（Administrator）与SYSTEM权限的差异——管理员是"最高权限用户"，SYSTEM是"操作系统自己"的权限，SYSTEM能读到管理员也读不到的数据
+
 ## 技术描述
 
 操作系统凭证转储（T1003）是MITRE ATT&CK框架中凭证访问战术的一种核心技术。
+
+**过渡段：** 理解凭证转储的关键不在于"怎么读取LSASS内存"，而在于"为什么密码必然存在于内存中"。Windows为了实现单点登录体验（SSO），在用户登录后必须将凭证缓存到LSASS进程内存中，以便后续访问文件共享、打印机等网络资源时自动完成认证。这意味着：只要系统上有用户登录过，其密码哈希就一定在内存中的某个位置，攻击者要做的只是通过合适的API"伸手去拿"。这就像酒店前台必须记录所有客人的房号才能帮他们开门——攻击者冒充酒店经理，让前台把所有房号抄给他，出门后就能用这些号码进入任何房间。
 
 **通俗解释：**
 Windows系统为了让用户不用每次都输密码，会把密码的"加密版"（哈希）缓存到内存和文件中。就像你进大楼刷卡后，闸机会记住你的卡号一段时间。攻击者用特殊工具（如mimikatz）读取这些缓存，就能拿到密码哈希——然后直接用这些哈希登录其他电脑（Pass-the-Hash），或者暴力破解出原始密码。
@@ -43,29 +63,12 @@ Windows系统为了让用户不用每次都输密码，会把密码的"加密版
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1003.001 - LSASS内存转储
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 从Windows的认证进程（LSASS）内存中把正在使用的密码哈希读出来。
-
-**详细说明：** LSASS（Local Security Authority Subsystem Service）是Windows负责用户认证的核心进程。用户登录后，系统会在LSASS内存中缓存凭证。攻击者使用mimikatz的`sekurlsa::logonpasswords`命令或通过ProcDump转储LSASS内存后离线分析。
-
-### T1003.002 - SAM注册表
-
-**通俗理解：** 从Windows注册表中读取本地用户的密码哈希。
-
-**详细说明：** SAM（Security Account Manager）数据库存储在注册表中，包含本地用户的密码哈希。即使系统正在运行，攻击者也可以通过注册表复制SAM文件（`reg save hklm\sam`），然后离线提取哈希。
-
-### T1003.003 - NTDS数据库
-
-**通俗理解：** 从域控制器上偷走所有域用户的密码"账本"。
-
-**详细说明：** NTDS.dit是Active Directory的数据库文件，存储了所有域用户的凭证信息。攻击者通过卷影副本（Volume Shadow Copy）或直接复制的方式获取NTDS.dit文件，然后使用工具（如Impacket secretsdump）提取所有域用户的密码哈希。
-
-### T1003.006 - DCSync
-
-**通俗理解：** 假装自己是域控制器，让真的域控制器把所有人的密码"同步"给你。
-
-**详细说明：** DCSync攻击利用Windows域控制器之间的复制协议（DRSUAPI）。拥有适当权限的账户（通常是域管理员）可以模拟域控制器，向真正的域控制器请求复制所有用户的凭证数据。使用mimikatz的`lsadump::dcsync`命令即可执行，无需在域控制器上执行代码。
+- [T1003.001 - LSASS内存转储](./T1003/T1003.001-LSASS-Memory-Dump.md) — 从Windows的认证进程（LSASS）内存中把正在使用的密码哈希读出来。
+- [T1003.002 - SAM注册表](./T1003/T1003.002-Security-Account-Manager.md) — 从Windows注册表中读取本地用户的密码哈希。
+- [T1003.003 - NTDS数据库](./T1003/T1003.003-NTDS-Database.md) — 从域控制器上偷走所有域用户的密码"账本"。
+- [T1003.006 - DCSync攻击](./T1003/T1003.006-DCSync-DCSync.md) — 假装自己是域控制器，让真的域控制器把所有人的密码"同步"给你。
 
 </details>
 
@@ -156,7 +159,7 @@ graph TD
 ### 实战技巧
 
 1. **优先使用LOLBins（寄生二进制文件）**
-   使用Windows自带工具（如comsvcs.dll）转储LSASS，避免投放第三方工具触发杀毒软件告警。命令：`rundll32.exe comsvcs.dll, MiniDump <PID> dump.bin full`
+   使用Windows自带工具（如comsvcs.dll）转储LSASS，避免投放第三方工具触发杀毒软件告警。命令：`rundll32.exe comsvcs.dll, MiniDump &lt;PID&gt; dump.bin full`
 
 2. **离线解析减少停留时间**
    在目标上只做转储操作，将dmp文件下载到攻击机后使用mimikatz的`sekurlsa::minidump`离线解析，减少在目标系统上的活跃时间。
@@ -234,6 +237,11 @@ Zeek检测规则：dce_rpc 且 operation = DsGetNCChanges
 Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Sysmon/Operational';ID=10} | 
     Where-Object { $_.Properties[15].Value -like '*lsass.exe' }
 ```
+
+
+
+
+**用人话说：** 这条规则在监控是否有进程在读取系统内存中的密码哈希。Windows/Linux系统会把登录用户的密码哈希缓存在内存中，方便快速认证。正常情况下只有系统进程会读取这些内存区域。如果有陌生进程试图读取凭证存储区域，那就是攻击者在'倒'系统内存中的密码哈希。
 
 ### 应用层检测
 
@@ -327,7 +335,7 @@ Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-L
 1. 在Windows VM中以管理员身份打开命令提示符
 2. 方法1（mimikatz）：`mimikatz.exe "privilege::debug" "sekurlsa::logonpasswords" exit`
 3. 方法2（ProcDump）：`procdump.exe -accepteula -ma lsass.exe lsass.dmp`
-4. 方法3（comsvcs.dll）：`rundll32.exe comsvcs.dll, MiniDump <PID> dump.bin full`
+4. 方法3（comsvcs.dll）：`rundll32.exe comsvcs.dll, MiniDump &lt;PID&gt; dump.bin full`
 5. 使用方法2的dmp文件，在攻击机上使用mimikatz离线解析
 
 **预期结果：** 获取当前登录用户的NTLM哈希
@@ -367,20 +375,20 @@ Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-L
 
 ### 官方文档
 
-- [MITRE ATT&CK - T1003](https://attack.mitre.org/techniques/T1003/)
-- [Microsoft - Credential Guard](https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/)
+- 📚 [MITRE ATT&CK - T1003](https://attack.mitre.org/techniques/T1003/) - 深入了解技术细节
+- 📚 [Microsoft - Credential Guard](https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-guard/) - 深入了解技术细节
 
 ### 安全报告
 
-- [CISA - Volt Typhoon Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a) - 2024年美国政府发布的Volt Typhoon分析报告
-- [Mandiant - Detecting DCSync](https://www.mandiant.com/resources/blog/detecting-dcsync-attacks) - DCSync攻击检测指南
+- 📰 [CISA - Volt Typhoon Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a) - 真实攻击案例
+- 📰 [Mandiant - Detecting DCSync](https://www.mandiant.com/resources/blog/detecting-dcsync-attacks) - 真实攻击案例
 
 ### 工具与资源
 
-- [Mimikatz官方仓库](https://github.com/gentilkiwi/mimikatz) - 凭证提取工具
-- [Impacket - secretsdump.py](https://github.com/fortra/impacket) - 远程凭证提取工具
+- 🔧 [Mimikatz官方仓库](https://github.com/gentilkiwi/mimikatz) - 动手试试
+- 🔧 [Impacket - secretsdump.py](https://github.com/fortra/impacket) - 动手试试
 
 ### 学习资料
 
-- [Recorded Future - 2025 Identity Threat Report](https://www.recordedfuture.com/blog/identity-trend-report-march-blog) - 2025年凭证威胁态势报告
-- [Check Point - 2025凭证泄露分析](https://blog.checkpoint.com/security/the-alarming-surge-in-compromised-credentials-in-2025/) - 2025年凭证泄露激增分析
+- 📰 [Recorded Future - 2025 Identity Threat Report](https://www.recordedfuture.com/blog/identity-trend-report-march-blog) - 深入了解技术细节
+- 📰 [Check Point - 2025凭证泄露分析](https://blog.checkpoint.com/security/the-alarming-surge-in-compromised-credentials-in-2025/) - 深入了解技术细节

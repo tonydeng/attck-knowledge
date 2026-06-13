@@ -4,9 +4,27 @@
 
 查看电脑的详细配置信息——攻击者用systeminfo了解操作系统版本、CPU、内存等。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者执行 `systeminfo`、`wmic os get`、`hostname` 获取操作系统版本、补丁级别、系统架构、计算机名等配置信息 |
+| 为什么危险？ | 系统信息帮助攻击者判断系统是否已打补丁（寻找已知漏洞）、是服务器还是工作站（决定价值）、是否为虚拟机（沙箱检测） |
+| 谁需要关心？ | SOC分析师、系统管理员、威胁狩猎团队、任何需要检测早期侦察行为的安全人员 |
+| 你的第一步防御 | 监控 `systeminfo.exe` 和 WMI `Win32_OperatingSystem`、`Win32_ComputerSystem` 查询的异常执行 |
+| 如果只做一件事 | 对短时间内从同一主机执行多次系统信息查询（systeminfo + hostname + wmic）的行为立即告警，这是典型的攻击链组合 |
+
 ## 难度等级
 
 - ⭐ 初级（新手可学）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 系统信息（System Information）：电脑的硬件和软件配置详情，就像人的身高体重和血型一样是电脑的"体征"
+- [ ] 操作系统（Operating System）：电脑的基本系统软件（如Windows、Linux），就像人的身体一样是其他软件运行的基础
+- [ ] 命令行（Command Line）：用文字而不是图标来操作电脑的方式，就像打电话而不是按电梯按钮
 
 ## 技术描述
 
@@ -14,6 +32,8 @@
 
 **通俗解释：**
 当我们买电脑时会看配置：什么操作系统、多大内存、多少硬盘。攻击者入侵后也做同样的事——用 `systeminfo` 命令查看电脑的详细配置。通过系统信息，攻击者可以判断：这台电脑是服务器还是普通PC？是Windows 10还是Windows Server？有没有打最新的补丁？
+
+**过渡段：** 上面的比喻帮你建立了对系统信息发现的直观理解。现在从技术角度深入：攻击者并非只靠手工敲 systeminfo 来收集系统信息——他们会用脚本批量执行、通过WMI远程查询多台机器、甚至将系统信息收集命令嵌入恶意软件的初始阶段。不同操作系统、不同权限级别下，可用的系统信息收集手段也不同。理解这些技术细节，才能设计出有效的检测方案。
 
 **技术原理：**
 1. 攻击者执行 `systeminfo` 命令获取操作系统版本、补丁级别、系统类型等
@@ -115,7 +135,7 @@ graph TD
 ### 实战技巧
 
 1. **使用systeminfo /S查看详细信息**
-   `systeminfo /S <computer>` 可以远程查询其他系统的信息。
+   `systeminfo /S &lt;computer&gt;` 可以远程查询其他系统的信息。
 
 2. **PowerShell获取系统信息**
    `Get-ComputerInfo` 提供了比systeminfo更丰富的系统信息。
@@ -178,6 +198,8 @@ graph TD
 - 事件ID 4688：进程创建
 - 事件ID 4104：PowerShell脚本
 - Sysmon Event ID 1：进程创建
+
+**用人话说：** 这条规则在监控有人执行 `systeminfo` 命令查看系统配置。systeminfo 是 Windows 内置的系统信息工具，IT 运维人员经常用。但攻击者入侵后第一件事往往就是执行 systeminfo，看看这台电脑是什么操作系统、打了哪些补丁、是服务器还是普通 PC。关键判断标准是：谁在什么情况下执行？如果是 IT 人员在管理服务器，那是正常操作；但如果一个普通员工的电脑上突然有后台进程执行了 systeminfo，或者凌晨有人在多台机器上连续执行 systeminfo，那就是攻击者在"摸底"，为后续的漏洞利用做准备。攻击者特别关注未打补丁的旧系统，因为这些系统有已知漏洞可以利用。
 
 **Sigma规则示例：**
 ```yaml
@@ -266,14 +288,14 @@ tags:
 
 ### 官方文档
 
-- [MITRE ATT&CK - T1082](https://attack.mitre.org/techniques/T1082/)
-- [Microsoft - Systeminfo](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/systeminfo)
+- 📚 [MITRE ATT&CK - T1082](https://attack.mitre.org/techniques/T1082/) - 深入了解技术细节
+- 📚 [Microsoft - Systeminfo](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/systeminfo) - 深入了解技术细节
 
 ### 安全报告
 
-- [Securelist - Lazarus MATA Framework](https://securelist.com/mata-multi-platform-cyber-framework/102140/)
-- [HivePro - APT41 2025](https://hivepro.com/threat-advisory/apt41-cyber-espionage-campaign-targets-u-s-policy-institutions/)
+- 📰 [Securelist - Lazarus MATA Framework](https://securelist.com/mata-multi-platform-cyber-framework/102140/) - 真实攻击案例
+- 📰 [HivePro - APT41 2025](https://hivepro.com/threat-advisory/apt41-cyber-espionage-campaign-targets-u-s-policy-institutions/) - 真实攻击案例
 
 ### 工具与资源
 
-- [PowerShell Get-ComputerInfo](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-computerinfo)
+- 🔧 [PowerShell Get-ComputerInfo](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-computerinfo) - 动手试试

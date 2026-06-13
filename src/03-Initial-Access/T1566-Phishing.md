@@ -4,11 +4,31 @@
 
 > 攻击者用"诱饵"骗你上钩——一封看起来很真的邮件、一个假装是老板的电话、一条紧急的短信，让你点击链接或下载附件，从而中招。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者通过欺骗性邮件、短信、电话或社交媒体消息，冒充可信来源诱骗你点击恶意链接、下载恶意附件或泄露敏感信息 |
+| 为什么危险？ | 成功率最高——不需要技术漏洞，利用的是人性弱点（好奇心、恐惧、紧迫感），每年数据泄露的头号原因 |
+| 谁需要关心？ | 所有组织和个人——特别是财务人员、高管、IT管理员等高价值目标 |
+| 你的第一步防御 | 部署邮件认证（SPF/DKIM/DMARC）和邮件安全网关，阻止假冒邮件进入收件箱 |
+| 如果只做一件事 | 开展员工安全意识培训，让每个人记住"不点击不明链接、不打开陌生附件、不轻易透露信息" |
+
 ## 难度等级
 
 - ⭐ **初级**（新手可学）——概念简单，工具成熟，不需要高深技术知识
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 邮件系统基础：知道什么是发件人地址、SPF/DKIM/DMARC认证（就像知道快递包裹上的"寄件人"可以被伪造）
+- [ ] 社会工程学概念：理解攻击者如何利用人性弱点（权威、紧迫感、好奇心）操纵行为（就像知道骗子会冒充"银行客服"让你转账）
+- [ ] 恶意附件识别：知道Office文档中的宏（Macro）可以执行代码（就像知道一个看似普通的"表格文件"可能藏着"定时炸弹"）
+
 ## 技术描述
+
+**过渡段：** "假快递包裹"这个比喻抓住了钓鱼的核心——欺骗性投递，但现实中的钓鱼花样远不止于此。攻击者不会只在你家门口放一个假包裹，他们会研究你的作息、冒充你信任的人、利用你最忙碌的时刻精准出击。从批量群发的"广撒网"邮件到针对CEO的深度伪造语音电话，从冒充电商客服的短信到在LinkedIn上冒充猎头发消息，钓鱼的形式在不断演变。更重要的是，2025年的钓鱼攻击已经结合了AI深度伪造、OAuth同意欺骗和MFA绕过等技术手段，让传统的"看网址对不对"的防御方法失效。下面我们来深入分析。
 
 钓鱼（Phishing）是一种初始访问技术，攻击者通过欺骗性的电子通信来诱使用户泄露敏感信息、下载恶意软件或授予未授权的访问权限。这是**最常见的初始访问技术**，也是成功率最高的攻击手段之一。
 
@@ -49,33 +69,12 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1566.001 - 鱼叉式钓鱼附件
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 发一封带"毒"附件的邮件，你打开附件就中招了。
-
-**详细说明：**
-攻击者制作包含恶意代码的文档（如启用宏的Office文档、含JavaScript的PDF），通过邮件发送给目标。当用户打开附件并启用内容（如启用宏），恶意代码就会执行，下载并安装恶意软件。
-
-### T1566.002 - 鱼叉式钓鱼链接
-
-**通俗理解：** 发一条链接让你点，点进去要么是假网站偷你密码，要么自动下载病毒。
-
-**详细说明：**
-攻击者发送包含恶意链接的邮件，链接指向钓鱼网站（窃取凭据）或托管恶意软件的网站。使用域名欺骗、URL混淆等技术使链接看起来合法。
-
-### T1566.003 - 通过服务进行鱼叉式钓鱼
-
-**通俗理解：** 通过你常用的社交平台（微信、LinkedIn）发钓鱼消息。
-
-**详细说明：**
-攻击者利用第三方社交平台（LinkedIn、Twitter、Facebook）或个人邮箱服务发送钓鱼消息。这种方法可以绕过企业的邮件安全网关。
-
-### T1566.004 - 鱼叉式钓鱼语音（Vishing）
-
-**通俗理解：** 打电话冒充老板/IT支持，骗你透露密码或进行操作。
-
-**详细说明：**
-攻击者通过电话进行社会工程学攻击，冒充IT支持、老板或供应商。2024-2025年AI深度伪造语音技术的成熟使得Vishing攻击更加逼真和危险。
+- [T1566.001 - 鱼叉式钓鱼附件](./T1566/T1566.001-Spearphishing-Attachment.md) — 发一封带"毒"附件的邮件，你打开附件就中招了。
+- [T1566.002 - 鱼叉式钓鱼链接](./T1566/T1566.002-Spearphishing-Link.md) — 发一条链接让你点，点进去要么是假网站偷你密码，要么自动下载病毒。
+- [T1566.003 - 通过服务进行鱼叉式钓鱼](./T1566/T1566.003-Spearphishing-via-Service.md) — 通过你常用的社交平台（微信、LinkedIn）发钓鱼消息。
+- [T1566.004 - 鱼叉式钓鱼语音（Vishing）](./T1566/T1566.004-Spearphishing-Voice.md) — 打电话冒充老板/IT支持，骗你透露密码或进行操作。
 
 </details>
 
@@ -407,25 +406,17 @@ _dmarc.example.com TXT "v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com"
 
 ## 参考资料
 
-### 官方文档
-
-- [MITRE ATT&CK - Phishing (T1566)](https://attack.mitre.org/techniques/T1566/)
-- [CISA - Phishing (T1566)](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1566)
-
-### 安全报告
-
-- [ReliaQuest 2025 Annual Cyber-Threat Report](https://resources.reliaquest.com/image/upload/v1740433607/Website/2025-ReliaQuest-Annual-Threat-Report.pdf) - 2025年年度威胁报告，详细分析了钓鱼等初始访问技术趋势
-- [Cisco Vishing Attack - TechCrunch](https://techcrunch.com/2025/08/05/hacker-used-a-voice-phishing-attack-to-steal-cisco-customers-personal-information) - 2025年思科语音钓鱼泄露事件分析
-- [Red Canary 2024 Initial Access Report](https://redcanary.com/threat-detection-report/trends/initial-access/) - 2024年初始访问技术趋势，分析"Paste and Run"等新型钓鱼技术
-
-### 工具与资源
-
-- [GoPhish - Open Source Phishing Framework](https://getgophish.com/) - 开源钓鱼演练平台
-- [Evilginx2](https://github.com/kgretzky/evilginx2) - 中间人钓鱼框架
-- [Social Engineering Toolkit](https://github.com/trustedsec/social-engineer-toolkit) - 社会工程学工具包
-
-### 学习资料
-
-- [Gamaredon Phishing Campaign - EclecticIQ](https://blog.eclecticiq.com/exposed-web-panel-reveals-gamaredon-groups-automated-spear-phishing-campaigns) - 自动化鱼叉式钓鱼攻击分析
-- [Spearphishing Link - CISA](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1566.002) - OAuth同意欺骗钓鱼攻击分析
-- [Black Basta Teams Social Engineering](https://resources.reliaquest.com/image/upload/v1740433607/Website/2025-ReliaQuest-Annual-Threat-Report.pdf) - Black Basta利用Microsoft Teams的钓鱼攻击分析
+### 分类标注
+| 类别 | 链接 |
+|------|------|
+| 📚 深入了解 | [MITRE ATT&CK - Phishing (T1566)](https://attack.mitre.org/techniques/T1566/) - 如果你想深入了解技术细节 |
+| 📚 深入了解 | [CISA - Phishing (T1566)](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1566) - CISA官方钓鱼技术分析 |
+| 📰 真实攻击 | [ReliaQuest 2025 Annual Cyber-Threat Report](https://resources.reliaquest.com/image/upload/v1740433607/Website/2025-ReliaQuest-Annual-Threat-Report.pdf) - 2025年年度威胁报告中的钓鱼趋势分析 |
+| 📰 真实攻击 | [Cisco Vishing Attack - TechCrunch](https://techcrunch.com/2025/08/05/hacker-used-a-voice-phishing-attack-to-steal-cisco-customers-personal-information) - 2025年思科语音钓鱼泄露事件 |
+| 📰 真实攻击 | [Red Canary 2024 Initial Access Report](https://redcanary.com/threat-detection-report/trends/initial-access/) - 2024年初始访问技术趋势中的钓鱼分析 |
+| 🔧 动手试试 | [GoPhish - Open Source Phishing Framework](https://getgophish.com/) - 如果你想动手搭建钓鱼演练平台 |
+| 🔧 动手试试 | [Evilginx2](https://github.com/kgretzky/evilginx2) - 如果你想测试MFA绕过钓鱼框架 |
+| 🔧 动手试试 | [Social Engineering Toolkit](https://github.com/trustedsec/social-engineer-toolkit) - 社会工程学工具包 |
+| 📰 真实攻击 | [Gamaredon Phishing Campaign - EclecticIQ](https://blog.eclecticiq.com/exposed-web-panel-reveals-gamaredon-groups-automated-spear-phishing-campaigns) - 自动化鱼叉式钓鱼攻击分析 |
+| 📰 真实攻击 | [Spearphishing Link - CISA](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1566.002) - OAuth同意欺骗钓鱼攻击分析 |
+| 📰 真实攻击 | [Black Basta Teams Social Engineering](https://resources.reliaquest.com/image/upload/v1740433607/Website/2025-ReliaQuest-Annual-Threat-Report.pdf) - Black Basta利用Microsoft Teams的钓鱼攻击 |

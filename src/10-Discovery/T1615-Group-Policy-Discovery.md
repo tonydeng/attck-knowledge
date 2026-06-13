@@ -4,6 +4,16 @@
 
 查看域组策略配置信息——攻击者用 `gpresult` 或访问SYSVOL共享了解组织的安全设置，就像小偷先摸清大楼的安保制度和巡逻时间表。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者使用 `gpresult /Z`、`Get-GPO`、访问 SYSVOL 共享读取组策略文件，分析安全审计配置、密码策略、软件部署策略，并搜索 Groups.xml 中的 cpassword（加密密码） |
+| 为什么危险？ | 组策略暴露了组织的安全基线（审计策略、AppLocker 规则），Groups.xml 中的 cpassword 可被直接解密提取本地管理员密码——这是经典的横向移动入口 |
+| 谁需要关心？ | SOC分析师、AD管理员、蓝队威胁狩猎、任何需要检测组策略异常访问的安全人员 |
+| 你的第一步防御 | 监控 `gpresult /Z` 从非域控主机执行；审计 SYSVOL 共享的非域控访问（Event ID 5140）；从 Groups.xml 中移除所有 cpassword，使用 LAPS |
+| 如果只做一件事 | 对非 IT 管理人员执行 `gpresult /Z` 或访问 SYSVOL 中的 Groups.xml 立即告警——这是攻击者在"偷公司安保制度" |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
@@ -17,7 +27,7 @@
 
 **技术原理：**
 1. 使用 `gpresult /Z` 获取应用到当前计算机的详细策略结果
-2. 通过SYSVOL共享（`\\\\<domain>\\SYSVOL\\<domain>\\Policies\\`）直接读取组策略文件
+2. 通过SYSVOL共享（`\\\\&lt;domain&gt;\\SYSVOL\\&lt;domain&gt;\\Policies\\`）直接读取组策略文件
 3. 使用PowerShell的 `Get-GPO -All` 列出所有组策略对象
 4. 使用 `Get-GPOReport` 导出详细的策略报告
 5. 检查Groups.xml等首选项文件中的加密密码（cpassword）
@@ -61,7 +71,7 @@ graph TD
 
 2. **访问SYSVOL共享**
    - 通俗描述：通过网络共享直接读取策略文件
-   - 技术细节：`dir \\\\<domain>\\SYSVOL\\<domain>\\Policies\\`
+   - 技术细节：`dir \\\\``&lt;domain&gt;``\\SYSVOL\\``&lt;domain&gt;``\\Policies\\`
    - 常用工具：net.exe, dir.exe
 
 3. **提取策略凭据**
@@ -90,7 +100,7 @@ graph TD
 - **时间**: 2017年-2020年
 - **目标**: 全球零售、餐饮、酒店POS系统
 - **攻击组织**: FIN6
-- **手法**: FIN6组织在入侵零售网络后，访问域控制器的SYSVOL共享以发现组策略中嵌入的本地管理密码。使用 `dir \\\\<domain>\\SYSVOL\\<domain>\\Policies\\` 递归遍历所有GPO目录，特别关注Groups.xml文件。使用解密工具破解cpassword字段，恢复出本地管理员密码，随后使用WMI和PsExec进行横向移动。
+- **手法**: FIN6组织在入侵零售网络后，访问域控制器的SYSVOL共享以发现组策略中嵌入的本地管理密码。使用 `dir \\\\&lt;domain&gt;\\SYSVOL\\`<domain>`\\Policies\\` 递归遍历所有GPO目录，特别关注Groups.xml文件。使用解密工具破解cpassword字段，恢复出本地管理员密码，随后使用WMI和PsExec进行横向移动。
 - **影响**: 数千家零售企业的支付系统被入侵
 - **参考链接**: [FireEye - FIN6](https://www.fireeye.com/blog/threat-research/2019/01/fin7-group-policy-discovery.html)
 
@@ -108,7 +118,7 @@ graph TD
 - **时间**: 2021年-2022年
 - **目标**: 乌克兰和东欧政府机构
 - **攻击组织**: Ember Bear（UAC-0056）
-- **手法**: Ember Bear组织使用自定义工具访问SYSVOL共享，枚举所有组策略对象。编写脚本遍历 `\\<domain>\\SYSVOL\\<domain>\\Policies\\` 下的所有策略目录，搜索包含加密密码的策略文件。使用公开工具（如 `Get-GPPPassword`）解密Groups.xml中的cpassword字段，将发现的本地管理员密码添加到凭证库中用于后续横向移动。
+- **手法**: Ember Bear组织使用自定义工具访问SYSVOL共享，枚举所有组策略对象。编写脚本遍历 `\\``&lt;domain&gt;``\\SYSVOL\\```<domain>```\\Policies\\` 下的所有策略目录，搜索包含加密密码的策略文件。使用公开工具（如 `Get-GPPPassword`）解密Groups.xml中的cpassword字段，将发现的本地管理员密码添加到凭证库中用于后续横向移动。
 - **影响**: 东欧政府机构网络被渗透
 - **参考链接**: [MITRE - Ember Bear](https://attack.mitre.org/groups/G0114/)
 
@@ -119,13 +129,13 @@ graph TD
 ### 实战技巧
 
 1. **快速提取Groups.xml密码**
-   PowerShell一行命令：`Get-ChildItem -Path "\\\\<domain>\\SYSVOL\\<domain>\\Policies\\" -Recurse -Filter "Groups.xml" | Get-GPPPassword`
+   PowerShell一行命令：`Get-ChildItem -Path "\\\\&lt;domain&gt;\\SYSVOL\\&lt;domain&gt;\\Policies\\" -Recurse -Filter "Groups.xml" | Get-GPPPassword`
 
 2. **使用gpresult获取完整策略**
    `gpresult /Z` 提供最详细的策略结果集，包括所有应用的GPO及其设置。
 
 3. **SYSVOL遍历**
-   通过 `dir /s \\\\<dc>\\SYSVOL\\<domain>\\Policies\\` 递归列出所有策略文件。
+   通过 `dir /s \\\\`<dc>`\\SYSVOL\\`<domain>`\\Policies\\` 递归列出所有策略文件。
 
 ### 常用工具
 
@@ -182,6 +192,8 @@ graph TD
 - 事件ID 4688：进程创建（监控gpresult.exe）
 - 事件ID 5140：网络共享对象已访问（监控SYSVOL访问）
 - 事件ID 4104：PowerShell脚本（监控Get-GPO）
+
+**用人话说：** 这条规则在监控有人执行 `gpresult` 查看组策略配置。攻击者为什么要查你的组策略？两个目的：一是了解安全基线——你开了哪些审计、有没有部署 AppLocker、EDR 策略是什么样的，这样攻击者就知道哪些行为会被记录、哪些工具会被阻止；二是找密码——早期 Windows 的 Groups.xml 文件里会存储本地管理员密码的加密版本（cpassword），这个加密是已知的 AES 密钥，任何人都能解密。虽然 Windows 10 以后已经修复了这个问题，但很多老环境还在用。正常情况下，只有 AD 管理员在做策略审计时才会用 `gpresult /Z`。
 
 **Sigma规则示例：**
 ```yaml
@@ -260,7 +272,7 @@ tags:
 **实验目标：** 了解通过SYSVOL查看策略文件的方法。
 
 **实验步骤：**
-1. 访问 `\\\\<domain>\\SYSVOL\\<domain>\\Policies\\`
+1. 访问 `\\\\``&lt;domain&gt;``\\SYSVOL\\``<domain>``\\Policies\\`
 2. 使用 `dir /s` 递归列出策略文件
 3. 搜索Groups.xml文件
 

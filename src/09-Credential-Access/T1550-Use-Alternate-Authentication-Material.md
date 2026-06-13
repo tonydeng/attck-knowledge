@@ -4,6 +4,16 @@
 
 **不用密码也能登录——攻击者拿密码的"哈希"或"票据"直接认证，就像用指纹膜代替真指纹开锁。**
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 不用密码，拿哈希或票据直接登录 |
+| 为什么危险？ | 拿到认证材料就能直接登录，不需要知道密码，速度快且隐蔽 |
+| 谁需要关心？ | 域管理员、SOC分析师 |
+| 你的第一步防御 | 部署NTLMv2强制策略，监控异常的认证材料使用 |
+| 如果只做一件事 | 监控Windows事件ID 4624（登录成功）中的NTLM登录类型，关注非标准登录源 |
+
 ## 难度等级
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
@@ -38,17 +48,10 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1550.002 - Pass the Hash
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 用密码的"指纹"代替密码本身来开门。
-
-**详细说明：** NTLM认证协议在验证用户时只需要密码的NTLM哈希，不需要原始密码。攻击者使用mimikatz从LSASS内存提取NTLM哈希后，通过`sekurlsa::pth`命令启动一个进程（如cmd.exe），该进程以被提取哈希的用户身份运行。使用这个进程可以访问任何接受NTLM认证的资源，包括文件共享、SQL Server等。
-
-### T1550.003 - Pass the Ticket
-
-**通俗理解：** 用"通行证"代替密码进入大楼。
-
-**详细说明：** Kerberos认证使用票据（Ticket）作为凭证。攻击者从LSASS进程内存提取Kerberos TGT或服务票据后，使用`kerberos::ptt`命令将票据注入当前会话。之后所有需要Kerberos认证的资源都会接受这个票据。对于域管理员票据，可以访问域内所有系统。
+- [T1550.002 - 哈希传递](./T1550/T1550.002-Pass-the-Hash-Pass-the-Hash.md) — 用密码的"指纹"代替密码本身来开门。
+- [T1550.003 - 票据传递](./T1550/T1550.003-Pass-the-Ticket-Pass-the-Ticket.md) — 用"通行证"代替密码进入大楼。
 
 </details>
 
@@ -197,6 +200,11 @@ tshark -r capture.pcap -Y "kerberos.msg_type == 13" -T fields -e ip.src -e kerbe
 Get-WinEvent -FilterHashtable @{LogName='Security';ID=4624} |
     Where-Object { $_.Properties[8].Value -eq 3 -and $_.Properties[10].Value -eq 'NtLmSsp' }
 ```
+
+
+
+
+**用人话说：** 这条规则在监控是否有人使用非密码方式（如哈希、票据）进行登录。Pass the Hash/Ticket是攻击者拿到密码哈希或Kerberos票据后直接用来登录，不需要破解出明文密码。正常情况下用户登录会使用密码或Kerberos。如果发现有人用非标准方式从非标准位置登录，那就是攻击者在用偷来的认证材料冒充登录。
 
 ### 应用层检测
 

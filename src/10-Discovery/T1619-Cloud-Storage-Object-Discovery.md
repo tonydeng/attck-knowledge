@@ -4,6 +4,16 @@
 
 枚举云存储中的对象和文件——攻击者用 `aws s3 ls` 列出云存储桶中的文件，就像小偷翻看仓库里的每个箱子，找值钱的东西。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者使用 `aws s3 ls`、`az storage blob list`、`gsutil ls` 枚举云存储桶中的所有对象，通过文件名和元数据识别数据库备份、API 密钥、源代码等高价值文件 |
+| 为什么危险？ | 云存储是企业数据泄露的重灾区——公开可读的存储桶、包含明文凭证的配置文件（.env、terraform.tfstate）、数据库备份都可能被直接下载 |
+| 谁需要关心？ | 云安全团队、SOC分析师、IAM管理员、数据安全团队 |
+| 你的第一步防御 | 监控 CloudTrail 中 `ListBuckets`、`ListObjectsV2`、`GetObject` 的异常调用；启用 S3 Block Public Access；配置 CloudTrail Insights 检测异常 API 模式 |
+| 如果只做一件事 | 对单个用户短时间内执行大量 `ListObjectsV2` + `GetObject` 调用立即告警——这是攻击者在"翻箱倒柜"批量下载数据的典型特征 |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
@@ -72,7 +82,7 @@ graph TD
 
 4. **下载目标文件**
    - 通俗描述：下载识别出的高价值文件
-   - 技术细节：`aws s3 cp s3://<bucket>/<file> ./`
+   - 技术细节：`aws s3 cp s3://&lt;bucket&gt;/&lt;file&gt; ./`
    - 常用工具：AWS CLI, Azure CLI
 
 ## 真实案例
@@ -123,10 +133,10 @@ graph TD
    `aws s3 ls s3://<bucket-name>/ --recursive` 可以列出存储桶中的所有对象。
 
 2. **搜索特定文件类型**
-   结合 `grep` 过滤感兴趣的文件：`aws s3 ls s3://<bucket>/ --recursive | grep -E "\.env|credential|backup|secret"`
+   结合 `grep` 过滤感兴趣的文件：`aws s3 ls s3://&lt;bucket&gt;/ --recursive | grep -E "\.env|credential|backup|secret"`
 
 3. **检查存储桶权限**
-   先尝试 `aws s3 ls s3://<bucket>/` 看是否可公开访问，无需认证即可读取。
+   先尝试 `aws s3 ls s3://`<bucket>`/` 看是否可公开访问，无需认证即可读取。
 
 ### 常用工具
 
@@ -184,6 +194,8 @@ graph TD
 - `ListObjectsV2`：列举存储对象
 - `GetObject`：下载对象
 - `PutObject`：上传对象
+
+**用人话说：** 这条规则在监控有人批量列举和下载云存储对象。攻击者窃取到云凭证后会做什么？先用 `ListBuckets` 看有哪些存储桶，再用 `ListObjectsV2` 看每个桶里有什么文件，然后用 `GetObject` 下载他们感兴趣的东西——数据库备份、包含 API 密钥的 .env 文件、terraform.tfstate（里面有云凭证）、源代码。正常情况下，开发人员可能偶尔列出存储桶内容，但单个用户在短时间内对大量存储桶执行批量列举+下载就很可疑。CloudTrail 会记录所有这些 API 调用，配置 Insights 规则可以自动检测异常模式。
 
 **Sigma规则示例：**
 ```yaml
@@ -265,8 +277,8 @@ tags:
 **实验目标：** 学习在云存储中搜索特定类型的文件。
 
 **实验步骤：**
-1. 使用 `aws s3 ls s3://<bucket>/ --recursive | findstr "backup\|secret\|config\|env"` 过滤文件
-2. 使用 `aws s3 cp s3://<bucket>/<file> .` 下载目标文件
+1. 使用 `aws s3 ls s3://&lt;bucket&gt;/ --recursive | findstr "backup\|secret\|config\|env"` 过滤文件
+2. 使用 `aws s3 cp s3://`<bucket>`/`<file>` .` 下载目标文件
 
 **预期结果：** 在海量文件中快速定位感兴趣的内容。
 

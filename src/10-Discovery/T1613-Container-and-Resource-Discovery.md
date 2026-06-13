@@ -4,6 +4,16 @@
 
 查看容器环境中的信息和API——攻击者在云原生环境中用 `docker ps` 或 `kubectl get pods` 查看运行中的容器，就像小偷进入物流仓库后先查看有哪些包裹和货架。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者使用 `docker ps`、`kubectl get pods --all-namespaces`、检查 `/var/run/docker.sock` 和 `/proc/1/cgroup` 来枚举容器、镜像、Kubernetes Pod/Secret/ServiceAccount 等资源 |
+| 为什么危险？ | 容器环境是微服务架构，攻击者通过容器发现可以：找到可逃逸到宿主机的容器、发现高权限 Service Account Token、识别存储敏感数据的容器、利用暴露的 Docker API 部署挖矿容器 |
+| 谁需要关心？ | 云安全团队、容器安全运维、DevSecOps、K8s管理员 |
+| 你的第一步防御 | 使用 Falco 等运行时安全工具监控容器内异常命令执行；审计 K8s API 日志中对 Pod/Secret 的 LIST/GET 操作；禁用 Service Account 自动挂载 Token |
+| 如果只做一件事 | 对容器内执行 `kubectl get secrets` 或访问 Docker Socket 的行为立即告警——这是攻击者在"翻箱倒柜"找凭证或准备逃逸 |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
@@ -116,7 +126,7 @@ graph TD
    检查 `/.dockerenv` 文件是否存在、`/proc/1/cgroup` 是否包含"docker"字符串。
 
 2. **Docker套接字逃逸**
-   如果 `/var/run/docker.sock` 可访问，执行 `docker run -v /:/mnt --privileged -it <image> /bin/bash` 挂载宿主机根目录。
+   如果 `/var/run/docker.sock` 可访问，执行 `docker run -v /:/mnt --privileged -it &lt;image&gt; /bin/bash` 挂载宿主机根目录。
 
 3. **K8s Service Account令牌**
    默认情况下K8s会为Pod自动挂载Service Account令牌，路径：`/var/run/secrets/kubernetes.io/serviceaccount/token`
@@ -188,6 +198,8 @@ graph TD
 ```
 
 ### Sigma规则示例
+
+**用人话说：** 这条规则在监控有人用 `kubectl` 命令列举 Kubernetes 集群资源。攻击者为什么要查你的 Pod、Service、Secret？因为 K8s 默认会为每个 Pod 自动挂载 Service Account Token，攻击者拿到 Token 后就能调用 K8s API 枚举更多资源，甚至创建新 Pod 来部署挖矿软件或横向移动。特别危险的是 `kubectl get secrets`——Secret 里可能存着数据库密码、API 密钥、TLS 证书。正常情况下，只有 K8s 管理员在做集群运维时才会批量列举资源。如果你看到一个普通应用容器突然去执行 `kubectl get pods --all-namespaces`，那就是攻击者在"画地图"。
 
 **Sigma规则示例：**
 ```yaml

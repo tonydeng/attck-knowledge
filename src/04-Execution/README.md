@@ -77,11 +77,62 @@ graph LR
 | [T1675](./T1675-ESXi-Administration-Command.md) | ESXi管理命令 | ⭐⭐ | 0 | 利用VMware ESXi虚拟化管理命令控制虚拟机，甚至加密所有虚拟磁盘 | ✅ 已完成 |
 | [T1677](./T1677-Poisoned-Pipeline-Execution.md) | 毒化流水线执行 | ⭐⭐⭐ | 0 | 破坏CI/CD构建流水线，在软件编译过程中注入恶意代码 | ✅ 已完成 |
 
+
+
+## 子技术索引
+
+| 子技术ID | 名称 | 难度 | 一句话理解 | 文档状态 |
+|----------|------|:----:|-----------|:--------:|
+| [T1053.002](./T1053/T1053.002-At-At.md) | At | ⭐⭐ | Windows的at命令（已弃用），用于创建一次性计划任务 | ✅ 已完成 |
+| [T1053.003](./T1053/T1053.003-Cron-Cron.md) | Cron | ⭐⭐ | Linux/macOS的定时任务调度器，通过crontab配置 | ✅ 已完成 |
+| [T1053.005](./T1053/T1053.005-Scheduled-Task.md) | 计划任务 | ⭐⭐ | Windows的任务计划程序（schtasks.exe），功能最强大 | ✅ 已完成 |
+| [T1053.006](./T1053/T1053.006-Systemd-Timers-Systemd-Timers.md) | Systemd Timers | ⭐⭐ | Linux systemd的定时器，现代Linux系统的cron替代品 | ✅ 已完成 |
+| [T1053.007](./T1053/T1053.007-Container-Orchestration-Job.md) | 容器编排作业 | ⭐⭐ | Kubernetes CronJob，云原生环境的定时任务 | ✅ 已完成 |
+| [T1059.001](./T1059/T1059.001-PowerShell-PowerShell.md) | PowerShell | ⭐ | Windows下最强大的脚本工具，红队的"瑞士军刀" | ✅ 已完成 |
+| [T1059.002](./T1059/T1059.002-AppleScript-AppleScript.md) | AppleScript | ⭐ | macOS的自动化脚本语言，可以控制应用程序和系统操作 | ✅ 已完成 |
+| [T1059.003](./T1059/T1059.003-Windows-Command-Shell.md) | Windows命令行 | ⭐ | 经典的cmd.exe，虽然老但仍被广泛使用 | ✅ 已完成 |
+| [T1059.004](./T1059/T1059.004-Unix-Shell-Unix-Shell.md) | Unix Shell | ⭐ | Linux/macOS的bash、zsh等shell，服务器渗透的必备工具 | ✅ 已完成 |
+| [T1059.005](./T1059/T1059.005-Visual-Basic-Visual-Basic.md) | Visual Basic | ⭐ | VBA宏和VBScript，Office文档攻击的经典载体 | ✅ 已完成 |
+| [T1059.006](./T1059/T1059.006-Python-Python.md) | Python | ⭐ | 跨平台脚本语言，丰富的库生态，常用于编写后门和工具 | ✅ 已完成 |
+| [T1059.007](./T1059/T1059.007-JavaScript-JavaScript.md) | JavaScript | ⭐ | 浏览器端脚本，也通过Node.js在服务端运行 | ✅ 已完成 |
+| [T1059.008](./T1059/T1059.008-Network-Device-CLI.md) | 网络设备CLI | ⭐ | 路由器、交换机等网络设备的命令行接口 | ✅ 已完成 |
+| [T1059.009](./T1059/T1059.009-Cloud-API.md) | 云API | ⭐ | 利用云平台的API和CLI工具执行恶意操作 | ✅ 已完成 |
+| [T1059.010](./T1059/T1059.010-AutoHotKey-and-AutoIT-AutoHotKey-AutoIT.md) | AutoHotKey/AutoIT | ⭐ | Windows自动化脚本工具，常被恶意软件用来模拟用户操作 | ✅ 已完成 |
+| [T1059.011](./T1059/T1059.011-Lua-Lua.md) | Lua | ⭐ | 轻量级脚本语言，常嵌入在游戏和应用中 | ✅ 已完成 |
+| [T1059.012](./T1059/T1059.012-Container-Administration-CLI.md) | 虚拟化管理CLI | ⭐ | ESXi、KVM等虚拟化平台的命令行工具 | ✅ 已完成 |
+| [T1059.013](./T1059/T1059.013-Container-CLI-容器CLI-API.md) | 容器CLI/API | ⭐ | Docker、kubectl等容器管理命令行工具 | ✅ 已完成 |
+| [T1127.001](./T1127/T1127.001-MSBuild-MSBuild.md) | MSBuild | ⭐⭐ | 利用微软构建引擎的内联任务功能执行C#/VB代码 | ✅ 已完成 |
+| [T1127.002](./T1127/T1127.002-ClickOnce-ClickOnce.md) | ClickOnce | ⭐⭐ | 利用微软的ClickOnce部署技术通过受信任进程执行代码 | ✅ 已完成 |
+| [T1127.003](./T1127/T1127.003-JamPlus-JamPlus.md) | JamPlus | ⭐⭐ | 利用JamPlus构建工具的脚本功能执行恶意命令 | ✅ 已完成 |
+| [T1204.001](./T1204/T1204.001-Malicious-Link.md) | 恶意链接 | ⭐ | 骗用户点击链接，跳转到恶意网站或触发下载 | ✅ 已完成 |
+| [T1204.002](./T1204/T1204.002-Malicious-File.md) | 恶意文件 | ⭐ | 骗用户打开恶意附件或下载的文件 | ✅ 已完成 |
+| [T1204.003](./T1204/T1204.003-Malicious-Image-恶意图片.md) | 恶意图片/镜像 | ⭐ | 利用恶意的Docker镜像、云镜像等 | ✅ 已完成 |
+| [T1204.004](./T1204/T1204.004-Malicious-Copy-Paste.md) | 恶意复制粘贴 | ⭐ | ClickFix攻击，骗用户复制粘贴恶意命令 | ✅ 已完成 |
+| [T1204.005](./T1204/T1204.005-Malicious-Libraries.md) | 恶意库 | ⭐ | 利用恶意的软件包/库 | ✅ 已完成 |
+| [T1559.001](./T1559/T1559.001-Component-Object-Model-COM.md) | COM | ⭐⭐ | 利用Windows组件对象模型在合法进程中执行代码 | ✅ 已完成 |
+| [T1559.002](./T1559/T1559.002-Dynamic-Data-Exchange-DDE.md) | DDE | ⭐⭐ | 利用Office的动态数据交换功能执行命令（无需宏） | ✅ 已完成 |
+| [T1559.003](./T1559/T1559.003-XPC-Services.md) | XPC服务 | ⭐⭐ | 利用macOS的轻量级通信机制进行权限提升 | ✅ 已完成 |
+| [T1569.001](./T1569/T1569.001-Launchctl-Launchctl.md) | Launchctl | ⭐⭐ | macOS的服务管理工具，用于加载/卸载Launch Agent和Daemon | ✅ 已完成 |
+| [T1569.002](./T1569/T1569.002-Service-Execution.md) | 服务执行 | ⭐⭐ | 利用Windows服务或Linux systemd服务执行恶意代码 | ✅ 已完成 |
+| [T1569.003](./T1569/T1569.003-Systemctl-Systemctl.md) | Systemctl | ⭐⭐ | Linux的服务管理工具，用于控制systemd服务 | ✅ 已完成 |
+| [T1574.001](./T1574/T1574.001-DLL-Search-Order-Hijacking.md) | DLL搜索顺序劫持 | ⭐⭐⭐ | 在合法DLL之前放置恶意同名DLL | ✅ 已完成 |
+| [T1574.004](./T1574/T1574.004-Dylib-Hijacking.md) | dylib劫持 | ⭐⭐⭐ | macOS版本的DLL劫持 | ✅ 已完成 |
+| [T1574.005](./T1574/T1574.005-Executable-Installer-File-Permissions-Weakness.md) | 可执行安装程序文件权限弱点 | ⭐⭐⭐ | 利用安装程序文件的权限漏洞 | ✅ 已完成 |
+| [T1574.006](./T1574/T1574.006-Dynamic-Linker-Hijacking.md) | 动态链接器劫持 | ⭐⭐⭐ | 劫持操作系统的动态链接器 | ✅ 已完成 |
+| [T1574.007](./T1574/T1574.007-Path-Hijacking.md) | PATH劫持 | ⭐⭐⭐ | 在PATH环境变量目录中放置恶意程序 | ✅ 已完成 |
+| [T1574.008](./T1574/T1574.008-Search-Order-Hijacking.md) | 搜索顺序劫持 | ⭐⭐⭐ | 更广泛的搜索顺序利用 | ✅ 已完成 |
+| [T1574.009](./T1574/T1574.009-Unquoted-Service-Path.md) | 未引用路径劫持 | ⭐⭐⭐ | 利用服务路径中未加引号的空格 | ✅ 已完成 |
+| [T1574.010](./T1574/T1574.010-Service-Permissions-Hijacking.md) | 服务权限劫持 | ⭐⭐⭐ | 利用服务的权限配置漏洞 | ✅ 已完成 |
+| [T1574.011](./T1574/T1574.011-Services-Registry-Permissions-Weakness.md) | 服务注册表权限弱点 | ⭐⭐⭐ | 利用服务注册表键的权限漏洞 | ✅ 已完成 |
+| [T1574.012](./T1574/T1574.012-COR_PROFILER-Hijacking.md) | COR_PROFILER劫持 | ⭐⭐⭐ | 利用.NET性能分析器环境变量 | ✅ 已完成 |
+| [T1574.013](./T1574/T1574.013-KernelCallbackTable-Hijacking.md) | KernelCallbackTable劫持 | ⭐⭐⭐ | 劫持进程的内核回调表 | ✅ 已完成 |
+| [T1574.014](./T1574/T1574.014-AppDomainManager-Hijacking.md) | AppDomainManager劫持 | ⭐⭐⭐ | 劫持.NET的AppDomain管理器 | ✅ 已完成 |
+
 ### 统计信息
 
 - **技术总数**：20 个
-- **子技术总数**：46 个
-- **已完成文档**：20 个
+- **子技术总数**：44 个
+- **已完成文档**：44 个
 - **进行中文档**：0 个
 - **待编写文档**：0 个
 

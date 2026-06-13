@@ -18,19 +18,19 @@ echo "=========================================="
 echo " ATT&CK 知识库 - 构建"
 echo "=========================================="
 
-# 1. 预处理 Markdown（修正 README.md 链接兼容性问题）
-echo "[1/3] 预处理 Markdown 文件..."
-python3 "$SCRIPT_DIR/preprocess-md.py"
+# 预处理由 book.toml 中配置的 preprocessor.attck-preprocess 自动执行:
+#   - gen-summary.py  → 自动生成 SUMMARY.md
+#   - preprocess-md.py → 修正 README.md 链接
 
-# 2. 确定命令
+# 1. 确定命令
 CMD="${1:-build}"
 if [ "$CMD" != "build" ] && [ "$CMD" != "serve" ] && [ "$CMD" != "watch" ]; then
     echo "用法: $0 [build|serve|watch]"
     exit 1
 fi
 
-# 3. 执行 mdbook
-echo "[2/3] 执行 mdbook $CMD..."
+# 2. 执行 mdbook（自动触发预处理器）
+echo "[1/2] 执行 mdbook $CMD..."
 mdbook "$CMD"
 
-echo "[3/3] 完成"
+echo "[2/2] 完成"

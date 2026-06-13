@@ -101,7 +101,7 @@ graph TD
 ### 检测要点
 
 1. 监控MSBuild.exe执行，特别是在非开发系统上
-2. 检查.csproj文件中是否包含`<CodeTaskFactory>`或内联任务
+2. 检查.csproj文件中是否包含`&lt;CodeTaskFactory&gt;`或内联任务
 3. 在非开发工作站上限制开发工具的执行
 
 ### 常用监控命令

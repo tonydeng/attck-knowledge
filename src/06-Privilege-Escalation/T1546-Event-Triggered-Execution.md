@@ -47,23 +47,11 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1546.001 - 更改默认文件关联
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 把"双击打开.txt文件"偷偷改成"双击先运行恶意软件，再打开文本文件"。
-
-**详细说明：** 攻击者修改注册表中与文件类型关联的设置（如 `HKEY_CLASSES_ROOT\txtfile\shell\open\command`），将默认打开程序替换为恶意程序。当用户双击特定类型文件时，恶意程序先运行，然后才打开实际文件。
-
-### T1546.006 - 辅助功能
-
-**通俗理解：** 在登录界面按"放大镜"快捷键时，弹出一个管理员权限的黑客工具。
-
-**详细说明：** 这是攻击者常用的在登录界面获得 SYSTEM 权限的技术。攻击者将登录界面的辅助功能（如屏幕键盘、放大镜）替换为 cmd.exe 或恶意程序。在登录界面（不需要输入密码）激活辅助功能时，恶意程序以 SYSTEM 权限执行。
-
-### T1546.012 - 安全支持提供器
-
-**通俗理解：** 在认证系统中安装一个"窃听器"，每个输入密码的记录都被复制一份发给攻击者。
-
-**详细说明：** SSP（Security Support Provider）是 Windows LSASS 进程加载的 DLL，用于处理认证。攻击者注册恶意的 SSP DLL，该 DLL 随 LSASS 启动自动加载，并开始记录所有明文密码。由于 LSASS 以 SYSTEM 权限运行，恶意 SSP 也具有 SYSTEM 权限。
+- [T1546.001 - 更改默认文件关联](./T1546/T1546.001-Change-Default-File-Association.md) — 把"双击打开.txt文件"偷偷改成"双击先运行恶意软件，再打开文本文件"。
+- [T1546.006 - 辅助功能](./T1546/T1546.006-Accessibility-Features.md) — 在登录界面按"放大镜"快捷键时，弹出一个管理员权限的黑客工具。
+- [T1546.012 - 安全支持提供器](./T1546/T1546.012-Security-Support-Provider.md) — 在认证系统中安装一个"窃听器"，每个输入密码的记录都被复制一份发给攻击者。
 
 </details>
 
@@ -251,9 +239,9 @@ Get-ChildItem C:\Windows\System32\sethc.exe, C:\Windows\System32\utilman.exe |
 Get-WmiObject -Namespace root\subscription -Class __FilterToConsumerBinding *
 ```
 
-### 应用层检测
+**用人话说：** 事件触发执行是攻击者注册在特定系统事件发生时自动执行的恶意代码。包括WMI事件订阅（CPU使用率超过阈值时触发）、屏幕保护程序触发、文件关联修改（双击.txt文件启动恶意软件）、Shell配置修改（用户打开终端时执行恶意命令）、辅助功能劫持（在登录界面按5次Shift键启动后门）等。这就像在家具里设置了触发机关——当有人以特定方式触碰（如特定的系统事件），隐藏的陷阱就会自动触发。
 
-**Sigma规则示例：**
+**Sigma规则示例：**
 ```yaml
 title: Sticky Keys Backdoor Detection
 status: experimental

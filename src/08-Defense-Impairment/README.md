@@ -85,11 +85,146 @@ graph LR
 | [T1689](./T1689-Downgrade-Attack.md) | 降级攻击 | ⭐⭐ | 0 | 强迫系统用更弱的安全协议 | ✅ 已完成 |
 | [T1687](./T1687-Exploitation-for-Defense-Impairment.md) | 利用漏洞削弱防御 | ⭐⭐⭐ | 0 | 找到保安系统的漏洞并利用它 | ✅ 已完成 |
 
+
+
+## 子技术索引
+
+| 子技术ID | 名称 | 难度 | 一句话理解 | 文档状态 |
+|----------|------|:----:|-----------|:--------:|
+| [T1027.001](./T1027/T1027.001-Binary-Plant.md) | 二进制植入 | ⭐⭐⭐ | 将恶意代码隐藏在图片或合法文件中 | ✅ 已完成 |
+| [T1027.002](./T1027/T1027.002-Software-Packing.md) | 软件打包 | ⭐⭐⭐ | 用UPX等方法压缩/加密恶意程序 | ✅ 已完成 |
+| [T1027.003](./T1027/T1027.003-Custom-Encoding-Crypto-自定义编码.md) | 自定义编码/加密 | ⭐⭐⭐ | 用Base64、XOR等方法编码恶意载荷 | ✅ 已完成 |
+| [T1027.004](./T1027/T1027.004-Compiled-HTML-File.md) | 编译后的HTML文件 | ⭐⭐⭐ | 利用CHM文件执行恶意脚本 | ✅ 已完成 |
+| [T1027.005](./T1027/T1027.005-Indicator-Removal.md) | 指示器移除 | ⭐⭐⭐ | 删除文件中的IoC特征（硬编码IP等） | ✅ 已完成 |
+| [T1027.006](./T1027/T1027.006-HTML-Smuggling-HTML-Smuggling.md) | HTML Smuggling | ⭐⭐⭐ | 在HTML中编码隐藏恶意文件 | ✅ 已完成 |
+| [T1027.007](./T1027/T1027.007-Dynamic-API-Resolution.md) | 动态API解析 | ⭐⭐⭐ | 运行时才解析API，不让导入表暴露 | ✅ 已完成 |
+| [T1027.008](./T1027/T1027.008-Clear-PE-Header.md) | 清空PE头部 | ⭐⭐⭐ | 清除可执行文件的PE头使分析工具解析错误 | ✅ 已完成 |
+| [T1027.009](./T1027/T1027.009-Embedded-Payload.md) | 嵌入的Payload | ⭐⭐⭐ | 将载荷嵌入可执行文件的其他部分 | ✅ 已完成 |
+| [T1027.010](./T1027/T1027.010-Command-Obfuscation.md) | 命令混淆 | ⭐⭐⭐ | 使用混淆的命令行逃避日志检测 | ✅ 已完成 |
+| [T1027.011](./T1027/T1027.011-File-Extension-Masquerading.md) | 文件扩展名伪装 | ⭐⭐⭐ | 修改文件扩展名绕过白名单 | ✅ 已完成 |
+| [T1027.012](./T1027/T1027.012-LNK-File-Obfuscation.md) | LNK文件混淆 | ⭐⭐⭐ | 使用特殊字符和技巧混淆快捷方式文件 | ✅ 已完成 |
+| [T1027.013](./T1027/T1027.013-Encrypted-Encoded-File-加密.md) | 加密/编码文件 | ⭐⭐⭐ | 使用加密算法保护存储的文件内容 | ✅ 已完成 |
+| [T1036.001](./T1036/T1036.001-Process-Name-Masquerading.md) | 进程名伪装 | ⭐⭐ | 把恶意程序改名为系统进程名字 | ✅ 已完成 |
+| [T1036.002](./T1036/T1036.002-Path-Masquerading.md) | 路径伪装 | ⭐⭐ | 把恶意程序放在系统目录里 | ✅ 已完成 |
+| [T1036.003](./T1036/T1036.003-DLL-Masquerading.md) | DLL伪装 | ⭐⭐ | 把恶意DLL命名为系统DLL的名字 | ✅ 已完成 |
+| [T1036.004](./T1036/T1036.004-Task-Masquerading.md) | 任务伪装 | ⭐⭐ | 把恶意计划任务命名为系统任务名 | ✅ 已完成 |
+| [T1036.005](./T1036/T1036.005-Service-Masquerading.md) | 服务伪装 | ⭐⭐ | 把恶意服务命名为系统服务名 | ✅ 已完成 |
+| [T1036.006](./T1036/T1036.006-Double-Extension.md) | 双扩展名 | ⭐⭐ | `document.pdf.exe`用户看到的是pdf文件 | ✅ 已完成 |
+| [T1036.007](./T1036/T1036.007-Context-Menu-Masquerading.md) | 右键菜单伪装 | ⭐⭐ | 把恶意程序伪装成右键菜单项 | ✅ 已完成 |
+| [T1036.008](./T1036/T1036.008-Process-Masquerading.md) | 进程伪装 | ⭐⭐ | 使用`CreateProcess`修改进程名称 | ✅ 已完成 |
+| [T1055.001](./T1055/T1055.001-DLL-Injection.md) | DLL注入 | ⭐⭐⭐ | 把恶意DLL加载到目标进程 | ✅ 已完成 |
+| [T1055.002](./T1055/T1055.002-PE-Injection.md) | 可移植可执行文件注入 | ⭐⭐⭐ | 把完整的PE文件写入目标进程 | ✅ 已完成 |
+| [T1055.003](./T1055/T1055.003-Thread-Execution-Hijacking.md) | 线程执行劫持 | ⭐⭐⭐ | 暂停合法线程，替换为恶意代码再恢复执行 | ✅ 已完成 |
+| [T1055.004](./T1055/T1055.004-Asynchronous-Procedure-Call.md) | 异步过程调用 | ⭐⭐⭐ | 利用APC在目标线程中执行恶意代码 | ✅ 已完成 |
+| [T1055.005](./T1055/T1055.005-Thread-Local-Storage.md) | 线程本地存储 | ⭐⭐⭐ | 利用TLS回调在DLL加载时执行代码 | ✅ 已完成 |
+| [T1055.008](./T1055/T1055.008-Ptrace-System-Call-Injection.md) | Ptrace系统调用注入 | ⭐⭐⭐ | Linux/macOS上的`ptrace`注入 | ✅ 已完成 |
+| [T1055.009](./T1055/T1055.009-Process-Hollowing.md) | 进程空心化 | ⭐⭐⭐ | 创建合法进程后替换其内存为恶意代码 | ✅ 已完成 |
+| [T1055.011](./T1055/T1055.011-Extra-Window-Memory-Injection.md) | 额外窗口内存注入 | ⭐⭐⭐ | 利用Explorer的窗口内存存储恶意代码 | ✅ 已完成 |
+| [T1055.012](./T1055/T1055.012-Process-Masquerading.md) | 进程伪装 | ⭐⭐⭐ | 创建合法进程后修改参数伪装 | ✅ 已完成 |
+| [T1056.001](./T1056/T1056.001-Keylogging.md) | 键盘记录 | ⭐⭐ | 记录用户按下了哪些键 | ✅ 已完成 |
+| [T1056.002](./T1056/T1056.002-GUI-Input-Capture.md) | GUI输入捕获 | ⭐⭐ | 创建虚假的登录界面骗取密码 | ✅ 已完成 |
+| [T1056.003](./T1056/T1056.003-Web-Portal-Capture.md) | Web门户捕获 | ⭐⭐ | 在Web登录界面拦截密码输入 | ✅ 已完成 |
+| [T1056.004](./T1056/T1056.004-凭据API钩子.md) | 凭据API钩子 | ⭐⭐ | Hook系统API读取内存中的凭据 | ✅ 已完成 |
+| [T1056.005](./T1056/T1056.005-Text-Capture.md) | 文本捕获 | ⭐⭐ | 记录用户在应用窗口中输入的文本 | ✅ 已完成 |
+| [T1059.001](./T1059/T1059.001-PowerShell-PowerShell.md) | PowerShell | ⭐⭐ | 用PowerShell执行各种恶意操作 | ✅ 已完成 |
+| [T1059.002](./T1059/T1059.002-Windows-Command-Shell.md) | Windows命令Shell | ⭐⭐ | 使用cmd.exe执行命令 | ✅ 已完成 |
+| [T1059.003](./T1059/T1059.003-Windows-Command-Shell.md) | Windows命令Shell | ⭐⭐ | 使用wmic执行系统管理命令 | ✅ 已完成 |
+| [T1059.005](./T1059/T1059.005-Visual-Basic-for-Applications-Visual-Basic-for-Applications.md) | Visual Basic for Applications | ⭐⭐ | 利用Office宏执行恶意代码 | ✅ 已完成 |
+| [T1059.006](./T1059/T1059.006-Python-Python.md) | Python | ⭐⭐ | 使用Python执行恶意脚本 | ✅ 已完成 |
+| [T1059.007](./T1059/T1059.007-JavaScript-JavaScript.md) | JavaScript | ⭐⭐ | 使用Windows Script Host执行JS | ✅ 已完成 |
+| [T1059.008](./T1059/T1059.008-Network-Device-CLI.md) | 网络设备CLI | ⭐⭐ | 使用网络设备命令行 | ✅ 已完成 |
+| [T1059.009](./T1059/T1059.009-Container-Administration.md) | 容器编排 | ⭐⭐ | 使用kubectl等容器管理命令 | ✅ 已完成 |
+| [T1070.001](./T1070/T1070.001-Clear-Windows-Event-Logs.md) | 清除Windows事件日志 | ⭐⭐ | 使用`wevtutil cl`清除安全/系统日志 | ✅ 已完成 |
+| [T1070.002](./T1070/T1070.002-Clear-Linux-Mac-System-Logs-清除Linux.md) | 清除Linux/Mac系统日志 | ⭐⭐ | 删除`/var/log/`下的日志文件 | ✅ 已完成 |
+| [T1070.003](./T1070/T1070.003-Clear-Command-History.md) | 清除命令历史 | ⭐⭐ | 删除`.bash_history`、PowerShell历史等 | ✅ 已完成 |
+| [T1070.004](./T1070/T1070.004-File-Deletion.md) | 文件删除 | ⭐⭐ | 删除攻击者上传的工具和临时文件 | ✅ 已完成 |
+| [T1070.005](./T1070/T1070.005-Delete-Network-Share-Connection.md) | 删除网络共享连接 | ⭐⭐ | 清除`net use`的连接记录 | ✅ 已完成 |
+| [T1070.006](./T1070/T1070.006-Timestomp.md) | 时间戳篡改 | ⭐⭐ | 修改文件的创建/修改时间，伪装成正常文件 | ✅ 已完成 |
+| [T1070.007](./T1070/T1070.007-Clear-Network-History.md) | 清除网络连接历史 | ⭐⭐ | 清除ARP缓存、DNS缓存等 | ✅ 已完成 |
+| [T1070.008](./T1070/T1070.008-Clear-Mail-Account-Anomalies.md) | 删除邮件账户异常记录 | ⭐⭐ | 删除邮件转发规则和安全告警邮件 | ✅ 已完成 |
+| [T1070.009](./T1070/T1070.009-Clear-Persistence-Records.md) | 清除持久化记录 | ⭐⭐ | 删除计划任务历史和启动项备份 | ✅ 已完成 |
+| [T1070.010](./T1070/T1070.010-Clear-System-Artifacts.md) | 清除系统痕迹 | ⭐⭐ | 清除Prefetch、USN Journal、Jump List等取证痕迹 | ✅ 已完成 |
+| [T1078.001](./T1078/T1078.001-Default-Accounts.md) | 默认账户 | ⭐ | 使用系统默认的Guest、Administrator账户 | ✅ 已完成 |
+| [T1078.002](./T1078/T1078.002-Domain-Account.md) | 域账户 | ⭐ | 使用窃取的域用户凭据登录域内系统 | ✅ 已完成 |
+| [T1078.003](./T1078/T1078.003-Local-Account.md) | 本地账户 | ⭐ | 使用窃取的本地管理员密码登录 | ✅ 已完成 |
+| [T1078.004](./T1078/T1078.004-Cloud-Account.md) | 云账户 | ⭐ | 使用窃取的云服务凭据 | ✅ 已完成 |
+| [T1098.001](./T1098/T1098.001-额外云凭证.md) | 额外云凭证 | ⭐⭐ | 在云账户中添加额外的访问密钥 | ✅ 已完成 |
+| [T1098.002](./T1098/T1098.002-Add-SSH-Authorized-Key.md) | 添加SSH授权密钥 | ⭐⭐ | 在Linux系统中添加SSH公钥 | ✅ 已完成 |
+| [T1098.003](./T1098/T1098.003-Add-Office-365-Unified-Group.md) | 添加Office 365统一组 | ⭐⭐ | 创建或修改统一组添加成员 | ✅ 已完成 |
+| [T1098.004](./T1098/T1098.004-SSH-Authorized-Keys.md) | SSH授权密钥 | ⭐⭐ | 利用SSH服务器配置实现持久化 | ✅ 已完成 |
+| [T1098.005](./T1098/T1098.005-Device-Registration.md) | 设备注册 | ⭐⭐ | 在云环境中注册新设备 | ✅ 已完成 |
+| [T1098.006](./T1098/T1098.006-Container-Account-Addition.md) | 容器账户添加 | ⭐⭐ | 向容器中添加账户 | ✅ 已完成 |
+| [T1218.001](./T1218/T1218.001-cmstp.exe-cmstp.exe.md) | cmstp.exe | ⭐⭐ | 连接管理器配置工具，可执行任意命令 | ✅ 已完成 |
+| [T1218.002](./T1218/T1218.002-ODBC-Driver-Manager.md) | ODBCODBC驱动程序管理器 | ⭐⭐ | 利用ODBC驱动执行代码 | ✅ 已完成 |
+| [T1218.003](./T1218/T1218.003-IEExec-Remote-Execution.md) | IEExec远程执行 | ⭐⭐ | 使用IEExec执行.NET程序 | ✅ 已完成 |
+| [T1218.004](./T1218/T1218.004-InstallUtil-InstallUtil.md) | InstallUtil | ⭐⭐ | 使用.NET安装工具执行恶意程序集 | ✅ 已完成 |
+| [T1218.005](./T1218/T1218.005-Mshta-Mshta.md) | Mshta | ⭐⭐ | 执行HTA应用、VBScript、JavaScript | ✅ 已完成 |
+| [T1218.007](./T1218/T1218.007-Msiexec-Msiexec.md) | Msiexec | ⭐⭐ | Windows安装程序，可执行DLL | ✅ 已完成 |
+| [T1218.008](./T1218/T1218.008-Odbcconf-Odbcconf.md) | Odbcconf | ⭐⭐ | ODBC配置工具，可执行DLL | ✅ 已完成 |
+| [T1218.009](./T1218/T1218.009-Register-CimProvider-Register-CimProvider.md) | Register-CimProvider | ⭐⭐ | CIM提供程序注册工具 | ✅ 已完成 |
+| [T1218.010](./T1218/T1218.010-Regsvr32-Regsvr32.md) | Regsvr32 | ⭐⭐ | 注册COM组件，可加载远程DLL | ✅ 已完成 |
+| [T1218.011](./T1218/T1218.011-Rundll32-Rundll32.md) | Rundll32 | ⭐⭐ | 执行DLL的导出函数 | ✅ 已完成 |
+| [T1218.012](./T1218/T1218.012-Verclsid-Verclsid.md) | Verclsid | ⭐⭐ | COM组件兼容性评估器 | ✅ 已完成 |
+| [T1218.013](./T1218/T1218.013-Mavinject-Mavinject.md) | Mavinject | ⭐⭐ | App-V注入工具 | ✅ 已完成 |
+| [T1218.014](./T1218/T1218.014-MMC-MMC.md) | MMC | ⭐⭐ | Microsoft管理控制台 | ✅ 已完成 |
+| [T1218.015](./T1218/T1218.015-WSReset-WSReset.md) | WSReset | ⭐⭐ | Windows Store重置工具 | ✅ 已完成 |
+| [T1222.001](./T1222/T1222.001-Windows-File-Directory-Permission-Modification-Windows文件.md) | Windows文件/目录权限修改 | ⭐ | 使用icacls修改文件权限 | ✅ 已完成 |
+| [T1222.002](./T1222/T1222.002-Linux-Mac-File-Directory-Permission-Modification-Linux-Mac文件.md) | Linux/Mac文件/目录权限修改 | ⭐ | 使用chmod/chown修改文件权限 | ✅ 已完成 |
+| [T1480.001](./T1480/T1480.001-Environmental-Keying.md) | 环境密钥 | ⭐⭐ | 使用特定环境特征（如域名、文件）作为执行条件 | ✅ 已完成 |
+| [T1480.002](./T1480/T1480.002-Two-Factor-Authentication.md) | 双向授权 | ⭐⭐ | 使用双向认证确保在目标环境中执行 | ✅ 已完成 |
+| [T1484.001](./T1484/T1484.001-Group-Policy-Modification.md) | 组策略修改 | ⭐⭐⭐ | 修改Active Directory组策略 | ✅ 已完成 |
+| [T1484.002](./T1484/T1484.002-Trust-Relationship-Modification.md) | 信任关系修改 | ⭐⭐⭐ | 修改域信任关系 | ✅ 已完成 |
+| [T1497.001](./T1497/T1497.001-System-Time-Detection.md) | 系统时间检测 | ⭐⭐⭐ | 检测系统运行时间，沙箱通常运行时间短 | ✅ 已完成 |
+| [T1497.002](./T1497/T1497.002-User-Activity-Detection.md) | 用户活动检测 | ⭐⭐⭐ | 检测是否有鼠标移动等真实用户操作 | ✅ 已完成 |
+| [T1497.003](./T1497/T1497.003-基于时间的逃逸.md) | 基于时间的逃逸 | ⭐⭐⭐ | 延迟执行等待沙箱超时释放 | ✅ 已完成 |
+| [T1542.001](./T1542/T1542.001-System-Firmware.md) | 系统固件 | ⭐⭐⭐ | 感染主板固件（UEFI/BIOS），在操作系统之前获得控制权 | ✅ 已完成 |
+| [T1542.002](./T1542/T1542.002-Component-Firmware.md) | 组件固件 | ⭐⭐⭐ | 感染硬盘、网卡等硬件组件的固件 | ✅ 已完成 |
+| [T1542.003](./T1542/T1542.003-Bootkit-Bootkit.md) | Bootkit | ⭐⭐⭐ | 安装引导工具包，在引导阶段加载内核级Rootkit | ✅ 已完成 |
+| [T1542.004](./T1542/T1542.004-ROMMONkit-ROMMONkit.md) | ROMMONkit | ⭐⭐⭐ | 感染网络设备的ROMMON（ROM监控器）固件 | ✅ 已完成 |
+| [T1542.005](./T1542/T1542.005-Disk-Area-Wipe.md) | 磁盘区域擦除 | ⭐⭐⭐ | 通过擦除磁盘特定区域破坏引导完整性 | ✅ 已完成 |
+| [T1548.001](./T1548/T1548.001-Bypass-User-Account-Control.md) | Windows UAC绕过 | ⭐⭐ | 找到不需要弹窗确认就能以管理员身份运行的方法 | ✅ 已完成 |
+| [T1548.002](./T1548/T1548.002-Bypass-sudo.md) | 绕过sudo | ⭐⭐ | 利用sudo配置漏洞不需要密码就获得root权限 | ✅ 已完成 |
+| [T1548.003](./T1548/T1548.003-Sudo-and-Sudo-Caching.md) | Sudo和Sudo缓存 | ⭐⭐ | 利用sudo的凭据缓存机制，在超时时间内免密执行 | ✅ 已完成 |
+| [T1548.004](./T1548/T1548.004-setuid和setgid.md) | setuid和setgid | ⭐⭐ | 利用存在setuid漏洞的二进制文件提权 | ✅ 已完成 |
+| [T1548.005](./T1548/T1548.005-Temporary-Elevation-Control.md) | 临时提升控制 | ⭐⭐ | 利用系统提供的临时提权机制获得更高权限 | ✅ 已完成 |
+| [T1548.006](./T1548/T1548.006-Policy-based-Elevation-Bypass.md) | 通过策略绕过提升控制 | ⭐⭐ | 利用组策略或安全策略配置漏洞绕过权限控制 | ✅ 已完成 |
+| [T1553.001](./T1553/T1553.001-Code-Signing.md) | 代码签名 | ⭐⭐⭐ | 给恶意程序签上有序的数字签名 | ✅ 已完成 |
+| [T1553.002](./T1553/T1553.002-Install-Root-Certificate.md) | 安装根证书 | ⭐⭐⭐ | 在受信任的根证书颁发机构中安装攻击者控制的证书 | ✅ 已完成 |
+| [T1553.003](./T1553/T1553.003-SIP-Trust-Provider-Hijacking.md) | SIP信任提供方劫持 | ⭐⭐⭐ | 劫持Windows软件完整性策略（SIP）信任提供方 | ✅ 已完成 |
+| [T1553.004](./T1553/T1553.004-安全启动绕过.md) | 安全启动绕过 | ⭐⭐⭐ | 篡改UEFI安全启动数据库允许加载未签名驱动 | ✅ 已完成 |
+| [T1553.005](./T1553/T1553.005-Install-Root-Certificate.md) | 安装根证书 | ⭐⭐⭐ | 安装额外的根证书颁发机构以通过签名验证 | ✅ 已完成 |
+| [T1556.001](./T1556/T1556.001-Domain-Controller-Authentication.md) | 域控制器认证 | ⭐⭐⭐ | 修改域控制器上的认证过程 | ✅ 已完成 |
+| [T1556.002](./T1556/T1556.002-Password-Filter-DLL.md) | 密码过滤器DLL | ⭐⭐⭐ | 通过密码过滤器记录用户密码 | ✅ 已完成 |
+| [T1556.003](./T1556/T1556.003-Network-Security-Service-DLL.md) | 网络安全服务DLL | ⭐⭐⭐ | 修改网络认证服务 | ✅ 已完成 |
+| [T1556.004](./T1556/T1556.004-Network-Device-Authentication.md) | 网络设备认证 | ⭐⭐⭐ | 修改网络设备的认证过程 | ✅ 已完成 |
+| [T1556.005](./T1556/T1556.005-PAM-based-Authentication.md) | 基于PAM的认证 | ⭐⭐⭐ | 修改Linux PAM模块添加后门 | ✅ 已完成 |
+| [T1556.006](./T1556/T1556.006-MFA-Manipulation.md) | 多因素认证操作 | ⭐⭐⭐ | 绕过或禁用MFA验证 | ✅ 已完成 |
+| [T1562.001](./T1562/T1562.001-Disable-or-Modify-Tools.md) | 禁用或修改工具 | ⭐⭐ | 直接停止/卸载安全产品（如`net stop WinDefend`） | ✅ 已完成 |
+| [T1562.002](./T1562/T1562.002-禁用Windows事件日志.md) | 禁用Windows事件日志 | ⭐⭐ | 关闭日志记录，让操作不留痕迹 | ✅ 已完成 |
+| [T1562.003](./T1562/T1562.003-Disable-or-Modify-System-Firewall.md) | 禁用或修改系统防火墙 | ⭐⭐ | 放开网络限制，允许恶意流量通过 | ✅ 已完成 |
+| [T1562.004](./T1562/T1562.004-Disable-or-Modify-Log-Forwarding.md) | 禁用或修改日志转发 | ⭐⭐ | 阻止日志发送到SIEM，让安全团队看不到告警 | ✅ 已完成 |
+| [T1562.006](./T1562/T1562.006-Indicator-Blocking.md) | 指标阻止 | ⭐⭐ | 阻止已知威胁指标被检测系统识别 | ✅ 已完成 |
+| [T1562.007](./T1562/T1562.007-Disable-or-Modify-Code-Signing-Policy.md) | 禁用或修改代码签名策略 | ⭐⭐ | 允许未签名的恶意代码被执行 | ✅ 已完成 |
+| [T1562.008](./T1562/T1562.008-Disable-or-Modify-Cloud-Logs.md) | 禁用或修改云日志 | ⭐⭐ | 关闭AWS CloudTrail等云审计日志 | ✅ 已完成 |
+| [T1562.009](./T1562/T1562.009-Disable-or-Modify-Network-Traffic-Analysis.md) | 禁用或修改网络流量分析 | ⭐⭐ | 干扰IDS/IPS等网络检测设备 | ✅ 已完成 |
+| [T1562.010](./T1562/T1562.010-Disable-or-Modify-Boot-Integrity.md) | 禁用或修改启动完整性验证 | ⭐⭐ | 破坏Secure Boot等启动安全机制 | ✅ 已完成 |
+| [T1562.011](./T1562/T1562.011-Disable-or-Modify-Cloud-IMDS.md) | 禁用或修改云实例元数据服务 | ⭐⭐ | 利用云元数据服务进行凭据窃取 | ✅ 已完成 |
+| [T1564.001](./T1564/T1564.001-Hide-Files-and-Directories.md) | 隐藏文件和目录 | ⭐⭐ | 使用`attrib +h`或点前缀隐藏文件 | ✅ 已完成 |
+| [T1564.002](./T1564/T1564.002-Hide-Window.md) | 隐藏窗口 | ⭐⭐ | 使用`-WindowStyle Hidden`隐藏程序窗口 | ✅ 已完成 |
+| [T1564.003](./T1564/T1564.003-Alternate Data Stream-备用数据流(ADS).md) | 备用数据流(ADS) | ⭐⭐ | 将恶意数据附加到NTFS文件的备用数据流 | ✅ 已完成 |
+| [T1564.004](./T1564/T1564.004-NTFS-File-Attributes.md) | NTFS文件属性 | ⭐⭐ | 利用压缩、加密等属性隐藏文件 | ✅ 已完成 |
+| [T1564.005](./T1564/T1564.005-Hidden-File-System.md) | 隐藏文件系统 | ⭐⭐ | 在VHD/ISO映像中存储恶意文件 | ✅ 已完成 |
+| [T1564.006](./T1564/T1564.006-Run-Virtual-Instance.md) | 运行虚拟实例 | ⭐⭐ | 在虚拟机中运行恶意代码 | ✅ 已完成 |
+| [T1564.007](./T1564/T1564.007-VBA-Stomping-VBA-Stomping.md) | VBA Stomping | ⭐⭐ | 修改Office宏的P-code隐藏恶意逻辑 | ✅ 已完成 |
+| [T1564.008](./T1564/T1564.008-Email-Hidden-Rules.md) | 邮件隐藏规则 | ⭐⭐ | 创建邮件规则隐藏安全告警邮件 | ✅ 已完成 |
+| [T1564.009](./T1564/T1564.009-Resource-Fork.md) | 资源分支 | ⭐⭐ | 利用macOS资源分支隐藏数据 | ✅ 已完成 |
+| [T1564.010](./T1564/T1564.010-Process-Argument-Spoofing.md) | 进程参数欺骗 | ⭐⭐ | 修改进程命令行参数伪装为合法进程 | ✅ 已完成 |
+
 ### 统计信息
 
-- **技术总数**：25 个
-- **子技术总数**：134 个
-- **已完成文档**：25 个
+- **技术总数**：24 个
+- **子技术总数**：128 个
+- **已完成文档**：128 个
 - **进行中文档**：0 个
 - **待编写文档**：0 个
 

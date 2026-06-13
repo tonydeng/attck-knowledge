@@ -4,9 +4,27 @@
 
 就像在人群中传纸条——攻击者把C2指令藏在HTTP、DNS这些正常网络协议中，混在正常的网络流量里传递。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者把C2指令藏在HTTP、DNS、邮件等正常网络协议中，就像把情报藏在报纸夹层里传递出来。 |
+| 为什么危险？ | HTTP/HTTPS和DNS是企业网络"必需品"，安全团队不能简单地封锁它们，攻击者借此让C2指令在海量正常流量中隐身。 |
+| 谁需要关心？ | 网络管理员、SOC安全分析师、任何负责企业网络安全的人。 |
+| 你的第一步防御 | 部署出站Web代理，实施域名白名单策略，只允许访问业务必需的域名。 |
+| 如果只做一件事 | 监控异常的HTTP请求模式——固定间隔的心跳、非主流的User-Agent字符串、超长的URI路径。 |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] **HTTP/HTTPS协议基础**: 就像知道"信封和邮票是什么"——C2指令就藏在HTTP请求这个信封里，安全设备在检查每一个信封。
+- [ ] **DNS工作原理**: 就像知道"电话簿怎么查"——攻击者通过特殊的DNS查询来传递数据，每个查询看起来都像在查一个正常的域名。
+- [ ] **客户端-服务器模型**: 就像理解"打电话"的概念——被黑电脑是"打电话"的一方（客户端），C2服务器是"接电话"的那端。
 
 ## 技术描述
 
@@ -14,6 +32,8 @@
 
 **通俗解释：**
 企业网络中每时每刻都有海量的网络流量在传输——员工浏览网页（HTTP/HTTPS）、查询域名（DNS）、收发邮件（SMTP/IMAP）、传输文件（FTP/SMB）。攻击者利用了这些"合法流量"作为掩护，把攻击指令伪装成正常的网络请求。就像地下党把情报藏在报纸的夹层中一样，C2 指令就藏在看似正常的网络数据包里。
+
+**过渡段：** 从网络工程的角度看，攻击者利用了"协议合法滥用"这一核心策略：企业网络必须允许 HTTP/HTTPS、DNS 等协议才能正常运转，你不能因为怕被利用就封了所有人上网。攻击者恰恰把恶意指令编码进这些协议的结构化字段中——URI 路径、Cookie、自定义 Header、DNS TXT 记录——让流量分析工具在字节级别也看不出破绽。下面从协议字段级别的技术细节来拆解这个过程。
 
 **技术原理：**
 攻击者使用标准的应用层协议来传输 C2 指令和响应数据。以最常见的 HTTP C2 为例，攻击流程如下：
@@ -41,40 +61,13 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1071.001 - Web协议
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 把C2指令伪装成正常的网页请求，假装在浏览网页其实在传数据。
-
-**详细说明：**
-Web协议是最主流的C2通信方式。攻击者将C2数据编码在 HTTP 请求的各个位置：URI 路径（如 `/api/status?id=base64编码的指令`）、Cookie 字段、POST 请求体（JSON/XML格式）、自定义 Header。使用 HTTPS 加密后，网络监控设备只能看到加密的 TLS 流量，无法检查具体内容。Cobalt Strike、Sliver、Mythic 等主流 C2 框架默认使用 Web 协议通信。
-
-### T1071.002 - 文件传输协议
-
-**通俗理解：** 假装在传文件，其实在传C2指令。
-
-**详细说明：**
-使用 FTP、SFTP、WebDAV 等文件传输协议。攻击者将 C2 指令伪装成文件名、文件内容或文件元数据（如创建时间、文件大小）。受感染系统定期"下载更新"或"上传日志"，实际是在交换 C2 数据。
-
-### T1071.003 - 邮件协议
-
-**通俗理解：** 用发邮件的方式传C2指令，因为邮件通常不会被拦截。
-
-**详细说明：**
-使用 SMTP（发邮件）和 IMAP/POP3（收邮件）协议。攻击者向特定的邮箱账户发送包含编码指令的邮件，恶意软件登录该邮箱读取指令。指令可以藏在邮件主题、正文、附件文件名或邮件头中。
-
-### T1071.004 - DNS
-
-**通俗理解：** 用查域名的方式传C2指令，所有网络都允许DNS查询。
-
-**详细说明：**
-DNS 是网络基础设施协议，几乎不会被防火墙拦截。攻击者将数据编码在 DNS 查询的子域名中（如 `base64数据.c2domain.com`），C2 服务器通过 DNS 响应（TXT 记录、A 记录）返回指令。DNS 隧道传输速度慢但极其隐蔽。
-
-### T1071.005 - SMB
-
-**通俗理解：** 用 Windows 文件共享功能传C2指令，适合内网传播。
-
-**详细说明：**
-利用 Windows 的 SMB 协议和命名管道（Named Pipe）进行 C2 通信。在 Windows 域环境中，SMB 流量非常普遍，攻击者的 C2 流量混在其中极难分辨。Cobalt Strike 的 SMB Beacon 就是使用命名管道通过 SMB 协议通信。
+- [T1071.001 - Web协议](./T1071/T1071.001-Web-Protocols.md) — 把C2指令伪装成正常的网页请求，假装在浏览网页其实在传数据。
+- [T1071.002 - 文件传输协议](./T1071/T1071.002-File-Transfer-Protocols.md) — 假装在传文件，其实在传C2指令。
+- [T1071.003 - 邮件协议](./T1071/T1071.003-Mail-Protocols.md) — 用发邮件的方式传C2指令，因为邮件通常不会被拦截。
+- [T1071.004 - DNS协议](./T1071/T1071.004-DNS-DNS.md) — 用查域名的方式传C2指令，所有网络都允许DNS查询。
+- [T1071.005 - SMB协议](./T1071/T1071.005-SMB-SMB.md) — 用 Windows 文件共享功能传C2指令，适合内网传播。
 
 </details>
 
@@ -409,19 +402,19 @@ sliver-server
 
 ### 官方文档
 
-- [MITRE ATT&CK - T1071](https://attack.mitre.org/techniques/T1071/)
-- [MITRE ATT&CK - T1071.001 Web Protocols](https://attack.mitre.org/techniques/T1071/001/)
-- [MITRE ATT&CK - T1071.004 DNS](https://attack.mitre.org/techniques/T1071/004/)
+- 📚 [MITRE ATT&CK - T1071](https://attack.mitre.org/techniques/T1071/)
+- 📚 [MITRE ATT&CK - T1071.001 Web Protocols](https://attack.mitre.org/techniques/T1071/001/)
+- 📚 [MITRE ATT&CK - T1071.004 DNS](https://attack.mitre.org/techniques/T1071/004/)
 
 ### 安全报告
 
-- [Google Cloud - APT41 Has Arisen From the DUST (2024)](https://cloud.google.com/blog/topics/threat-intelligence/apt41-arisen-from-dust) - APT41 2024年HTTPS C2活动分析
-- [Trend Micro - Earth Baxia (2024)](https://www.trendmicro.com/en/research/24/i/earth-baxia-spear-phishing-and-geoserver-exploit.html) - 定制Cobalt Strike HTTPS C2分析
-- [PT Security - Goffee Group (2025)](https://global.ptsecurity.com/en/research/pt-esc-threat-intelligence/fortune-telling-on-goffee-grounds/) - Mythic/Sliver C2在俄攻击活动
-- [Unit 42 - Public Cobalt Strike Profiles (2024)](https://unit42.paloaltonetworks.com/attackers-exploit-public-cobalt-strike-profiles/) - Cobalt Strike Malleable C2 配置分析
+- 📰 [Google Cloud - APT41 Has Arisen From the DUST (2024)](https://cloud.google.com/blog/topics/threat-intelligence/apt41-arisen-from-dust) - APT41 2024年HTTPS C2活动分析
+- 📰 [Trend Micro - Earth Baxia (2024)](https://www.trendmicro.com/en/research/24/i/earth-baxia-spear-phishing-and-geoserver-exploit.html) - 定制Cobalt Strike HTTPS C2分析
+- 📰 [PT Security - Goffee Group (2025)](https://global.ptsecurity.com/en/research/pt-esc-threat-intelligence/fortune-telling-on-goffee-grounds/) - Mythic/Sliver C2在俄攻击活动
+- 📰 [Unit 42 - Public Cobalt Strike Profiles (2024)](https://unit42.paloaltonetworks.com/attackers-exploit-public-cobalt-strike-profiles/) - Cobalt Strike Malleable C2 配置分析
 
 ### 工具与资源
 
-- [Cobalt Strike Malleable C2 文档](https://www.cobaltstrike.com/help-malleable-c2)
-- [Sliver C2 框架](https://github.com/BishopFox/sliver)
-- [Mythic C2 框架](https://github.com/its-a-feature/Mythic)
+- 🔧 [Cobalt Strike Malleable C2 文档](https://www.cobaltstrike.com/help-malleable-c2)
+- 🔧 [Sliver C2 框架](https://github.com/BishopFox/sliver)
+- 🔧 [Mythic C2 框架](https://github.com/its-a-feature/Mythic)

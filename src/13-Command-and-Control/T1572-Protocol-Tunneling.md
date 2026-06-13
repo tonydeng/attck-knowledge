@@ -4,6 +4,16 @@
 
 就像在公共水管里偷偷接一根私管——攻击者把C2流量"伪装"成合法的DNS、HTTP或SSH流量，藏在正常的网络服务中传输。
 
+## 30秒速查卡
+
+| 维度 | 说明 |
+|------|------|
+| **一句话理解** | 攻击者把C2指令打包进DNS、HTTP、SSH等合法协议中传输，就像把密信藏在牛奶盒里送出去——外层看着正常，内层全是机密 |
+| **三种常见手法** | ① DNS隧道：C2数据藏在DNS查询/响应的TXT记录中 ② SSH隧道：通过SSH连接转发任意TCP流量 ③ ICMP隧道：C2数据藏在Ping请求的数据字段中 |
+| **常用工具** | dnscat2（DNS隧道）、chisel（HTTP/SSH隧道）、iodine（DNS隧道）、plink（SSH隧道） |
+| **关键日志源** | DNS日志（TXT记录大小、子域名熵值、查询频率）、防火墙日志（非标准端口的SSH连接）、NetFlow/IPFIX（异常协议比例） |
+| **难度评级** | ⭐⭐⭐ 高级 - 需要理解网络协议栈、编码/加密技术和防火墙绕过原理 |
+
 ## 难度等级
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
@@ -107,8 +117,6 @@ graph TD
 
 > ⚠️ **免责声明**：以下内容仅用于合法的安全测试、渗透测试和教育目的。未经授权对他人系统进行测试是违法行为。
 
-> ⚠️ **免责声明**：以下内容仅用于合法的安全测试。
-
 ### 实战技巧
 
 1. **DNS隧道频率控制**
@@ -154,11 +162,31 @@ graph TD
 **检测方法：** 分析 DNS 查询的异常模式。
 
 **示例（Zeek脚本逻辑）：**
-```
-# DNS查询检测逻辑
-if (txt_record_size > 500) -> alert
-if (subdomain_entropy > 4.0) -> alert
-if (dns_query_frequency > 60/hour) -> alert
+```zeek
+# DNS隧道检测逻辑（Zeek脚本）
+event dns_end(c: connection, msg: dns_msg)
+{
+    # 检测1：TXT记录响应大于500字节
+    if ( |msg$answers| > 500 )
+    {
+        NOTICE([$note=DNS_Tunnel_Alert,
+                $msg=fmt("疑似DNS隧道：TXT记录异常大 (%d 字节)", |msg$answers|)]);
+    }
+
+    # 检测2：子域名熵值大于4.0（随机字符串特征）
+    if ( calc_subdomain_entropy(msg$query) > 4.0 )
+    {
+        NOTICE([$note=DNS_Tunnel_Alert,
+                $msg="疑似DNS隧道：子域名包含高熵随机字符串"]);
+    }
+
+    # 检测3：单小时内DNS查询超过60次
+    if ( c$dns$query_count > 60 )
+    {
+        NOTICE([$note=DNS_Tunnel_Alert,
+                $msg=fmt("疑似DNS隧道：DNS查询频率异常 (%d 次/小时)", c$dns$query_count)]);
+    }
+}
 ```
 
 ### Sigma规则示例

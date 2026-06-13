@@ -61,8 +61,8 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Preprocess Markdown (fix README links, add technique ID links)
-        run: python scripts/preprocess-md.py
+      - name: Build book (preprocessor auto-runs gen-summary.py + preprocess-md.py)
+        run: mdbook build
 
       - name: Check internal links
         run: |
@@ -70,8 +70,6 @@ jobs:
           cd src && awk -F '[()]' '/\.md\)/ {print $2}' SUMMARY.md | while read f; do
             [ -f "$f" ] || echo "BROKEN LINK: $f (referenced in SUMMARY.md)"
           done && echo "All SUMMARY.md links OK"
-      - name: Build book
-        run: mdbook build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

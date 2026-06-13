@@ -9,6 +9,9 @@ src = "src"
 build-dir = "_book"
 create-missing = false
 
+# [preprocessor.attck-preprocess]
+# command = "python scripts/mdbook-preprocessor.py"
+
 [preprocessor.mermaid]
 command = "mdbook-mermaid"
 

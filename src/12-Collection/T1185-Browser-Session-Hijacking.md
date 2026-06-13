@@ -4,6 +4,16 @@
 
 攻击者盗用了你浏览器中登录状态的"通行证"——不需要密码，直接冒充你登录各种网站。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者盗用了你浏览器中登录状态的"通行证"——不需要密码，直接冒充你登录各种网站。 |
+| 为什么危险？ | 会话劫持允许攻击者绕过MFA（多因素认证），因为"你已经认证过了"。攻击者通过窃取的会话Cookie可以访问受害者的所有 |
+| 谁需要关心？ | 数据安全团队、SOC分析师 |
+| 你的第一步防御 | 异常的Cookie使用行为 |
+| 如果只做一件事 | 你登录网站后，浏览器会保存一个"会话令牌"或"Cookie"——就像你进入游乐园时手上盖的荧光章，工 |
+
 ## 难度等级
 
 ⭐⭐⭐ 高级（需要一定经验）
@@ -217,6 +227,12 @@ Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Sysmon/Operational'; 
 ```
 
 ### 应用层检测
+
+**用人话说：**
+
+> 浏览器会话劫持是"无密码入侵"Web应用的方式——攻击者窃取浏览器中保存的会话Cookie（Session Token），然后用它冒充用户访问Web应用，不需要知道账号密码也不需要MFA验证。攻击者通过读取浏览器本地数据库（Chrome的Cookies文件位于%LOCALAPPDATA%\Google\Chrome\User Data\Default\Cookies）窃取会话Token，然后使用EditThisCookie等工具或直接修改Cookie值完成注入。EvilGinx2等AiTM（Adversary-in-the-Middle）工具可以实时拦截和转发OAuth Token。检测方法：监控浏览器Cookie文件被非浏览器进程访问、同一Session Token从不同地理位置或IP同时使用、以及User-Agent突然变化但Session ID不变。
+>
+> **避坑指南**：未监控异常会话令牌使用；只检查外部邮件，忽略内部钓鱼；加密检测阈值设置过高。
 
 **Sigma规则示例：**
 ```yaml

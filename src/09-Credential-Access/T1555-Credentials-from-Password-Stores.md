@@ -4,6 +4,16 @@
 
 **攻击者从密码管理器、系统保险箱和浏览器里偷走你存好的密码——就像偷走你的钱包，里面装着所有网站的账号密码。**
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 从密码管理器和系统保险箱里偷密码 |
+| 为什么危险？ | 密码管理器是密码的'终极保险箱'，如果被攻破，用户保存的所有密码都会泄露 |
+| 谁需要关心？ | 终端安全工程师、SOC分析师 |
+| 你的第一步防御 | 启用密码管理器的主密码保护，监控异常的密码管理器数据库访问 |
+| 如果只做一件事 | 监控KeePass数据库文件（.kdbx）和密码管理器进程的异常内存访问 |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
@@ -40,28 +50,11 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1555.001 - Keychain
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 偷走macOS系统自带的"密码保险箱"。
-
-**详细说明：**
-macOS的Keychain（钥匙串）是一个集中式凭证存储系统，保存用户的密码、私钥、证书和安全笔记。攻击者在获取macOS系统访问权限后，使用`security dump-keychain -a ~/Library/Keychains/login.keychain-db`命令导出所有条目，或使用`keychaindump`工具从内存中读取已解锁的Keychain内容。如果Keychain主密码与登录密码相同（默认设置），攻击者可以直接解密。
-
-### T1555.003 - Web Browsers
-
-**通俗理解：** 从浏览器内置的"记住密码"功能中偷登录信息。
-
-**详细说明：**
-现代浏览器都有密码保存功能。Chrome和Edge将加密的密码存储在SQLite数据库（Login Data）中，使用Windows的DPAPI进行加密——但登录用户在浏览器中可以解密自己的密码。攻击者使用`WebBrowserPassView`、`ChromePass`等工具自动读取和解码这些数据库。Firefox使用主密码保护的SQLite数据库，如果没有设置主密码，密码以明文存储。
-
-> **关联技术：** [T1503（浏览器凭证窃取）](./T1503-Credentials-from-Web-Browsers.md)是独立于T1555的浏览器凭证窃取技术。T1503与T1555.003功能重叠，两者都覆盖从Chrome、Firefox、Edge等浏览器提取保存的密码。区别在于：T1503是独立的完整技术，专门针对浏览器凭证；T1555.003是T1555的一个子技术，T1555覆盖更广泛的密码存储类型（Keychain、Windows凭据管理器、第三方密码管理器等）。两个技术建议结合阅读。
-
-### T1555.004 - Windows Credential Manager
-
-**通俗理解：** 攻击者翻看Windows的"通讯录"——里面存着你登录过的所有服务的密码。
-
-**详细说明：**
-Windows凭据管理器（Credential Manager）存储了三类凭据：Windows登录凭据、基于证书的凭据和通用凭据（网站密码）。攻击者使用`cmdkey /list`列出所有存储的凭据名称，使用`vaultcmd /listcreds:"Windows Credentials"`枚举凭据内容，或使用mimikatz的`dpapi::cred`模块提取解密后的凭据。
+- [T1555.001 - 钥匙串](./T1555/T1555.001-Keychain-Keychain.md) — 偷走macOS系统自带的"密码保险箱"。
+- [T1555.003 - Web浏览器](./T1555/T1555.003-Web-Browsers-Web-Browsers.md) — 从浏览器内置的"记住密码"功能中偷登录信息。
+- [T1555.004 - Windows凭据管理器](./T1555/T1555.004-Windows-Credential-Manager-Windows-Credential-Manager.md) — 攻击者翻看Windows的"通讯录"——里面存着你登录过的所有服务的密码。
 
 </details>
 
@@ -152,7 +145,7 @@ graph TD
    Chrome和Edge的密码存储在 `%LOCALAPPDATA%\Google\Chrome\User Data\Default\Login Data`（SQLite数据库）。使用`sqlite3`命令行工具打开数据库后，运行`SELECT signon_realm, username_value, password_value FROM logins;`获取加密的密码字段。加密的password_value需要使用Chromium的DPAPI解密函数处理。mimikatz的`dpapi::chrome`模块可以自动完成解密。
 
 3. **macOS Keychain的无密码提取**
-   如果目标macOS已登录且Keychain解锁，直接使用`security dump-keychain -a`即可导出所有密码。如果只有登录密码，使用`security unlock-keychain -p <password> ~/Library/Keychains/login.keychain-db`解锁后导出。
+   如果目标macOS已登录且Keychain解锁，直接使用`security dump-keychain -a`即可导出所有密码。如果只有登录密码，使用`security unlock-keychain -p ``&lt;password&gt;`` ~/Library/Keychains/login.keychain-db`解锁后导出。
 
 ### 常用工具
 
@@ -235,6 +228,11 @@ Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Sysmon/Operational';I
 # 检测Keychain的批量导出
 sudo log show --predicate 'process == "security" AND eventMessage CONTAINS "dump-keychain"'
 ```
+
+
+
+
+**用人话说：** 这条规则在监控是否有进程在读取密码管理器的数据库文件。密码管理器（如KeePass、1Password）把用户的所有密码存在加密数据库中。正常情况下只有密码管理器应用会访问这个数据库。如果有陌生进程试图读取数据库文件或内存，那就是攻击者在偷密码管理器中的所有密码。
 
 ### 应用层检测
 

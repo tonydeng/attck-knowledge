@@ -4,6 +4,16 @@
 
 枚举云平台上运行的服务——攻击者在获取云凭证后，用命令行查看云上有哪些虚拟机、数据库、存储桶等资源，就像拿到大楼的门禁卡后逐层查看每间房间里有什么。
 
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者使用 `aws ec2 describe-instances`、`aws s3 ls`、`aws rds describe-db-instances`、`az vm list` 枚举云上所有计算、存储、数据库资源，通过标签和名称识别高价值目标 |
+| 为什么危险？ | 云服务枚举是攻击链的关键一步——找到包含敏感数据的数据库、公开访问的存储桶、配置错误的安全组、可滥用的 Lambda 函数 IAM 角色，直接决定后续攻击方向 |
+| 谁需要关心？ | 云安全团队、SOC分析师、DevSecOps、任何需要检测云资源异常枚举的安全人员 |
+| 你的第一步防御 | 监控 CloudTrail 中 `Describe*`/`List*` API 的异常批量调用；配置 AWS GuardDuty / Azure Defender 的异常检测；实施最小权限 IAM 策略 |
+| 如果只做一件事 | 对单个 IAM 用户短时间内跨区域执行大量 `DescribeInstances` + `ListBuckets` 调用立即告警——这是攻击者在"全面摸底"你的云环境 |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
@@ -177,6 +187,8 @@ graph TD
 # AWS CloudTrail查询资源列举API
 aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=DescribeInstances
 ```
+
+**用人话说：** 这条规则在监控有人批量列举云资源。攻击者拿到云凭证后会做什么？先用 `DescribeInstances` 看有哪些虚拟机（特别是标记为 prod 的），再用 `ListBuckets` 看有哪些存储桶（找包含 backup、secret 的），然后用 `DescribeDBInstances` 找数据库。他们会重点关注：暴露公网的 EC2 实例、配置为公开访问的 S3 桶、标记为 "production" 的资源。正常情况下，运维人员在做资产盘点时可能偶尔调用这些 API，但单个用户短时间内跨多个服务批量调用就很可疑。CloudTrail 和 GuardDuty 可以自动检测这种异常模式。
 
 **Sigma规则示例（CloudTrail）：**
 ```yaml

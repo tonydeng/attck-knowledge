@@ -41,35 +41,13 @@
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
-### T1037.001 - 登录脚本 (Windows)
+各子技术详细说明请参阅独立文档：
 
-**通俗理解：** 在 Windows 的"用户登录自动运行列表"里添加恶意命令。
-
-**详细说明：** Windows 支持通过组策略和注册表两种方式设置登录脚本。组策略登录脚本是域管理员集中管理的手段，而注册表中的 `UserInitMprLogonScript` 键值则是为单个用户设置的登录脚本。攻击者如果获得了修改组策略的权限，可以影响整个域中的用户登录行为。
-
-### T1037.002 - 登录钩子 (macOS)
-
-**通俗理解：** 在 macOS 的"用户登录触发器"上挂载恶意程序。
-
-**详细说明：** macOS 提供了 Login Hook 机制，允许在用户登录时以 root 权限执行指定程序。通过 `defaults write com.apple.loginwindow LoginHook` 命令可以设置登录钩子。需要注意的是，macOS 高版本（10.15+）已经弃用了 Login Hook，改用 Launch Daemon 替代。
-
-### T1037.003 - 网络登录脚本 (Windows)
-
-**通俗理解：** 在公司网络的分发中心（域控制器）修改脚本，让所有员工都执行恶意命令。
-
-**详细说明：** 在 Active Directory 域环境中，域管理员可以配置网络登录脚本，这些脚本在用户登录域中任何计算机时自动执行。攻击者如果获得了修改域策略的权限，就可以在网络登录脚本中注入恶意命令，影响范围覆盖整个域。
-
-### T1037.004 - RC 脚本 (Linux/macOS)
-
-**通俗理解：** 在 Linux 的"开机启动清单"（rc.local）里加一条恶意命令。
-
-**详细说明：** `/etc/rc.local` 是 Linux 系统中传统的系统启动脚本，在系统初始化时以 root 权限执行。虽然现代 Linux 发行版已经用 systemd 取代了 SysV init，但许多系统仍然保留 rc.local 用于向后兼容。其他类似的初始化文件包括 `/etc/rc.common` 和 `/etc/init.d/` 目录下的脚本。
-
-### T1037.005 - 启动项 (macOS)
-
-**通俗理解：** 在 macOS 的"开机自启列表"里添加恶意程序。
-
-**详细说明：** macOS 支持在用户登录时自动启动应用程序，通过 System Preferences > Users & Groups > Login Items 配置。攻击者可以通过修改配置文件或直接操作 plist 文件来添加恶意启动项。
+- [T1037.001 - 登录脚本 (Windows)](./T1037/T1037.001-Logon Script (Windows)-登录脚本 (Windows).md) — 在 Windows 的"用户登录自动运行列表"里添加恶意命令。
+- [T1037.002 - 登录钩子 (macOS)](./T1037/T1037.002-Login Hook (macOS)-登录钩子 (macOS).md) — 在 macOS 的"用户登录触发器"上挂载恶意程序。
+- [T1037.003 - 网络登录脚本 (Windows)](./T1037/T1037.003-Network Logon Script (Windows)-网络登录脚本 (Windows).md) — 在公司网络的分发中心（域控制器）修改脚本，让所有员工都执行恶意命令。
+- [T1037.004 - RC 脚本 (Linux/macOS)](./T1037/T1037.004-RC Scripts (Linux-macOS)-RC 脚本 (Linux-macOS).md) — 在 Linux 的"开机启动清单"（rc.local）里加一条恶意命令。
+- [T1037.005 - 启动项 (macOS)](./T1037/T1037.005-Startup Item (macOS)-启动项 (macOS).md) — 在 macOS 的"开机自启列表"里添加恶意程序。
 
 </details>
 
@@ -254,9 +232,9 @@ sudo auditctl -w /etc/profile.d/ -p wa -k init_script_change
 inotifywait -m -r /etc/profile.d/ /etc/bashrc
 ```
 
-### 应用层检测
+**用人话说：** 引导或登录初始化脚本是操作系统在启动或用户登录时自动执行的一系列脚本，包括Windows的组策略登录脚本、注册表Login Script键值、Linux的rc.local、/etc/profile、macOS的LoginHook和Launchd plist等。攻击者利用这些机制在系统启动或用户登录时自动执行恶意代码，获得持久化高权限访问。这就像在机场的自动播放系统中插入了一条恶意广播——每次有旅客进港（系统启动/用户登录），都会自动播放这条广播（执行恶意代码），而且听起来完全像正常的机场通知。
 
-**检测方法：** 创建 Sigma 规则检测登录脚本修改。
+**检测方法：** 创建 Sigma 规则检测登录脚本修改。
 
 **Sigma规则示例：**
 ```yaml
