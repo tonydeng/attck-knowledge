@@ -91,10 +91,14 @@ def _is_in_code_block(text, pos):
 
 
 def _is_in_inline_code(text, pos):
-    """检查位置 pos 是否在行内代码 `...` 内（基于反引号奇偶校验）。"""
-    before = text[:pos]
-    after = text[pos:]
-    return (before.count("`") % 2 == 1) and (after.count("`") % 2 == 1)
+    """检查位置 pos 是否在行内代码 `...` 内。
+
+    仅检查当前行内的反引号奇偶校验（行内代码不会跨行）。
+    如果当前位置前有奇数个反引号，说明在行内代码内。
+    """
+    line_start = text.rfind("\n", 0, pos) + 1
+    line_before = text[line_start:pos]
+    return line_before.count("`") % 2 == 1
 
 
 def fix_markdown_file(filepath, dry_run=False, verbose=False):
@@ -127,19 +131,14 @@ def fix_markdown_file(filepath, dry_run=False, verbose=False):
                 pos = m.end()
                 continue
 
-            # 判断是否在行内代码内
-            if _is_in_inline_code(content, abs_pos):
-                # 在行内代码内：使用 HTML 实体 &lt;tag&gt;（包裹反引号会破坏原内联代码）
-                replacement = f"&lt;{tag}&gt;"
-            else:
-                # 不在行内代码内：包裹为 `<tag>`（行内代码）
-                replacement = f"`<{tag}>`"
+            # 使用 HTML 实体 &lt;tag&gt;（避免反引号包裹带来的嵌套解析问题）
+            replacement = f"&lt;{tag}&gt;"
             line = line[:m.start()] + replacement + line[m.end():]
             pos = m.start() + len(replacement)
 
             if verbose:
                 changes.append(
-                    f"  {filepath}:{i+1}:{m.start()+1}  '<{tag}>' -> '`<{tag}>`'"
+                    f"  {filepath}:{i+1}:{m.start()+1}  '<{tag}>' -> '&lt;{tag}&gt;'"
                 )
 
         lines[i] = line  # 关键：将修改后的行写回列表

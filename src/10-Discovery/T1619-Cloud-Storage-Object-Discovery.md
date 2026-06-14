@@ -136,7 +136,7 @@ graph TD
    结合 `grep` 过滤感兴趣的文件：`aws s3 ls s3://&lt;bucket&gt;/ --recursive | grep -E "\.env|credential|backup|secret"`
 
 3. **检查存储桶权限**
-   先尝试 `aws s3 ls s3://`<bucket>`/` 看是否可公开访问，无需认证即可读取。
+   先尝试 `aws s3 ls s3://`&lt;bucket&gt;`/` 看是否可公开访问，无需认证即可读取。
 
 ### 常用工具
 
@@ -278,7 +278,7 @@ tags:
 
 **实验步骤：**
 1. 使用 `aws s3 ls s3://&lt;bucket&gt;/ --recursive | findstr "backup\|secret\|config\|env"` 过滤文件
-2. 使用 `aws s3 cp s3://`<bucket>`/`<file>` .` 下载目标文件
+2. 使用 `aws s3 cp s3://`&lt;bucket&gt;`/`&lt;file&gt;` .` 下载目标文件
 
 **预期结果：** 在海量文件中快速定位感兴趣的内容。
 

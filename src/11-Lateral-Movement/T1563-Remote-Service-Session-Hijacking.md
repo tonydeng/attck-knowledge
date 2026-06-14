@@ -132,7 +132,7 @@ graph TD
 
 1. **RDP劫持的标准流程**
    - 获取SYSTEM权限后执行`query session`查看活跃会话
-   - 使用`tscon `<ID>``连接到目标会话
+   - 使用`tscon `&lt;ID&gt;``连接到目标会话
    - 如果`tscon`直接执行会断开当前用户，可以使用`tscon &lt;ID&gt; /dest:console`
 
 2. **SSH Agent Forwarding劫持**
@@ -274,7 +274,7 @@ tags:
 2. 管理员通过RDP连接到目标服务器
 3. 攻击者在目标服务器上获取SYSTEM权限
 4. 使用`query session`查看活跃会话
-5. 使用`tscon `<ID>``命令接管会话
+5. 使用`tscon `&lt;ID&gt;``命令接管会话
 
 ## 术语解释
 

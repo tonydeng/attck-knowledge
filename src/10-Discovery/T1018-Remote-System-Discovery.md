@@ -259,8 +259,8 @@ tags:
 
 **实验步骤：**
 1. 在域环境中执行 `net view` 查看域中计算机列表
-2. 执行 `nslookup -type=all `<domain>`` 查看DNS记录
-3. 执行 `ping -n 1 `<target>`` 测试连通性
+2. 执行 `nslookup -type=all `&lt;domain&gt;`` 查看DNS记录
+3. 执行 `ping -n 1 `&lt;target&gt;`` 测试连通性
 4. 使用 `arp -a` 查看通信记录
 
 **预期结果：** 看到域中其他计算机的信息。

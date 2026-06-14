@@ -100,7 +100,7 @@ graph TD
 - **时间**: 2017年-2020年
 - **目标**: 全球零售、餐饮、酒店POS系统
 - **攻击组织**: FIN6
-- **手法**: FIN6组织在入侵零售网络后，访问域控制器的SYSVOL共享以发现组策略中嵌入的本地管理密码。使用 `dir \\\\&lt;domain&gt;\\SYSVOL\\`<domain>`\\Policies\\` 递归遍历所有GPO目录，特别关注Groups.xml文件。使用解密工具破解cpassword字段，恢复出本地管理员密码，随后使用WMI和PsExec进行横向移动。
+- **手法**: FIN6组织在入侵零售网络后，访问域控制器的SYSVOL共享以发现组策略中嵌入的本地管理密码。使用 `dir \\\\&lt;domain&gt;\\SYSVOL\\`&lt;domain&gt;`\\Policies\\` 递归遍历所有GPO目录，特别关注Groups.xml文件。使用解密工具破解cpassword字段，恢复出本地管理员密码，随后使用WMI和PsExec进行横向移动。
 - **影响**: 数千家零售企业的支付系统被入侵
 - **参考链接**: [FireEye - FIN6](https://www.fireeye.com/blog/threat-research/2019/01/fin7-group-policy-discovery.html)
 
@@ -118,7 +118,7 @@ graph TD
 - **时间**: 2021年-2022年
 - **目标**: 乌克兰和东欧政府机构
 - **攻击组织**: Ember Bear（UAC-0056）
-- **手法**: Ember Bear组织使用自定义工具访问SYSVOL共享，枚举所有组策略对象。编写脚本遍历 `\\``&lt;domain&gt;``\\SYSVOL\\```<domain>```\\Policies\\` 下的所有策略目录，搜索包含加密密码的策略文件。使用公开工具（如 `Get-GPPPassword`）解密Groups.xml中的cpassword字段，将发现的本地管理员密码添加到凭证库中用于后续横向移动。
+- **手法**: Ember Bear组织使用自定义工具访问SYSVOL共享，枚举所有组策略对象。编写脚本遍历 `\\``&lt;domain&gt;``\\SYSVOL\\```&lt;domain&gt;```\\Policies\\` 下的所有策略目录，搜索包含加密密码的策略文件。使用公开工具（如 `Get-GPPPassword`）解密Groups.xml中的cpassword字段，将发现的本地管理员密码添加到凭证库中用于后续横向移动。
 - **影响**: 东欧政府机构网络被渗透
 - **参考链接**: [MITRE - Ember Bear](https://attack.mitre.org/groups/G0114/)
 
@@ -135,7 +135,7 @@ graph TD
    `gpresult /Z` 提供最详细的策略结果集，包括所有应用的GPO及其设置。
 
 3. **SYSVOL遍历**
-   通过 `dir /s \\\\`<dc>`\\SYSVOL\\`<domain>`\\Policies\\` 递归列出所有策略文件。
+   通过 `dir /s \\\\`&lt;dc&gt;`\\SYSVOL\\`&lt;domain&gt;`\\Policies\\` 递归列出所有策略文件。
 
 ### 常用工具
 
@@ -272,7 +272,7 @@ tags:
 **实验目标：** 了解通过SYSVOL查看策略文件的方法。
 
 **实验步骤：**
-1. 访问 `\\\\``&lt;domain&gt;``\\SYSVOL\\``<domain>``\\Policies\\`
+1. 访问 `\\\\``&lt;domain&gt;``\\SYSVOL\\``&lt;domain&gt;``\\Policies\\`
 2. 使用 `dir /s` 递归列出策略文件
 3. 搜索Groups.xml文件
 
