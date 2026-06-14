@@ -4,8 +4,8 @@ REM ============================================================
 REM ATT&CK 知识库 - 构建脚本 (Windows)
 REM ============================================================
 REM 用法:
-REM   scripts\build.bat              REM 构建
-REM   scripts\build.bat serve        REM 本地预览
+REM   scripts\build.bat              REM 构建 (build + CJK 搜索优化)
+REM   scripts\build.bat serve        REM 本地预览 (build + CJK 搜索优化 + serve)
 REM   scripts\build.bat build        REM 仅构建 (默认)
 REM ============================================================
 
@@ -30,10 +30,19 @@ if not "%CMD%"=="build" if not "%CMD%"=="serve" if not "%CMD%"=="watch" (
     exit /b 1
 )
 
-REM 2. 执行 mdbook（自动触发预处理器）
-echo [1/2] 执行 mdbook %CMD%...
-mdbook %CMD%
+if "%CMD%"=="build" (
+    REM build 模式: mdbook build + CJK 搜索优化
+    echo [1/2] 执行 mdbook build...
+    mdbook build
 
-echo [2/2] 完成
+    echo [2/2] 优化 CJK 搜索索引...
+    node scripts\cjk-search.js
+) else (
+    REM serve / watch 模式: 仅执行 mdbook（CJK 优化仅适用于完整构建）
+    echo [1/1] 执行 mdbook %CMD%（CJK 搜索优化仅在 build 模式下运行）...
+    mdbook %CMD%
+)
+
+echo [32m完成[0m
 
 popd

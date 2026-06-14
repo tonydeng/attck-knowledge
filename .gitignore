@@ -24,3 +24,10 @@ target/
 # Environment
 .env
 .env.local
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/

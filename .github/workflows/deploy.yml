@@ -64,6 +64,14 @@ jobs:
       - name: Build book (preprocessor auto-runs gen-summary.py + preprocess-md.py)
         run: mdbook build
 
+      - name: Setup Node.js (for CJK search index)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Optimize CJK search index
+        run: node scripts/cjk-search.js
+
       - name: Check internal links
         run: |
           echo "Checking SUMMARY.md for broken link targets..."

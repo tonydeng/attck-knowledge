@@ -1,16 +1,13 @@
 [book]
 title = "ATT&CK 知识库"
 authors = ["Tony Deng"]
-description = "基于 MITRE ATT&CK® v19 Enterprise 矩阵的中文知识库，覆盖全部 15 个战术和 254+ 个技术"
+description = "基于MITRE ATT&CK® v19 Enterprise矩阵的完整中文知识库，覆盖全部15 个战术、254 个技术和900+ 个子技术"
 language = "zh-CN"
 src = "src"
 
 [build]
 build-dir = "_book"
 create-missing = false
-
-# [preprocessor.attck-preprocess]
-# command = "python scripts/mdbook-preprocessor.py"
 
 [preprocessor.mermaid]
 command = "mdbook-mermaid"
@@ -19,8 +16,8 @@ command = "mdbook-mermaid"
 no-section-label = true
 default-theme = "catppuccin"
 preferred-dark-theme = "catppuccin-mocha"
-additional-css = ["theme/catppuccin.css"]
-additional-js = ["theme/mermaid.min.js", "theme/mermaid-init.js"]
+additional-css = ["theme/catppuccin.css", "theme/mermaid-fullscreen.css"]
+additional-js = ["theme/mermaid.min.js", "theme/mermaid-init.js", "theme/mermaid-fullscreen.js", "theme/cjk-search.js"]
 git-repository-url = "https://github.com/tonydeng/attck-knowledge"
 edit-url-template = "https://github.com/tonydeng/attck-knowledge/edit/main/src/{path}"
 
