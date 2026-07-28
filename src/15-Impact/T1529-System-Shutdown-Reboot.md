@@ -8,21 +8,31 @@
 
 | 维度 | 你需要知道的 |
 |------|-------------|
-| 这是什么？ | 系统关机重启（T1529）是攻击者用来破坏目标系统或数据的技术 |
-| 为什么危险？ | 攻击者可以对目标造成不可逆的破坏，影响组织正常运营 |
-| 谁需要关心？ | 安全运维团队、系统管理员、业务负责人 |
-| 你的第一步防御 | 定期备份数据并测试恢复流程，确保备份与生产环境隔离 |
-| 如果只做一件事 | 监控异常的数据删除或修改行为，设置关键文件完整性告警 |
+| 这是什么？ | 攻击者强制关机或重启系统，造成服务中断和数据丢失 |
+| 为什么危险？ | 突然关机可导致内存数据丢失、数据库损坏、服务中断，影响业务连续性 |
+| 谁需要关心？ | 安全运维团队、系统管理员、业务连续性团队 |
+| 你的第一步防御 | 限制关机/重启权限，对关键服务器实施访问控制 |
+| 如果只做一件事 | 监控关机/重启命令（shutdown/reboot/init 0）的执行，设置告警 |
 
 ## 难度等级
 
 ⭐ 初级（新手可学）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 备份与灾备基本原理
+- [ ] 加密算法基础
+- [ ] 系统恢复功能（VSS/启动修复）
 
 ## 技术描述
 
 系统关机/重启（T1529）是MITRE ATT&CK框架中影响战术的一种技术。攻击者通过关闭或重启系统来中断业务运营、破坏系统可用性。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为影响战术只是'破坏数据'——在勒索攻击中，加密数据只是最后一步。在此之前，攻击者会系统地：禁用备份系统、删除卷影副本、关闭安全告警、窃取敏感数据（双重勒索）。破坏的后果不只是宕机，还包括数据泄露、品牌声誉损失和监管罚款。
 这是最简单但最有效的破坏手段之一——攻击者只需要在你的系统上执行一条 `shutdown /s` 命令，你的服务器就关机了。所有在上面运行的业务全部中断。有时候攻击者不是简单地关机，而是让系统不断重启（陷入重启循环），让系统根本无法正常工作。
 
 **技术原理：**
@@ -187,6 +197,10 @@ graph TD
 - 建立计划内维护窗口时间表，异常时间的关机操作立即告警
 - 对关键服务器配置关机授权审批流程
 
+## 避坑指南
+
+防御者最痛苦教训：备份不在离线状态。3-2-1备份策略是底线。
+
 ## 检测建议
 
 ### 网络层检测
@@ -345,11 +359,11 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - System Shutdown/Reboot](https://attack.mitre.org/techniques/T1529/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Industroyer Report - Dragos](https://www.dragos.com/blog/industryer/crashoverride-malware-analysis)
 - [OlympicDestroyer Analysis - Welivesecurity](https://www.welivesecurity.com/2018/03/13/olympicdestroyer-takes-next-step/)
@@ -357,12 +371,12 @@ tags:
 - [Dragos 2026 OT Cybersecurity Year in Review](https://www.dragos.com/blog/dragos-2026-ot-cybersecurity-year-in-review)
 - [Jaguar Land Rover Cyberattack Halts Production - SCW Magazine](https://scw-mag.com/news/jaguar-land-rover-cyberattack-halts-car-production-and-disrupts-supply-chain/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Sysinternals PsExec](https://learn.microsoft.com/sysinternals/downloads/psexec) - 远程执行工具
 - [Windows Shutdown Command](https://learn.microsoft.com/windows-server/administration/windows-commands/shutdown) - shutdown命令文档
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Microsoft - System Shutdown](https://learn.microsoft.com/windows/win32/shutdown/system-shutdown) - 系统关机机制文档
 - [Linux man shutdown](https://man7.org/linux/man-pages/man8/shutdown.8.html) - Linux关机命令指南

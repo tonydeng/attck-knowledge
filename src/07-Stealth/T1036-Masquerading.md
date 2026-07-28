@@ -1,288 +1,384 @@
 # 伪装 (T1036)
 
-## 一句话通俗理解
-
-攻击者把恶意程序改名成系统文件的名字，就像小偷穿上保安制服混进大楼，门卫会以为他是自己人。
+> 攻击者通过修改恶意文件或进程的特征，让它看起来像合法程序——就像狼披着羊皮混进羊群，羊群和安全管理员都认不出来。
 
 ## 30秒速查卡
 
 | 维度 | 你需要知道的 |
 |------|-------------|
-| 这是什么？ | 把恶意程序改名成系统文件名、放在系统目录、伪造签名，让安全软件以为它是合法文件 |
-| 为什么危险？ | 基于文件名和路径的白名单检测完全失效，攻击者能在眼皮底下活动 |
-| 谁需要关心？ | 安全运维人员、EDR工程师、恶意软件分析师 |
-| 你的第一步防御 | 检查系统目录外是否存在系统进程名（如非System32下的svchost.exe） |
-| 如果只做一件事 | 监控进程创建事件，比对进程名与实际路径是否匹配 |
+| 这是什么？ | 修改文件名、路径、签名等特征让恶意代码伪装成合法程序 |
+| 为什么危险？ | 混淆安全分析和调查，绕过基于名称的检测规则 |
+| 谁需要关心？ | 终端安全团队、SOC分析师、系统管理员 |
+| 你的第一步防御 | 监控进程路径与名称是否匹配，启用签名验证 |
+| 如果只做一件事 | 建立合法进程路径白名单，告警非标准路径的"系统进程" |
 
 ## 难度等级
 
-⭐⭐ 中级（需要一定基础）
+⭐⭐ 中级：需要了解操作系统进程管理、文件系统、数字签名基础
+
+## 前置知识检查
+
+阅读本文件前，你应该了解：
+- **进程是什么**：正在运行的程序实例，有PID、名称、路径等属性
+- **数字签名**：验证文件来源和完整性的机制
+- **系统进程**：操作系统正常运行需要的进程（如svchost.exe、lsass.exe）
+- **文件扩展名**：Windows用扩展名关联程序，可被欺骗
+- **进程树**：父子进程关系，帮助识别异常启动链
 
 ## 技术描述
 
-伪装（T1036）是MITRE ATT&CK框架中隐蔽战术的一种技术，也是最常见的防御规避手段之一。
+### 通俗解释
 
-**通俗解释：**
-想象一个小偷想进入一栋办公楼。如果他直接穿着黑衣蒙面闯入，保安立刻会发现。但如果他穿上和保安一样的制服、戴上有公司logo的工牌、拿着文件夹假装在打电话，保安可能还会向他敬礼。伪装技术就是这个道理——攻击者把自己的恶意程序改名成系统文件的名字（如svchost.exe）、放在系统目录下、甚至伪造数字签名，让安全软件以为它是合法文件。
+想象一个安保系统通过看工牌颜色识别员工。蓝色工牌是IT部门，红色工牌是保洁。攻击者想要混进机房，最简单的办法就是搞一块蓝色工牌戴上——这就是伪装。
 
-**技术原理：**
-伪装的核心是利用了系统对已知合法文件的信任。当安全软件扫描文件时，通常会信任签名过的系统文件。攻击者利用这一点：
+具体手段包括：
+- **改名换姓**：把恶意程序命名为`svchost.exe`或`chrome.exe`，管理员一看名字就放行
+- **搬家换址**：把`svchost.exe`从`System32`搬到`Temp`目录运行——地址不对劲
+- **换装变色**：修改文件图标和扩展名，让`.exe`看起来像`.pdf`文档
+- **冒名顶替**：给恶意程序打上合法公司的数字签名（盗用或伪造签名）
 
-1. **文件名伪装**：把恶意exe改名为svchost.exe、rundll32.exe等系统文件名
-2. **路径伪装**：把恶意文件放在C:\Windows\System32\等系统目录下
-3. **签名伪装**：使用盗取的数字证书给恶意文件签名，让它看起来来自可信厂商
-4. **扩展名伪装**：使用双扩展名（如document.pdf.exe），Windows默认隐藏已知扩展名
+简单来说，程序运行时安全软件会检查它的"身份证"——文件名、路径、签名。攻击者把这些信息改成合法程序的样子，就能骗过基于规则的检测。
 
-**用途与影响：**
-伪装技术让攻击者能绕过基于文件名和路径的白名单检测。在真实的网络攻击中，几乎所有的恶意软件都会使用某种形式的伪装。当安全产品和系统管理员看到的是"svchost.exe"（合法系统进程）而不是"malware.exe"时，攻击者就能在眼皮底下自由活动。
+### 过渡段
+
+上面用工牌类比。实际在Windows中，安全软件通常通过进程名（如svchost.exe）判断是否为系统进程。攻击者将恶意PE文件重命名为svchost.exe，如果安全软件只看名字不看完整路径，就会被骗。更高级的做法是将恶意文件放在非标准路径（如C:\Temp\svchost.exe），利用管理员疏忽。数字签名层面，攻击者可能盗用合法签名证书给恶意程序签名，或利用签名验证的时间差。
+
+### 技术原理
+
+1. **匹配合法名称**：将恶意可执行文件重命名为系统进程名（svchost.exe、lsass.exe、csrss.exe等）或常见软件名（chrome.exe、firefox.exe）
+2. **匹配合法位置**：将恶意文件放在合法系统目录（System32）或模仿合法程序目录结构（C:\Program Files\）
+3. **代码签名**：使用盗用的代码签名证书给恶意程序签名，或利用时间戳攻击（在签名撤销前运行）
+4. **扩展名欺骗**：利用Windows的扩展名隐藏特性，将`malware.exe`命名为`document.pdf.exe`，显示为`document.pdf`
+5. **右键左进**：利用RTL（从右到左）字符覆盖技术，反转文件名显示顺序
+6. **进程属性篡改**：运行时修改进程的PEB（进程环境块）中的命令行和映像路径，欺骗读取PEB的工具
+
+### 用途与影响
+
+- **绕过检测**：基于名称或路径的检测规则失效
+- **混淆调查**：安全分析师难以从进程列表中识别恶意进程
+- **社会工程辅助**：让钓鱼附件看起来像正常文档
+- **权限提升**：伪装成高权限系统服务进程
 
 ## 子技术列表
 
-**该技术共有 9 个子技术：**
-
-| 子技术ID | 中文名称 | 通俗解释 |
-|----------|----------|----------|
-| T1036.001 | 无效代码签名 | 为恶意软件伪造或盗用数字签名 |
-| T1036.002 | 从右至左覆盖 | 用特殊字符让文件名"反过来"显示，如evilcod.exe显示为evil.doc |
-| T1036.003 | 重命名系统工具 | 把恶意程序命名为系统工具名，如svchost.exe |
-| T1036.004 | 伪装任务/服务 | 创建名称像Windows Update一样的恶意服务 |
-| T1036.005 | 匹配合法名称/位置 | 在合法软件的安装目录放置恶意文件 |
-| T1036.006 | 文件名后加空格 | 在文件名后加空格隐藏真实扩展名 |
-| T1036.007 | 双扩展名 | 文件命名为document.pdf.exe，系统隐藏exe后显示为pdf |
-| T1036.008 | 伪装文件类型 | 修改文件头部信息，使exe文件看起来像图片或文档 |
-| T1036.009 | 破坏父映像路径 | 在路径中用特殊字符混淆进程树关系 |
+| 子技术ID | 名称 | 说明 |
+|---------|------|------|
+| T1036.001 | Invalid Code Signature | 使用无效或伪造的代码签名 |
+| T1036.002 | Right-to-Left Override | 利用RTL字符覆盖技术 |
+| T1036.003 | Rename System Utilities | 重命名系统工具（如powershell改名为calc） |
+| T1036.004 | Masquerade Task or Service | 伪装计划任务或服务 |
+| T1036.005 | Match Legitimate Name or Location | 匹配合法名称或位置 |
+| T1036.006 | Space after Filename | 文件名后加空格 |
+| T1036.007 | Double File Extension | 双重文件扩展名 |
+| T1036.008 | Masquerade File Type | 伪装文件类型 |
+| T1036.009 | Break Process Trees | 打断进程树关联 |
+| T1036.010 | Space in Filename | 文件名中加空格模仿合法程序 |
 
 ## 攻击流程
 
-### 典型攻击流程
-
-```
-准备恶意文件 --> 伪装文件名/位置 --> 分发执行 --> 混入正常进程
-```
-
 ```mermaid
-graph TD
-    A["攻击者准备恶意可执行文件"] --> B["选择伪装策略"]
-    B --> C["改为系统文件名 svchost.exe"]
-    B --> D["放入系统目录 System32"]
-    B --> E["伪造数字签名"]
-    B --> F["双扩展名 document.pdf.exe"]
-    C --> G["通过钓鱼邮件或下载分发"]
+flowchart TD
+    A[选择伪装目标] --> B{选择伪装方式}
+    B -->|名称伪装| C[重命名为系统进程名]
+    B -->|路径伪装| D[放置在系统目录]
+    B -->|签名伪装| E[盗用或伪造签名]
+    B -->|扩展名伪装| F[双扩展名欺骗]
+    C --> G[运行恶意程序]
     D --> G
     E --> G
-    F --> G
-    G --> H["受害者双击执行"]
-    H --> I["任务管理器中显示为系统进程"]
-    I --> J["攻击者在后台执行恶意操作"]
+    F --> H[通过钓鱼发送]
+    G --> I[安全软件放行]
+    H --> I
+    I --> J[执行恶意行为]
+    J --> K[安全团队难以识别]
 ```
-
-**步骤详解：**
-
-1. **准备恶意文件**
-   - 通俗描述：攻击者创建后门或木马程序
-   - 技术细节：使用MSFvenom或自定义开发后门
-   - 常用工具：MSFvenom、Cobalt Strike
-
-2. **伪装策略**
-   - 通俗描述：把恶意文件伪装成合法系统文件
-   - 技术细节：改名、改路径、伪造签名
-   - 常用工具：文件重命名脚本、签名伪造工具
-
-3. **分发并执行**
-   - 通俗描述：通过钓鱼邮件或恶意网站发送给受害者
-   - 技术细节：用户双击后，恶意程序以系统文件名运行
-   - 常用工具：钓鱼框架、恶意文档
 
 ## 真实案例
 
-### 案例1：NotPetya 伪装为CHKDSK磁盘检查工具（2017）
+### 案例1：APT29伪装svchost.exe绕过检测
 
-- **时间**: 2017年6月
-- **目标**: 全球企业，特别是乌克兰
-- **攻击组织**: Sandworm
-- **手法**: NotPetya勒索软件在加密过程中将自己伪装成Windows磁盘检查工具（CHKDSK）。当被感染系统重启时，显示一个看似合法的CHKDSK界面和进度条，实际上在后台执行硬盘加密操作。许多IT管理员将这个界面误认为是正常的系统维护，没有采取任何阻止措施。
-- **影响**: 全球损失超过100亿美元
-- **参考链接**: [CrowdStrike - NotPetya](https://www.crowdstrike.com/blog/meet-notpetya-a-wiper-not-a-ransomware/)
+- **时间**：2020-2021年
+- **目标**：美国政府机构、科技公司
+- **攻击组织**：APT29（Cozy Bear，俄罗斯SVR背景）
+- **手法**：在SolarWinds供应链攻击的后续阶段，APT29将Cobalt Strike beacon重命名为`svchost.exe`并放置在临时目录运行。由于安全软件通常将svchost.exe列为系统进程白名单，该恶意程序成功绕过了基于名称的检测。进一步，攻击者修改了进程的PEB结构，使任务管理器和部分EDR工具显示的进程路径为`C:\Windows\System32\svchost.exe`而非实际路径。他们还使用合法的SolarWinds签名证书给恶意DLL签名，利用签名验证的时间差绕过检测
+- **影响**：长期隐蔽运行Cobalt Strike beacon，横向移动到多个政府机构
+- **参考**：
+  - 📰 Mandiant: SUNBURST Analysis
+  - 📜 CISA: SolarWinds Compromise
 
-### 案例2：Lazarus 使用双扩展名钓鱼银行员工（2018-2020）
+### 案例2：Emotet木马使用双扩展名钓鱼
 
-- **时间**: 2018年-2020年
-- **目标**: 全球金融机构员工
-- **攻击组织**: Lazarus
-- **手法**: Lazarus发送钓鱼邮件，附件名为Salary_Structure.pdf.exe（T1036.007双扩展名）或2020_Bonus.xls.js。当收件人打开附件时，恶意JavaScript或可执行文件被执行，下载并安装远程访问木马。Windows默认隐藏已知扩展名，用户只看到Salary_Structure.pdf。
-- **影响**: 多家银行资金被盗
-- **参考链接**: [CISA - Lazarus Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa20-239a)
+- **时间**：2019-2021年（持续活跃）
+- **目标**：全球企业用户
+- **攻击组织**：Emotet运营者（MUMMY SPIDER）
+- **手法**：Emotet通过钓鱼邮件传播，附件使用双扩展名伪装技术。恶意可执行文件命名为`发票文档.pdf.exe`，Windows默认隐藏已知扩展名，用户看到的文件名是`发票文档.pdf`。文件图标设置为Adobe PDF图标，用户双击以为打开PDF文档，实际执行了恶意程序。Emotet还使用RTL覆盖技术，将文件名设为` invoices\u202Edoc.exe`，显示为`invoicesexe.doc`。在2020年的一次大规模攻击中，Emotet利用此技术感染了超过10万台主机
+- **影响**：大规模感染，作为其他恶意软件（如TrickBot、Ryuk）的投递载体
+- **参考**：
+  - 📰 US-CERT: Emotet Malware Alert
+  - 📰 Trend Micro: Emotet Evolution
 
-### 案例3：APT29 使用伪装系统工具进行后门活动（2020-2021）
+### 案例3：LockBit勒索软件重命名系统工具
 
-- **时间**: 2020年-2021年
-- **目标**: 美国政府机构、科技公司
-- **攻击组织**: APT29（Cozy Bear）
-- **手法**: APT29在SolarWinds攻击的后渗透阶段，使用多种伪装技术隐藏工具。他们将后门命名为与合法服务相似的名字，如"Windows Update Service"或"Microsoft Security Essentials"。后门文件放在C:\Windows\System32\Tasks\等系统目录下（T1036.005），与正常系统任务混在一起，管理人员很难发现异常。
-- **影响**: 美国政府多个部门数据泄露
-- **参考链接**: [CrowdStrike - SUNBURST Analysis](https://www.crowdstrike.com/blog/sunspot-malware-technical-analysis/)
-
-### 案例4：BlackCat 使用伪造的Windows更新进行伪装（2024年）
-
-- **时间**: 2024年
-- **目标**: 全球企业
-- **攻击组织**: BlackCat (ALPHV)
-- **手法**: BlackCat勒索软件在2024年的攻击活动中，将其恶意负载命名为MicrosoftWindowsUpdate.exe，并将其放置在C:\Windows\Temp目录下。当受害者检查任务管理器时，看到的进程名看起来像是合法的Windows更新进程。同时，他们还使用了从代码签名商店窃取的证书来签名恶意驱动程序（T1036.001）。
-- **影响**: 多家大型企业被勒索
-- **参考链接**: [BleepingComputer - BlackCat TTPs](https://www.bleepingcomputer.com/)
+- **时间**：2022-2023年
+- **目标**：全球企业
+- **攻击组织**：LockBit勒索软件团伙
+- **手法**：LockBit在攻击过程中重命名合法系统工具来逃避检测。他们将`PsExec.exe`重命名为`svchost.exe`，将`procdump.exe`重命名为`notepad.exe`，将这些工具放在`C:\Windows\Temp`目录运行。由于安全团队通常将svchost.exe和notepad.exe作为合法进程监控，这些工具的侦察和凭据转储行为未被及时检测。LockBit还使用`rundll32.exe`加载恶意DLL（重命名为`version.dll`），利用rundll32的合法签名绕过应用白名单。在部署勒索软件阶段，他们将加密器命名为`lsass.exe`运行
+- **影响**：感染超过1000个组织，勒索赎金超过1亿美元
+- **参考**：
+  - 📰 Cisco Talos: LockBit Analysis
+  - 📜 FBI: LockBit Flash Report
 
 ## 红队视角
 
-> ⚠️ **免责声明**：以下内容仅用于合法的安全测试、渗透测试和教育目的。未经授权对他人系统进行测试是违法行为。
-
-> ⚠️ **免责声明**：以下内容仅用于合法的安全测试和渗透测试。
-
 ### 实战技巧
 
-1. **选择不易被怀疑的伪装名**
-   避免使用svchost.exe等高度知名的系统进程名（EDR会专门监控），推荐使用第三方软件的进程名如chrome.exe、java.exe、wlmail.exe。
-
-2. **路径和名称要一致**
-   如果命名为svchost.exe，就要放在C:\Windows\System32\下，而不是放在桌面上。否则反而会引起怀疑。
-
-3. **时间戳也要伪装**
-   修改文件的时间戳，使其创建时间和修改时间与同目录下的其他合法文件一致。
+1. **选择高频系统进程名**：svchost.exe、chrome.exe等不会引起注意
+2. **路径要合理**：System32下的svchost.exe比Temp下的更可信
+3. **签名优先**：有签名的程序比无签名的更容易绕过
+4. **利用系统工具**：rundll32.exe、regsvr32.exe本身是签名的
 
 ### 常用工具
 
-| 工具名称 | 用途 | 平台 | 链接 |
-|----------|------|------|------|
-| ChangeTimestamp | 修改文件时间戳 | Windows | https://github.com/0x90d/ChangeTimestamp |
-| SigThief | 从合法文件中提取签名 | Windows | https://github.com/secretsquirrel/SigThief |
-| Metasploit | 内置多种伪装技术 | 跨平台 | https://www.metasploit.com/ |
+| 工具 | 用途 | 平台 |
+|------|------|------|
+| Resource Hacker | 修改文件图标和版本信息 | Windows |
+| SigThief | 盗取/伪造签名 | Windows |
+| Invoke-Phantom | 进程PEB篡改 | Windows |
+| msfvenom | 生成自定义payload | 全平台 |
 
 ### 注意事项
 
-- 合法签名提取后附加到恶意文件，虽然可以绕过部分检测，但无法通过严格的签名验证
-- 在部署前测试伪装后的文件能否正常运行，避免因兼容性问题导致失败
+- 现代EDR基于行为分析而非仅名称
+- 签名证书被撤销后失效
+- 路径异常是重要告警指标
 
 ## 蓝队视角
 
 ### 检测要点
 
-1. **检测文件路径不一致**
-   - 日志来源：Sysmon事件ID 1（进程创建）
-   - 关注字段：进程路径与进程名是否匹配
-   - 异常特征：svchost.exe不在C:\Windows\System32\下运行
-
-2. **检测签名异常**
-   - 日志来源：文件创建事件、代码完整性日志
-   - 关注字段：数字签名是否有效、签名者信息
-   - 异常特征：显示为谷歌签名的程序却在执行系统级别的操作
-
-3. **检测双扩展名**
-   - 日志来源：文件创建事件、邮件附件日志
-   - 关注字段：文件名中的多个扩展名
-   - 异常特征：.pdf.exe、.doc.js等可疑扩展名组合
+1. **进程路径验证**：系统进程必须在标准路径
+2. **签名验证**：检查签名是否有效
+3. **进程树分析**：谁启动了这个进程
+4. **文件哈希**：同一名称不同哈希
+5. **网络行为**：合法进程的异常外联
 
 ### 监控建议
 
-- 配置Windows显示完整的文件扩展名（不隐藏已知扩展名）
-- 使用Sysmon监控所有进程创建事件，关注异常路径的"系统进程"
-- 部署EDR解决方案监控进程树和文件完整性
+- 建立系统进程路径白名单
+- 监控可执行文件重命名事件
+- 启用Sysmon Event ID 1（进程创建）记录命令行
+- 配置文件完整性监控
+
+## 避坑指南
+
+- **坑1**：只看进程名不看路径——svchost.exe在Temp目录必有问题
+- **坑2**：信任数字签名——签名可被盗用或撤销有时间差
+- **坑3**：忽略父进程关系——svchost.exe由services.exe启动才正常
+- **坑4**：文件扩展名显示设置——确保显示完整扩展名
 
 ## 检测建议
 
-**用人话说：** 伪装检测就像检查身份证和真人是否对得上。如果一个叫"svchost.exe"的进程不在C:\Windows\System32目录下，或者一个文件的数字签名是假的，那就很可疑。正常系统文件不会到处乱跑，只有伪装的才会。
+### 网络层
 
-### 网络层检测
+> **用人话说**：网络层看的是"谁在上网"。如果svchost.exe突然连接外部IP，那就像保安发现保洁阿姨在用机密电话——职位和行为的匹配很重要。
 
-**检测方法：** 监控网络流量中的文件下载，检测具有可疑文件名的可执行文件。
-
-### 主机层检测
-
-**Windows事件ID：**
-- 事件ID 4688 (Windows安全审计)：进程创建
-- 事件ID 1 (Sysmon)：进程创建
-- 事件ID 7 (Sysmon)：DLL加载
-
-**具体命令示例：**
 ```bash
-# 使用PowerShell查找系统目录外的"svchost.exe"
-Get-WmiObject Win32_Process | Where-Object {$_.Name -eq "svchost.exe" -and $_.ExecutablePath -notlike "C:\Windows\System32\*"}
+# 检测系统进程的异常网络连接
+# 用人话说：系统服务进程不该随便连外网
+tshark -i any -Y "(process == svchost.exe || process == lsass.exe) && ip.dst not in {<内网段>}" -T fields -e ip.dst -e tcp.dst_port -e process
+
+# 检测beacon通信模式
+# 用人话说：定期心跳是C2标志
+netstat -ano | findstr ESTABLISHED | sort /+30 | uniq -c -w30 | sort -rn
 ```
 
-### 应用层检测
+### 主机层
 
-**Sigma规则示例：**
+> **用人话说**：主机层就是查户口——每个进程都要核对姓名、住址、出身（父进程）。Sysmon是核户口最好的工具。
+
+**关键事件ID**：
+
+| 事件ID | 日志源 | 说明 |
+|--------|--------|------|
+| 1 | Sysmon | 进程创建（含命令行和路径） |
+| 7 | Sysmon | DLL加载 |
+| 11 | Sysmon | 文件创建 |
+| 13 | Sysmon | 注册表值修改 |
+| 4688 | Security | 进程创建（需启用命令行审计） |
+
+```powershell
+# 检测非标准路径的系统进程
+# 用人话说：系统进程必须在系统目录，在别的地方就有鬼
+Get-WinEvent -LogName "Microsoft-Windows-Sysmon/Operational" -FilterXPath "*[System[EventID=1] and (EventData[Data[@Name='Image'] = 'svchost.exe' or Data[@Name='Image'] = 'lsass.exe' or Data[@Name='Image'] = 'csrss.exe']) and EventData[Data[@Name='Image'] not contains 'System32' and Data[@Name='Image'] not contains 'SysWOW64']]" -MaxEvents 50
+
+# 检测svchost.exe的异常父进程
+# 用人话说：svchost只能由services.exe启动，别的都不对
+Get-WinEvent -LogName "Microsoft-Windows-Sysmon/Operational" -FilterXPath "*[System[EventID=1] and EventData[Data[@Name='Image'] = 'svchost.exe'] and EventData[Data[@Name='ParentImage'] != 'services.exe']]" -MaxEvents 50
+
+# 检测双扩展名文件
+# 用人话说：文件名里有多个点的要警惕
+Get-ChildItem C:\Users -Recurse -Include *.exe,*.scr,*.bat,*.vbs -ErrorAction SilentlyContinue | Where-Object {$_.BaseName -match '\.'} | Select-Object FullName
+```
+
+### 应用层
+
+> **用人话说**：应用层主要看签名和文件元数据。就像检查工牌有没有防伪标记。
+
 ```yaml
-title: 系统目录外的系统进程
+# Sigma规则：检测非标准路径的svchost.exe
+title: Suspicious svchost.exe from Non-Standard Path
 status: experimental
-description: 检测在非标准路径运行的系统进程名
+description: 检测从非System32目录运行的svchost.exe
 logsource:
-    category: process_creation
     product: windows
+    service: sysmon
 detection:
     selection:
-        Image|endswith: '\svchost.exe'
+        EventID: 1
+        Image|endswith: 'svchost.exe'
     filter:
-        Image|startswith: 'C:\Windows\System32\'
+        Image|startswith:
+            - 'C:\Windows\System32\'
+            - 'C:\Windows\SysWOW64\'
     condition: selection and not filter
+level: critical
+tags:
+    - attack.defense_evasion
+    - attack.t1036.005
+
+# Sigma规则：检测双扩展名文件创建
+title: Double Extension File Creation
+status: experimental
+description: 检测具有双重扩展名的可疑文件
+logsource:
+    product: windows
+    service: sysmon
+detection:
+    selection:
+        EventID: 11
+        TargetFilename|re: '.*\.(pdf|doc|xls|txt|jpg)\.(exe|scr|bat|vbs|com|pif)$'
+    condition: selection
 level: high
 tags:
-    - attack.t1036
+    - attack.defense_evasion
+    - attack.t1036.007
 ```
 
 ## 缓解措施
 
-### 优先级1：关键措施
+### 优先级1（必须立即实施）
 
-**措施名称：** 实施应用程序白名单（WDAC/AppLocker）
+| 措施 | 说明 | MITRE映射 |
+|------|------|-----------|
+| 系统进程路径白名单 | 限制系统进程只能在标准目录运行 | T1036.005 mitigation |
+| 禁用扩展名隐藏 | 在文件夹选项中显示完整扩展名 | T1036.007 mitigation |
+| 代码签名验证策略 | 启用WDAC验证签名 | T1036.001 mitigation |
 
-### 优先级2：重要措施
+### 优先级2（1周内实施）
 
-**措施名称：** 启用增强型安全配置
+| 措施 | 说明 | MITRE映射 |
+|------|------|-----------|
+| 进程父关系监控 | 建立合法进程启动链基线 | T1036 mitigation |
+| 服务名称审计 | 监控服务创建和名称变更 | T1036.004 mitigation |
+| 文件重命名告警 | 监控系统目录文件重命名 | T1036.003 mitigation |
 
-**具体实施步骤：**
-1. 配置Windows显示完整文件扩展名
-2. 启用攻面减少（ASR）规则阻止Office创建子进程
+### 优先级3（1月内实施）
 
-### 优先级3：建议措施
-
-**措施名称：** 定期审计系统进程和服务
-
-### MITRE ATT&CK 缓解措施映射
-
-| 缓解措施ID | 缓解措施名称 | 适用性 | 说明 |
-|------------|-------------|--------|------|
-| M1045 | 软件限制策略 | 适用 | AppLocker/WDAC阻止非授权程序执行，防止文件名伪装绕过 |
-| M1038 | 执行预防 | 适用 | 攻面减少（ASR）规则阻止Office创建子进程 |
-| M1047 | 审计 | 适用 | 启用进程创建审计（事件ID 4688），监控异常路径的系统进程 |
-| M1029 | 远程数据存储 | 部分适用 | 限制可移动介质上的程序执行 |
+| 措施 | 说明 | MITRE映射 |
+|------|------|-----------|
+| 签名证书撤销检查 | 配置实时证书撤销检查 | T1036.001 mitigation |
+| RTL字符检测 | 部署RTL字符检测规则 | T1036.002 mitigation |
+| 文件元数据分析 | 分析文件版本信息和图标 | T1036.008 mitigation |
 
 ## 动手实验
 
-> ⚠️ **重要提示**：所有实验必须在隔离的实验室环境中进行，禁止对未授权的真实系统进行测试。
+### 实验1：检测非标准路径的系统进程
 
-### 实验环境准备
+**环境**：任意Windows系统
 
-**所需工具：** Windows虚拟机、Process Explorer、Sysmon
+```powershell
+# 列出所有运行的svchost.exe路径
+# 用人话说：查查有多少svchost在跑，都在哪里
+Get-Process svchost -ErrorAction SilentlyContinue | Select-Object Id, Path
 
-### 实验1：创建并检测伪装进程（初级）
+# 验证路径是否在System32
+# 用人话说：正常的svchost都在系统目录
+Get-Process svchost -ErrorAction SilentlyContinue | Where-Object {$_.Path -notlike "*\System32\*" -and $_.Path -notlike "*\SysWOW64\*"} | Select-Object Id, Path
+```
 
-**实验步骤：**
-1. 复制cmd.exe到桌面，改名为svchost.exe
-2. 运行这个"假"的svchost.exe
-3. 使用Process Explorer查看进程路径
+**预期输出**：正常系统中所有svchost.exe路径都是C:\Windows\System32\svchost.exe
 
-**预期结果：** Process Explorer显示svchost.exe运行在桌面上而非System32目录下
+### 实验2：分析进程父关系
+
+**环境**：任意Windows系统
+
+```powershell
+# 查看svchost.exe的父进程
+# 用人话说：svchost应该是services.exe的孩子
+Get-WinEvent -LogName "Microsoft-Windows-Sysmon/Operational" -FilterXPath "*[System[EventID=1] and EventData[Data[@Name='Image'] = 'svchost.exe']]" -MaxEvents 100 | ForEach-Object {
+    $xml = [xml]$_.ToXml()
+    $image = ($xml.Event.EventData.Data | Where-Object {$_.Name -eq 'Image'}).'#text'
+    $parent = ($xml.Event.EventData.Data | Where-Object {$_.Name -eq 'ParentImage'}).'#text'
+    [PSCustomObject]@{
+        Time = $_.TimeCreated
+        Image = $image
+        Parent = $parent
+    }
+} | Format-Table -AutoSize
+```
+
+**预期输出**：正常svchost.exe的ParentImage应为C:\Windows\System32\services.exe
+
+### 实验3：检测双扩展名文件
+
+**环境**：任意Windows系统
+
+```powershell
+# 搜索用户目录下的双扩展名文件
+# 用人话说：找找有没有名为xxx.pdf.exe的可疑文件
+Get-ChildItem -Path C:\Users -Recurse -Include *.exe,*.scr,*.bat,*.vbs,*.com,*.pif -ErrorAction SilentlyContinue | Where-Object {$_.BaseName -match '\.(pdf|doc|xls|txt|jpg|png)$'} | Select-Object FullName, Length, LastWriteTime
+```
+
+**预期输出**：正常系统返回空列表，有恶意文件时返回文件路径
 
 ## 术语解释
 
-| 术语 | 英文原名 | 通俗解释 |
-|------|----------|----------|
-| 伪装 | Masquerading | 给恶意软件"换马甲"，让它看起来像合法程序 |
-| LOLBin | Living Off the Land Binary | 系统自带的合法程序，攻击者利用它们来做坏事 |
-| RTLO | Right-to-Left Override | 一个看不见的特殊字符，能让文件名倒着显示 |
-| 双扩展名 | Double Extension | 如file.pdf.exe，利用系统隐藏扩展名显示为pdf |
+| 术语 | 解释 |
+|------|------|
+| 进程伪装 | 修改进程特征使其看起来像合法进程 |
+| PEB | 进程环境块，存储进程信息的内存结构 |
+| 代码签名 | 验证文件来源和完整性的数字签名 |
+| 双扩展名 | 利用扩展名隐藏特性，如document.pdf.exe |
+| RTL覆盖 | 利用从右到左字符反转文件名显示 |
+| 进程树 | 父子进程的层次关系 |
+| svchost.exe | Windows服务宿主进程，常被模仿 |
+| WDAC | Windows Defender Application Control |
+| 文件元数据 | 文件属性信息（图标、版本、公司等） |
+| 签名撤销 | 证书被吊销后，基于该签名的文件不再可信 |
 
 ## 参考资料
 
-- [MITRE ATT&CK - T1036 Masquerading](https://attack.mitre.org/techniques/T1036/)
-- [CISA - Lazarus Malware Analysis](https://www.cisa.gov/news-events/cybersecurity-advisories/aa20-239a)
-- [LOLBAS Project](https://lolbas-project.github.io/)
+### 📚 深入了解
+
+- [MITRE ATT&CK T1036](https://attack.mitre.org/techniques/T1036/) — 官方技术页面
+- [Microsoft Process Security](https://learn.microsoft.com/en-us/windows/win32/procthread/process-security-and-access-rights) — 进程安全文档
+- [Windows Digital Signatures](https://learn.microsoft.com/en-us/windows/win32/seccrypto/digital-signatures) — 数字签名文档
+
+### 📰 真实攻击
+
+- [CISA: SolarWinds Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa21-072a) — SolarWinds攻击分析
+- [US-CERT: Emotet Alert](https://www.cisa.gov/news-events/alerts/2018/07/20/cisa-analysis-report-ar18-200a-emotet-malware) — Emotet分析报告
+- [CrowdStrike: LockBit Report](https://www.crowdstrike.com/blog/lockbit-3-analysis/) — LockBit分析
+
+### 🔧 动手试试
+
+- [Sysmon](https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon) — 系统监控工具
+- [Process Hacker](https://processhacker.sourceforge.io/) — 进程分析工具
+- [SigCheck](https://learn.microsoft.com/en-us/sysinternals/downloads/sigcheck) — 签名验证工具
+
+## 版本历史
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| v3.1 | 2026-07-10 | 初始版本，从T1654.002模板污染恢复 |
+| v1.0 | - | MITRE ATT&CK原始定义 |

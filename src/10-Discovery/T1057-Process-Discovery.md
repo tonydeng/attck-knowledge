@@ -18,11 +18,21 @@
 
 - ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 进程发现（T1057）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 电脑上每个运行的程序都对应一个"进程"，就像流水线上的每个工位。攻击者入侵后，会像车间主管巡视一样查看所有在运行的进程，看看有没有安全软件在巡逻（防病毒）、有没有分析工具在工作（检测器）、以及有没有感兴趣的目标程序在运行（数据库、邮件服务器）。
 
 **技术原理：**
@@ -163,6 +173,10 @@ graph TD
 - 启用PowerShell ScriptBlock Logging
 - 关注短时间内从同一主机执行多次tasklist的行为
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -201,6 +215,31 @@ level: low
 tags:
     - attack.t1057
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1057
+status: experimental
+description: Detects potential T1057 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1057
+
 
 ## 缓解措施
 
@@ -270,17 +309,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1057](https://attack.mitre.org/techniques/T1057/)
 - [Microsoft - Tasklist](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/tasklist)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Securelist - Lazarus SyncHole](https://securelist.com/operation-synchole-watering-hole-attacks-by-lazarus/116326/)
 - [Rapid7 - MuddyWater 2026](https://www.rapid7.com/blog/post/tr-muddying-tracks-state-sponsored-shadow-behind-chaos-ransomware/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Sysinternals Process Explorer](https://learn.microsoft.com/en-us/sysinternals/downloads/process-explorer)
 - [PowerShell Get-Process](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-process)

@@ -8,21 +8,31 @@
 
 | 维度 | 你需要知道的 |
 |------|-------------|
-| 这是什么？ | 账户访问移除（T1531）是攻击者用来破坏目标系统或数据的技术 |
-| 为什么危险？ | 攻击者可以对目标造成不可逆的破坏，影响组织正常运营 |
-| 谁需要关心？ | 安全运维团队、系统管理员、业务负责人 |
-| 你的第一步防御 | 定期备份数据并测试恢复流程，确保备份与生产环境隔离 |
-| 如果只做一件事 | 监控异常的数据删除或修改行为，设置关键文件完整性告警 |
+| 这是什么？ | 攻击者修改或删除用户账户、重置密码，使合法用户无法登录系统 |
+| 为什么危险？ | 锁定合法用户使其无法恢复访问，为攻击者争取更多时间完成其他破坏 |
+| 谁需要关心？ | 身份管理团队、安全运维团队、IT支持团队 |
+| 你的第一步防御 | 对账户管理操作实施多因素认证和审批流程 |
+| 如果只做一件事 | 监控批量账户修改/删除/禁用事件（EventID 4720/4723/4726），设置异常告警 |
 
 ## 难度等级
 
 ⭐ 初级（新手可学）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 备份与灾备基本原理
+- [ ] 加密算法基础
+- [ ] 系统恢复功能（VSS/启动修复）
 
 ## 技术描述
 
 账户访问移除（T1531）是MITRE ATT&CK框架中影响战术的一种技术。攻击者通过删除、锁定或修改用户账户凭据，使合法用户无法访问系统或数据。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为影响战术只是'破坏数据'——在勒索攻击中，加密数据只是最后一步。在此之前，攻击者会系统地：禁用备份系统、删除卷影副本、关闭安全告警、窃取敏感数据（双重勒索）。破坏的后果不只是宕机，还包括数据泄露、品牌声誉损失和监管罚款。
 想象一下，你下班回家发现门禁密码被人改了，你的工卡也被注销了，你站在公司门口却进不去——这就是账户访问移除。攻击者在入侵系统后，通过管理员权限批量删除或禁用用户账户、修改密码为随机值，让IT团队连自己的系统都登不进去，更别说恢复被加密的数据了。
 
 **技术原理：**
@@ -175,6 +185,10 @@ graph TD
 - 建立AD变更监控体系，对账户删除和禁用设置高优先级告警
 - 对"Domain Admins"和"Enterprise Admins"组成员变更设置实时通知
 - 保留至少一个不用于日常管理的"破门账户"（Break Glass Account），该账户审计全面、操作受限
+
+## 避坑指南
+
+防御者最痛苦教训：备份不在离线状态。3-2-1备份策略是底线。
 
 ## 检测建议
 
@@ -341,23 +355,23 @@ Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Account Access Removal](https://attack.mitre.org/techniques/T1531/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [NotPetya Analysis - Welivesecurity](https://www.welivesecurity.com/2017/07/04/analysis-of-telebots-cunning-connection/)
 - [OlympicDestroyer Report - Welivesecurity](https://www.welivesecurity.com/2018/03/13/olympicdestroyer-takes-next-step/)
 - [Shamoon Report - Mandiant](https://www.mandiant.com/resources/shamoon-2-delivering-distraction)
 - [Lotus Wiper - Kaspersky](https://securelist.com/tr/lotus-wiper/119472/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Microsoft AD Documentation](https://learn.microsoft.com/windows-server/identity/ad-ds/) - AD官方文档
 - [PowerShell AD Module](https://learn.microsoft.com/powershell/module/activedirectory/) - AD管理cmdlet
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Microsoft - AD Security Best Practices](https://learn.microsoft.com/windows-server/identity/ad-ds/plan/security-best-practices) - AD安全最佳实践
 - [CISA - Active Directory Security](https://www.cisa.gov/news-events/analysis-reports/ar22-099a) - AD安全指南

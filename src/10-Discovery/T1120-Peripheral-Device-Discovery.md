@@ -18,11 +18,21 @@
 
 - ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 外围设备发现（T1120）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 电脑上可以连接各种外部设备：U盘、打印机、扫描仪、外置硬盘、摄像头等。攻击者入侵后，会查看电脑连接了哪些外设，就像小偷进屋后先看看有没有摄像头、有没有可插U盘的电脑。
 
 **技术原理：**
@@ -146,6 +156,10 @@ graph TD
 - 启用USB设备插入的审计日志
 - 实施USB设备控制策略限制可移动存储
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -186,6 +200,31 @@ level: low
 tags:
     - attack.t1120
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1120
+status: experimental
+description: Detects potential T1120 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1120
+
 
 ## 缓解措施
 
@@ -255,13 +294,13 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1120](https://attack.mitre.org/techniques/T1120/)
 - [Microsoft - Fsutil](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/fsutil)
 - [Microsoft - Wmic LogicalDisk](https://learn.microsoft.com/en-us/windows/win32/cimwin32provider/win32-logicaldisk)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CISA - USB Security Guidance](https://www.cisa.gov/usb-security)
 - [Stuxnet Analysis](https://en.wikipedia.org/wiki/Stuxnet)

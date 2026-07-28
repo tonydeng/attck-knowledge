@@ -8,21 +8,31 @@
 
 | 维度 | 你需要知道的 |
 |------|-------------|
-| 这是什么？ | 端点拒绝服务（T1499）是攻击者用来破坏目标系统或数据的技术 |
-| 为什么危险？ | 攻击者可以对目标造成不可逆的破坏，影响组织正常运营 |
-| 谁需要关心？ | 安全运维团队、系统管理员、业务负责人 |
-| 你的第一步防御 | 定期备份数据并测试恢复流程，确保备份与生产环境隔离 |
-| 如果只做一件事 | 监控异常的数据删除或修改行为，设置关键文件完整性告警 |
+| 这是什么？ | 攻击者通过耗尽单台服务器的CPU/内存/磁盘/连接资源使其无法提供服务 |
+| 为什么危险？ | 单台服务器被压垮即可导致服务中断，不需要大带宽，难以用网络层防护拦截 |
+| 谁需要关心？ | 安全运维团队、系统管理员、应用架构师 |
+| 你的第一步防御 | 配置资源使用限额（cgroup/资源配额），防止单进程耗尽系统资源 |
+| 如果只做一件事 | 监控服务器CPU/内存/磁盘使用率突增到100%的异常模式 |
 
 ## 难度等级
 
 ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 备份与灾备基本原理
+- [ ] 加密算法基础
+- [ ] 系统恢复功能（VSS/启动修复）
 
 ## 技术描述
 
 端点拒绝服务（T1499）是MITRE ATT&CK框架中影响战术的一种技术。攻击者针对特定端点系统而非网络基础设施发起拒绝服务攻击，使系统资源耗尽、服务不可用。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为影响战术只是'破坏数据'——在勒索攻击中，加密数据只是最后一步。在此之前，攻击者会系统地：禁用备份系统、删除卷影副本、关闭安全告警、窃取敏感数据（双重勒索）。破坏的后果不只是宕机，还包括数据泄露、品牌声誉损失和监管罚款。
 网络DDoS（T1498）就像用很多人堵住你店门口的路——顾客进不来是因为路被堵了。而端点DoS（T1499）是直接在你店里搞破坏——打开所有水龙头、用所有插座、把马桶冲水不停——让店里的资源耗尽。攻击者不通过网络带宽攻击，而是直接对目标服务器发送大量计算请求，让它的CPU飙升到100%、内存耗尽、处理不过来合法请求。
 
 **技术原理：**
@@ -203,6 +213,10 @@ graph TD
 - 使用APM工具监控应用层响应时间，建立P99延迟的基线
 - 部署WAF检测SQL注入后的资源消耗攻击（大量复杂查询）
 
+## 避坑指南
+
+防御者最痛苦教训：备份不在离线状态。3-2-1备份策略是底线。
+
 ## 检测建议
 
 ### 网络层检测
@@ -362,7 +376,7 @@ docker run -d --name test-web -p 8080:80 httpd:alpine
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Endpoint Denial of Service](https://attack.mitre.org/techniques/T1499/)
 - [MITRE - OS Exhaustion Flood (T1499.001)](https://attack.mitre.org/techniques/T1499/001/)
@@ -370,7 +384,7 @@ docker run -d --name test-web -p 8080:80 httpd:alpine
 - [MITRE - Application Exhaustion Flood (T1499.003)](https://attack.mitre.org/techniques/T1499/003/)
 - [MITRE - Application or System Exploitation (T1499.004)](https://attack.mitre.org/techniques/T1499/004/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [HTTP/2 Rapid Reset Attack - Google Cloud](https://cloud.google.com/blog/products/identity-security/how-it-works-the-novel-http2-rapid-reset-ddos-attack)
 - [HTTP/2 Rapid Reset DDoS - NETSCOUT](https://www.netscout.com/blog/asert/http2-rapid-reset-application-layer-ddos-attacks-targeting)
@@ -378,12 +392,12 @@ docker run -d --name test-web -p 8080:80 httpd:alpine
 - [Memcached DDoS - Cloudflare](https://www.cloudflare.com/learning/ddos/memcached-ddos-attack/)
 - [GitHub DDoS Incident](https://github.blog/news-insights/insights/ddos-incident-report/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Slowloris](https://github.com/gkbrk/slowloris) - HTTP慢速攻击工具
 - [Nginx Rate Limiting](https://www.nginx.com/blog/rate-limiting-nginx/) - Nginx限流配置
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Cloudflare - DoS Attacks](https://www.cloudflare.com/learning/ddos/dos-attack/) - DoS攻击科普
 - [OWASP - DoS Prevention](https://owasp.org/www-community/DoS_Attack_Cheat_Sheet) - OWASP DoS防御指南

@@ -16,7 +16,7 @@
 
 **包含的技术类型：**
 - **应用层协议 C2**（[T1071](T1071-Application-Layer-Protocol.md)）：把指令藏在 HTTP、DNS、邮件等正常网络协议中
-- **代理与跳板**（[T1090](T1090-Proxying.md)、[T1095](T1095-Non-Application-Layer-Protocol.md)、[T1572](T1572-Protocol-Tunneling.md)）：通过多层转发隐藏真实 C2 服务器
+- **代理与跳板**（[T1090](T1090-Proxy.md)、[T1095](T1095-Non-Application-Layer-Protocol.md)、[T1572](T1572-Protocol-Tunneling.md)）：通过多层转发隐藏真实 C2 服务器
 - **加密与混淆**（[T1001](T1001-Data-Obfuscation.md)、[T1132](T1132-Data-Encoding.md)、[T1573](T1573-Encrypted-Channel.md)）：给 C2 数据"加密打包"逃避检测
 - **动态隐藏**（[T1205](T1205-Traffic-Signaling.md)、[T1568](T1568-Dynamic-Resolution.md)、[T1665](T1665-Hide-Infrastructure.md)）：让 C2 基础设施像变色龙一样变化
 - **备用通道**（[T1008](T1008-Fallback-Channels.md)、[T1104](T1104-Multi-Stage-Channels.md)）：主通道被阻断后自动切换备用方案
@@ -97,19 +97,19 @@ graph LR
 | [T1071.001](./T1071/T1071.001-Web-Protocols.md) | Web协议 | ⭐⭐ | 使用 HTTP/HTTPS，最常用的 C2 方式，像假装在上网其实在传指令 | ✅ 已完成 |
 | [T1071.002](./T1071/T1071.002-File-Transfer-Protocols.md) | 文件传输协议 | ⭐⭐ | 用 FTP、SMB 等文件共享协议，C2 指令伪装成文件传输操作 | ✅ 已完成 |
 | [T1071.003](./T1071/T1071.003-Mail-Protocols.md) | 邮件协议 | ⭐⭐ | 用 SMTP/IMAP/POP3 收发邮件传指令，适合邮件流量大的单位 | ✅ 已完成 |
-| [T1071.004](./T1071/T1071.004-DNS-DNS.md) | DNS | ⭐⭐ | 用 DNS 查询和响应传数据，防火墙很难拦截 | ✅ 已完成 |
-| [T1071.005](./T1071/T1071.005-SMB-SMB.md) | SMB | ⭐⭐ | 用 Windows 文件共享协议传 C2 指令，适合内网横向移动 | ✅ 已完成 |
+| [T1071.004](./T1071/T1071.004-DNS.md) | DNS | ⭐⭐ | 用 DNS 查询和响应传数据，防火墙很难拦截 | ✅ 已完成 |
+| [T1071.005](./T1071/T1071.005-SMB.md) | SMB | ⭐⭐ | 用 Windows 文件共享协议传 C2 指令，适合内网横向移动 | ✅ 已完成 |
 | [T1090.001](./T1090/T1090.001-Internal-Proxy.md) | 内部代理 | ⭐⭐ | 攻击者在被黑网络内部部署代理，转发内部流量 | ✅ 已完成 |
 | [T1090.002](./T1090/T1090.002-External-Proxy.md) | 外部代理 | ⭐⭐ | 攻击者使用外部公开的代理服务转发C2流量 | ✅ 已完成 |
 | [T1090.003](./T1090/T1090.003-Multi-hop-Proxy.md) | 多跳代理 | ⭐⭐ | 攻击者使用多层代理链转发C2流量，每跳只知相邻节点 | ✅ 已完成 |
 | [T1102.001](./T1102/T1102.001-Dead-Drop-Resolver.md) | 死户解析 | ⭐⭐ | 攻击者利用废弃的网站或博客发布C2指令，受害者定期访问获取 | ✅ 已完成 |
 | [T1102.002](./T1102/T1102.002-Bidirectional-Communication.md) | 双向通信 | ⭐⭐ | 攻击者和受害者通过Web服务的API实现双向C2通信 | ✅ 已完成 |
-| [T1102.003](./T1102/T1102.003-One-Way-Communication-One-Way-Communication.md) | One-Way Communication | ⭐⭐ | 单向通信，受害者只读地获取C2指令 | ✅ 已完成 |
+| [T1102.003](./T1102/T1102.003-One-Way-Communication.md) | One-Way Communication | ⭐⭐ | 单向通信，受害者只读地获取C2指令 | ✅ 已完成 |
 | [T1132.001](./T1132/T1132.001-Standard-Encoding.md) | 标准编码 | ⭐ | 使用 Base64、Base32、Hex 等公开编码算法，编程语言自带支持 | ✅ 已完成 |
 | [T1132.002](./T1132/T1132.002-Non-Standard-Encoding.md) | 非标准编码 | ⭐ | 使用自定义编码表（如打乱字符顺序的Base64），没有公开的编码特征 | ✅ 已完成 |
 | [T1205.001](./T1205/T1205.001-Port-Knocking.md) | 端口敲门 | ⭐⭐⭐ | 攻击者按顺序访问特定端口来"敲门"，后门检测到正确序列后激活 | ✅ 已完成 |
 | [T1205.002](./T1205/T1205.002-Socket-Filters.md) | 套接字过滤器 | ⭐⭐⭐ | 后门在底层设置过滤器捕获符合特征的网络包，匹配后触发激活 | ✅ 已完成 |
-| [T1568.001](./T1568/T1568.001-Fast-Flux-DNS-Fast-Flux-DNS.md) | Fast Flux DNS | ⭐⭐⭐ | 一个域名绑几十个IP轮换，封了一个还有几十个 | ✅ 已完成 |
+| [T1568.001](./T1568/T1568.001-Fast-Flux-DNS.md) | Fast Flux DNS | ⭐⭐⭐ | 一个域名绑几十个IP轮换，封了一个还有几十个 | ✅ 已完成 |
 | [T1568.002](./T1568/T1568.002-Domain-Generation-Algorithm.md) | 域名生成算法（DGA） | ⭐⭐⭐ | 每天自动生成几百个域名，只要攻击者注册其中几个就行 | ✅ 已完成 |
 | [T1568.003](./T1568/T1568.003-DNS-Calculation.md) | DNS计算 | ⭐⭐⭐ | 从正常DNS响应的IP地址数字中"算出"C2服务器的位置 | ✅ 已完成 |
 | [T1573.001](./T1573/T1573.001-Symmetric-Encryption.md) | 对称加密 | ⭐⭐ | 加密解密用同一把钥匙，速度快，适合大量C2通信 | ✅ 已完成 |
@@ -118,8 +118,8 @@ graph LR
 ### 统计信息
 
 - **技术总数**：18 个
-- **子技术总数**：24 个
-- **已完成文档**：24 个
+- **子技术总数**：27 个
+- **已完成文档**：45 个（18 父技术 + 27 子技术）
 - **进行中文档**：0 个
 - **待编写文档**：0 个
 
@@ -206,3 +206,5 @@ graph LR
 - [Frp](https://github.com/fatedier/frp) - 快速反向代理
 - [dnscat2](https://github.com/iagox86/dnscat2) - DNS 隧道工具
 - [socat](http://www.dest-unreach.org/socat/) - 多功能隧道工具
+
+> **版本**: v19.1 | **更新**: 2026-07-28 | **模板**: 战术README v3.1

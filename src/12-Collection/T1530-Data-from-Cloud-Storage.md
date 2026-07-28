@@ -18,11 +18,21 @@
 
 ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 文件系统与存储基础
+- [ ] 数据压缩与归档基本概念
+- [ ] 邮件系统与协作平台工作原理
+
 ## 技术描述
 
 从云存储收集数据（T1530）是MITRE ATT&CK框架中收集战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要低估收集阶段的隐蔽性——攻击者收集数据时，不会一次性复制所有文件引起注意。而是像'精明的窃贼'一样：先确认最有价值的文件类型（.xlsx > .docx > 随机文件），然后用合法工具（如7zip、rar甚至是系统自带的compress-archive）打包，混在正常的网络流量中传输。
 很多公司把文件和数据存在云存储服务上——Amazon S3、Azure Blob Storage、Google Cloud Storage、阿里云OSS。这些存储桶（Bucket）就像放在云上的共享文件夹。如果配置不当或凭据泄露，攻击者可以直接访问这些云存储桶，把里面的数据全部下载走。更糟糕的是，很多存储桶默认配置为"公开可读"——任何人都可以访问，不需要密码。攻击者会专门扫描互联网上配置错误的云存储桶。
 
 **技术原理：**
@@ -188,6 +198,10 @@ graph TD
 - 定期使用S3 Scanner等工具测试自己的存储桶是否公开可读
 - 监控存储桶策略的变化（`PutBucketPolicy`事件）
 
+## 避坑指南
+
+检测盲点：对合法压缩工具的滥用视而不见。
+
 ## 检测建议
 
 ### 网络层检测
@@ -352,17 +366,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1530](https://attack.mitre.org/techniques/T1530/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [INC Ransomware Warning - HHS 2025](https://www.hhs.gov/about/agencies/asa/hec-ransomware/inc-ransomware-guidance.html)
 - [Attila S3 Bucket Misconfigurations 2024](https://www.kitploit.com/2024/08/one-scan-5000-confidential-records-unsecured-s3-bucket-misconfiguration.html)
 - [Lazada OSS Leak - Cyber News 2024](https://cybernews.com/security/lazada-source-code-leak-alibaba-oss/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [AWS CLI Documentation](https://aws.amazon.com/cli/)
 - [S3Scanner](https://github.com/sa7mon/S3Scanner) - 公开S3存储桶扫描工具

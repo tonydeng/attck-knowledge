@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 容器和资源发现（T1613）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 越来越多的应用运行在容器中（如Docker）和Kubernetes集群里。攻击者入侵容器环境后，会查看有哪些容器在运行、有哪些镜像可用、Kubernetes集群中有哪些Pod。为什么这么做？因为容器通常是微服务架构，一个容器可能只运行一个小应用组件，攻击者需要找到：哪个容器有漏洞可以逃逸到宿主机、哪个容器存有数据库密码、哪个服务账户有更高的权限。
 
 **技术原理：**
@@ -126,7 +136,7 @@ graph TD
    检查 `/.dockerenv` 文件是否存在、`/proc/1/cgroup` 是否包含"docker"字符串。
 
 2. **Docker套接字逃逸**
-   如果 `/var/run/docker.sock` 可访问，执行 `docker run -v /:/mnt --privileged -it &lt;image&gt; /bin/bash` 挂载宿主机根目录。
+   如果 `/var/run/docker.sock` 可访问，执行 `docker run -v /:/mnt --privileged -it <image> /bin/bash` 挂载宿主机根目录。
 
 3. **K8s Service Account令牌**
    默认情况下K8s会为Pod自动挂载Service Account令牌，路径：`/var/run/secrets/kubernetes.io/serviceaccount/token`
@@ -167,6 +177,10 @@ graph TD
 - 监控Docker套接字的文件访问
 - 监控容器内读取 `/proc/1/cgroup` 等容器标识文件的行为
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -196,6 +210,31 @@ graph TD
   priority: WARNING
   tags: [container, mitre_discovery, T1613]
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1613
+status: experimental
+description: Detects potential T1613 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1613
+
 
 ### Sigma规则示例
 
@@ -304,19 +343,19 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1613](https://attack.mitre.org/techniques/T1613/)
 - [Kubernetes Documentation](https://kubernetes.io/docs/home/)
 - [Docker Documentation](https://docs.docker.com/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Cisco Talos - TeamTNT](https://blog.talosintelligence.com/teamtnt-cloud-activity/)
 - [Sysdig - SCARLETEEL](https://sysdig.com/blog/cloud-breach-eks-clusters/)
 - [Trend Micro - Kinsing](https://www.trendmicro.com/vinfo/us/security/news/cybercrime-and-digital-threats/kinsing-malware-container-escape)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Falco - Runtime Security](https://falco.org/)
 - [kube-bench - K8s Security Benchmark](https://github.com/aquasecurity/kube-bench)

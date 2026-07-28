@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 云存储对象发现（T1619）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 云存储（如AWS S3、Azure Blob Storage、GCP Cloud Storage）是企业存放文件的地方——数据库备份、配置文件、日志文件、甚至源代码都可能放在里面。攻击者窃取到云访问凭证后，会用命令行列出存储桶中的所有文件，通过文件名、大小、更新时间等信息判断哪些文件有价值。就像小偷潜入仓库后，逐个查看箱子上的标签，找出装着贵重物品的箱子。
 
 **技术原理：**
@@ -82,7 +92,7 @@ graph TD
 
 4. **下载目标文件**
    - 通俗描述：下载识别出的高价值文件
-   - 技术细节：`aws s3 cp s3://&lt;bucket&gt;/&lt;file&gt; ./`
+   - 技术细节：`aws s3 cp s3://<bucket>/<file> ./`
    - 常用工具：AWS CLI, Azure CLI
 
 ## 真实案例
@@ -133,10 +143,10 @@ graph TD
    `aws s3 ls s3://<bucket-name>/ --recursive` 可以列出存储桶中的所有对象。
 
 2. **搜索特定文件类型**
-   结合 `grep` 过滤感兴趣的文件：`aws s3 ls s3://&lt;bucket&gt;/ --recursive | grep -E "\.env|credential|backup|secret"`
+   结合 `grep` 过滤感兴趣的文件：`aws s3 ls s3://<bucket>/ --recursive | grep -E "\.env|credential|backup|secret"`
 
 3. **检查存储桶权限**
-   先尝试 `aws s3 ls s3://`&lt;bucket&gt;`/` 看是否可公开访问，无需认证即可读取。
+   先尝试 `aws s3 ls s3://<bucket>/` 看是否可公开访问，无需认证即可读取。
 
 ### 常用工具
 
@@ -173,6 +183,10 @@ graph TD
 - 关注非业务时间段的存储对象枚举和批量下载
 - 使用AWS S3 Access Logs检测异常访问模式
 - 配置CloudTrail Insights检测异常API调用模式
+
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
 
 ## 检测建议
 
@@ -277,8 +291,8 @@ tags:
 **实验目标：** 学习在云存储中搜索特定类型的文件。
 
 **实验步骤：**
-1. 使用 `aws s3 ls s3://&lt;bucket&gt;/ --recursive | findstr "backup\|secret\|config\|env"` 过滤文件
-2. 使用 `aws s3 cp s3://`&lt;bucket&gt;`/`&lt;file&gt;` .` 下载目标文件
+1. 使用 `aws s3 ls s3://<bucket>/ --recursive | findstr "backup\|secret\|config\|env"` 过滤文件
+2. 使用 `aws s3 cp s3://<bucket>/<file> .` 下载目标文件
 
 **预期结果：** 在海量文件中快速定位感兴趣的内容。
 
@@ -294,19 +308,19 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1619](https://attack.mitre.org/techniques/T1619/)
 - [AWS S3 Documentation](https://docs.aws.amazon.com/AmazonS3/latest/userguide/)
 - [Azure Blob Storage Documentation](https://learn.microsoft.com/en-us/azure/storage/blobs/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [MITRE - APT29](https://attack.mitre.org/groups/G0143/)
 - [MITRE - Scattered Spider](https://attack.mitre.org/groups/G1011/)
 - [MITRE - TeamTNT](https://attack.mitre.org/groups/G0139/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [AWS S3 Best Practices](https://docs.aws.amazon.com/AmazonS3/latest/userguide/security-best-practices.html)
 - [ScoutSuite - Cloud Security Audit](https://github.com/nccgroup/ScoutSuite)

@@ -8,21 +8,31 @@
 
 | 维度 | 你需要知道的 |
 |------|-------------|
-| 这是什么？ | 停止服务（T1489）是攻击者用来破坏目标系统或数据的技术 |
-| 为什么危险？ | 攻击者可以对目标造成不可逆的破坏，影响组织正常运营 |
-| 谁需要关心？ | 安全运维团队、系统管理员、业务负责人 |
-| 你的第一步防御 | 定期备份数据并测试恢复流程，确保备份与生产环境隔离 |
-| 如果只做一件事 | 监控异常的数据删除或修改行为，设置关键文件完整性告警 |
+| 这是什么？ | 攻击者通过停止关键系统服务（数据库、Web服务、安全软件）造成业务中断 |
+| 为什么危险？ | 停止安全软件后攻击者可继续深入渗透；停止业务服务直接造成中断 |
+| 谁需要关心？ | 安全运维团队、系统管理员、业务连续性团队 |
+| 你的第一步防御 | 对关键服务实施访问控制和变更监控，限制停止服务的权限 |
+| 如果只做一件事 | 监控关键服务的停止事件（Windows EventID 7036），设置自动告警 |
 
 ## 难度等级
 
 ⭐ 初级（新手可学）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 备份与灾备基本原理
+- [ ] 加密算法基础
+- [ ] 系统恢复功能（VSS/启动修复）
 
 ## 技术描述
 
 停止服务（T1489）是MITRE ATT&CK框架中影响战术的一种技术。攻击者通过停止关键业务服务或系统服务，使系统功能受损或数据不可用。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为影响战术只是'破坏数据'——在勒索攻击中，加密数据只是最后一步。在此之前，攻击者会系统地：禁用备份系统、删除卷影副本、关闭安全告警、窃取敏感数据（双重勒索）。破坏的后果不只是宕机，还包括数据泄露、品牌声誉损失和监管罚款。
 想象你要破坏一个公司的运营，最简单的方法不是砸电脑，而是直接拔掉服务器电源——但这太明显了。更聪明的做法是：在系统里输入几条命令，关掉数据库服务（所有业务读写都卡住）、关掉邮件服务器（员工没法沟通）、关掉防病毒软件（安全系统失效）。这些操作看起来就像是普通的系统维护，但实际上是在为下一步的破坏开路。
 
 **技术原理：**
@@ -176,6 +186,10 @@ graph TD
 - 建立关键服务基线列表，监控基线外服务的停止行为
 - 安全软件配置防篡改保护（Tamper Protection），防止被停止或卸载
 - 使用EDR监控异常的大量服务停止操作
+
+## 避坑指南
+
+防御者最痛苦教训：备份不在离线状态。3-2-1备份策略是底线。
 
 ## 检测建议
 
@@ -339,23 +353,23 @@ Get-Service | Where-Object {$_.Status -eq 'Running'} | Format-Table Name, Displa
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Service Stop](https://attack.mitre.org/techniques/T1489/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Conti Ransomware Analysis - CISA](https://www.cisa.gov/news-events/analysis-reports/ar21-265a)
 - [LockBit 3.0 - Trend Micro](https://www.trendmicro.com/vinfo/us/security/news/ransomware-spotlight/lockbit-3-0)
 - [SamSam Ransomware - CISA](https://www.cisa.gov/news-events/alerts/2018/06/samsam-ransomware)
 - [Poland Wiper Campaign C0063](https://attack.mitre.org/campaigns/C0063/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Sysinternals PsExec](https://learn.microsoft.com/sysinternals/downloads/psexec) - 远程执行工具
 - [Windows Service Documentation](https://learn.microsoft.com/windows/win32/services/services) - Windows服务官方文档
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Microsoft - Service Control Manager](https://learn.microsoft.com/windows/win32/services/service-control-manager) - SCM官方文档
 - [CISA - Ransomware Guide](https://www.cisa.gov/stopransomware) - CISA反勒索软件指南

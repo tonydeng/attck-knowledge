@@ -8,21 +8,31 @@
 
 | 维度 | 你需要知道的 |
 |------|-------------|
-| 这是什么？ | 自动化渗漏（T1020）是攻击者用来破坏目标系统或数据的技术 |
-| 为什么危险？ | 攻击者可以对目标造成不可逆的破坏，影响组织正常运营 |
-| 谁需要关心？ | 安全运维团队、系统管理员、业务负责人 |
-| 你的第一步防御 | 定期备份数据并测试恢复流程，确保备份与生产环境隔离 |
-| 如果只做一件事 | 监控异常的数据删除或修改行为，设置关键文件完整性告警 |
+| 这是什么？ | 攻击者部署脚本或程序自动监控、收集并传输数据，7×24小时不间断偷数据，全程无需人工干预 |
+| 为什么危险？ | 自动化渗漏速度快、隐蔽性强，可在被发现前已传出大量数据，攻击者无需持续在线 |
+| 谁需要关心？ | 安全运维团队、DLP管理员、数据安全管理员 |
+| 你的第一步防御 | 监控周期性读取大量文件后立即发起网络连接的进程行为模式 |
+| 如果只做一件事 | 部署DLP规则检测大批量文件读取后的异常出站传输 |
 
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络流量分析与数据传输
+- [ ] 数据编码与压缩基础知识
+- [ ] 云服务API（S3/Blob Storage等）
 
 ## 技术描述
 
 自动化渗漏（T1020）是MITRE ATT&CK框架中渗漏战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为数据渗出就是'把文件发到外部邮箱'——现代攻击者会用DNS隧道逐字节地拆分流式地传输文件，或将数据编码后隐藏在HTTP请求的Cookie中，甚至利用合法的云存储API与正常业务流量混合。渗出的流量看起来可能只是正常的API调用。
 攻击者不是手动操作来传数据，而是写个脚本或程序，让它在后台自动运行。这个程序会持续监控目标系统中的数据变化，一旦发现有新数据就自动压缩、加密并发送出去。整个过程不需要人工干预，就像一个自动化的"数据搬运工"。
 
 **技术原理：**
@@ -194,6 +204,10 @@ graph TD
 - 建立网络出口流量的基线，识别非预期的周期性传输
 - 关注rsync、rclone、curl等工具的命令行参数中是否包含远程目标地址
 - 对敏感数据存储目录实施严格的访问控制和审计日志
+
+## 避坑指南
+
+检测最大盲点：出站流量不等于恶意流量。
 
 ## 检测建议
 
@@ -372,18 +386,18 @@ $ExecutionContext.SessionState.LanguageMode = "ConstrainedLanguage"
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1020](https://attack.mitre.org/techniques/T1020/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CISA - CL0P MOVEit Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-158a) - CL0P大规模自动化数据窃取
 - [MITRE ATT&CK - C0059](https://attack.mitre.org/campaigns/C0059/) - 2025 Salesforce自动化渗漏活动
 - [MITRE ATT&CK - FIN7 Group](https://attack.mitre.org/groups/G0046/) - FIN7自动化支付卡窃取
 - [BleepingComputer - Carnival Cruise Breach](https://www.bleepingcomputer.com/news/security/carnival-cruise-confirms-data-breach-affecting-nearly-6-million-people/) - 2026年ShinyHunters数据泄露
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [PowerShell文档](https://docs.microsoft.com/en-us/powershell/) - 微软官方PowerShell文档
 - [Sysmon](https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon) - Windows系统监控工具

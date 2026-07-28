@@ -4,15 +4,36 @@
 
 就像间谍接头分三步走——先确认身份，再交换暗号，最后才交出情报。攻击者分阶段建立C2连接，每个阶段用不同的通道。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者使用多个C2通道分阶段执行：轻量通道发指令，重量通道传数据 |
+| 为什么危险？ | 不同阶段使用不同通道，单通道检测难以发现完整攻击链 |
+| 谁需要关心？ | SOC分析师、威胁狩猎团队 |
+| 你的第一步防御 | 关联分析同一主机的多个出站通道行为 |
+| 如果只做一件事 | 监控同一主机短时间内建立多个不同协议的出站连接 |
+
 ## 难度等级
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络协议基础（TCP/IP/DNS/HTTP）
+- [ ] C2通信模式
+- [ ] 加密通信基本原理
 
 ## 技术描述
 
 多阶段通道（Multi-Stage Channels）是 MITRE ATT&CK 框架中命令与控制战术下的一种高级技术，编号为 T1104。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为C2只是'恶意软件发心跳包'——现代C2基础设施堪比小型互联网公司。攻击者使用CDN隐藏真实服务器、用Domain Fronting伪装流量目的地、借助合法云服务（如GitHub Issues、Slack API）作为通信通道。攻击者的C2流量与正常流量混杂在一起，传统IoC检测几乎无效。
 高级攻击者不会"一步到位"建立完整的C2连接。他们把C2通信拆成多个阶段：第一阶段只发送少量心跳数据，像"探路"；确认安全后进入第二阶段，使用更复杂的协议；第三阶段才下载完整的攻击工具。这种"逐步推进"的方式让安全系统很难在一次检测中就发现完整的攻击意图。
 
 **技术原理：**
@@ -126,6 +147,10 @@ graph TD
 - 监控通信模式的阶段变化
 - 检测进程创建链中的异常
 
+## 避坑指南
+
+SOC常见误区：只检测已知恶意域名和IP。
+
 ## 检测建议
 
 ### 网络层检测
@@ -142,6 +167,10 @@ suricata -r traffic.pcap --rule "alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_
 ```
 
 ### Sigma规则示例：
+
+**用人话说：**C2检测关注通信行为特征而非IP黑名单——固定间隔心跳、非常规DNS查询、小数据包频繁发送比内容分析更有效。
+
+**用人话说：**C2检测关注通信行为特征而非IP黑名单——固定间隔心跳包、非常规DNS查询、小数据包频繁发送比内容分析更有效。
 ```yaml
 title: 多阶段C2通信检测
 status: experimental
@@ -158,6 +187,30 @@ level: medium
 tags:
     - attack.t1104
 ```
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1104
+status: experimental
+description: Detects potential T1104 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1104
+
 
 ## 缓解措施
 
@@ -200,6 +253,6 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1104](https://attack.mitre.org/techniques/T1104/)

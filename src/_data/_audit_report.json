@@ -1,0 +1,339 @@
+{
+  "totals": {
+    "missing_parents": 0,
+    "extra_parents": 0,
+    "name_mismatch_parents": 0,
+    "missing_subs": 17,
+    "extra_subs": 0,
+    "name_mismatch_subs": 0
+  },
+  "tactics": {
+    "TA0043": {
+      "tactic_dir": "01-Reconnaissance",
+      "tactic_name_en": "Reconnaissance",
+      "local_parent_count": 12,
+      "official_parent_count": 12,
+      "local_sub_count": 34,
+      "official_sub_count": 34,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    },
+    "TA0042": {
+      "tactic_dir": "02-Resource-Development",
+      "tactic_name_en": "Resource Development",
+      "local_parent_count": 9,
+      "official_parent_count": 9,
+      "local_sub_count": 41,
+      "official_sub_count": 41,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    },
+    "TA0001": {
+      "tactic_dir": "03-Initial-Access",
+      "tactic_name_en": "Initial Access",
+      "local_parent_count": 11,
+      "official_parent_count": 11,
+      "local_sub_count": 11,
+      "official_sub_count": 11,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    },
+    "TA0002": {
+      "tactic_dir": "04-Execution",
+      "tactic_name_en": "Execution",
+      "local_parent_count": 20,
+      "official_parent_count": 20,
+      "local_sub_count": 44,
+      "official_sub_count": 44,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    },
+    "TA0003": {
+      "tactic_dir": "05-Persistence",
+      "tactic_name_en": "Persistence",
+      "local_parent_count": 22,
+      "official_parent_count": 22,
+      "local_sub_count": 91,
+      "official_sub_count": 91,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    },
+    "TA0004": {
+      "tactic_dir": "06-Privilege-Escalation",
+      "tactic_name_en": "Privilege Escalation",
+      "local_parent_count": 13,
+      "official_parent_count": 13,
+      "local_sub_count": 81,
+      "official_sub_count": 83,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [
+          {
+            "tid": "T1548.001",
+            "official_name": "Setuid and Setgid",
+            "parent": "T1548"
+          },
+          {
+            "tid": "T1543.001",
+            "official_name": "Launch Agent",
+            "parent": "T1543"
+          }
+        ],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    },
+    "TA0005": {
+      "tactic_dir": "07-Stealth",
+      "tactic_name_en": "Stealth",
+      "local_parent_count": 30,
+      "official_parent_count": 30,
+      "local_sub_count": 103,
+      "official_sub_count": 118,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [
+          {
+            "tid": "T1070.005",
+            "official_name": "Network Share Connection Removal",
+            "parent": "T1070"
+          },
+          {
+            "tid": "T1070.009",
+            "official_name": "Clear Persistence",
+            "parent": "T1070"
+          },
+          {
+            "tid": "T1070.010",
+            "official_name": "Relocate Malware",
+            "parent": "T1070"
+          },
+          {
+            "tid": "T1027.008",
+            "official_name": "Stripped Payloads",
+            "parent": "T1027"
+          },
+          {
+            "tid": "T1027.009",
+            "official_name": "Embedded Payloads",
+            "parent": "T1027"
+          },
+          {
+            "tid": "T1027.011",
+            "official_name": "Fileless Storage",
+            "parent": "T1027"
+          },
+          {
+            "tid": "T1027.012",
+            "official_name": "LNK Icon Smuggling",
+            "parent": "T1027"
+          },
+          {
+            "tid": "T1027.014",
+            "official_name": "Polymorphic Code",
+            "parent": "T1027"
+          },
+          {
+            "tid": "T1542.004",
+            "official_name": "ROMMONkit",
+            "parent": "T1542"
+          },
+          {
+            "tid": "T1542.005",
+            "official_name": "TFTP Boot",
+            "parent": "T1542"
+          },
+          {
+            "tid": "T1218.001",
+            "official_name": "Compiled HTML File",
+            "parent": "T1218"
+          },
+          {
+            "tid": "T1218.002",
+            "official_name": "Control Panel",
+            "parent": "T1218"
+          },
+          {
+            "tid": "T1218.003",
+            "official_name": "CMSTP",
+            "parent": "T1218"
+          },
+          {
+            "tid": "T1218.008",
+            "official_name": "Odbcconf",
+            "parent": "T1218"
+          },
+          {
+            "tid": "T1218.009",
+            "official_name": "Regsvcs/Regasm",
+            "parent": "T1218"
+          }
+        ],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    },
+    "TA0112": {
+      "tactic_dir": "08-Defense-Impairment",
+      "tactic_name_en": "Defense Impairment",
+      "local_parent_count": 18,
+      "official_parent_count": 18,
+      "local_sub_count": 38,
+      "official_sub_count": 38,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    },
+    "TA0006": {
+      "tactic_dir": "09-Credential-Access",
+      "tactic_name_en": "Credential Access",
+      "local_parent_count": 17,
+      "official_parent_count": 17,
+      "local_sub_count": 50,
+      "official_sub_count": 50,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    },
+    "TA0007": {
+      "tactic_dir": "10-Discovery",
+      "tactic_name_en": "Discovery",
+      "local_parent_count": 34,
+      "official_parent_count": 34,
+      "local_sub_count": 15,
+      "official_sub_count": 15,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    },
+    "TA0008": {
+      "tactic_dir": "11-Lateral-Movement",
+      "tactic_name_en": "Lateral Movement",
+      "local_parent_count": 9,
+      "official_parent_count": 9,
+      "local_sub_count": 14,
+      "official_sub_count": 14,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    },
+    "TA0009": {
+      "tactic_dir": "12-Collection",
+      "tactic_name_en": "Collection",
+      "local_parent_count": 17,
+      "official_parent_count": 17,
+      "local_sub_count": 24,
+      "official_sub_count": 24,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    },
+    "TA0011": {
+      "tactic_dir": "13-Command-and-Control",
+      "tactic_name_en": "Command and Control",
+      "local_parent_count": 18,
+      "official_parent_count": 18,
+      "local_sub_count": 27,
+      "official_sub_count": 27,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    },
+    "TA0010": {
+      "tactic_dir": "14-Exfiltration",
+      "tactic_name_en": "Exfiltration",
+      "local_parent_count": 9,
+      "official_parent_count": 9,
+      "local_sub_count": 10,
+      "official_sub_count": 10,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    },
+    "TA0040": {
+      "tactic_dir": "15-Impact",
+      "tactic_name_en": "Impact",
+      "local_parent_count": 15,
+      "official_parent_count": 15,
+      "local_sub_count": 18,
+      "official_sub_count": 18,
+      "diff": {
+        "missing_parents": [],
+        "extra_parents": [],
+        "name_mismatch_parents": [],
+        "missing_subs": [],
+        "extra_subs": [],
+        "name_mismatch_subs": []
+      }
+    }
+  }
+}

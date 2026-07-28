@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows认证体系（NTLM/Kerberos/LSASS）
+- [ ] 哈希基础（NTLM Hash/SHA）
+- [ ] 网络认证协议（SMB/LDAP/Kerberos）
+
 ## 技术描述
 
 强制认证（T1187）是MITRE ATT&CK框架中凭证访问战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误解凭证访问只是'窃取密码'——在现代企业中，凭证存在于内存、磁盘、网络流量和云API等多个位置。攻击者关注的不是密码本身，而是'能用它做什么'：一个服务账号的哈希就能横向移动到数十台服务器，OAuth令牌可以访问整个SaaS租户的数据。
 Windows系统有一种"习惯"——当你打开一个网络文件（如`\\server\share`）时，它会自动向那个服务器发送你的登录凭证（NTLM哈希）。攻击者利用这个机制，诱导你的系统向攻击者控制的服务器发起连接。就像你走进一栋楼，保安让你出示门禁卡——但问题是，你出示门禁卡的对象不是真正的保安，而是冒充保安的小偷。
 
 **技术原理：**
@@ -159,6 +169,10 @@ graph TD
 - 监控LNK文件创建事件和指向外部UNC路径
 - 阻止Office应用程序加载远程资源
 
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
+
 ## 检测建议
 
 ### 网络层检测
@@ -185,9 +199,6 @@ graph TD
 Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Sysmon/Operational';ID=3} |
     Where-Object { $_.Properties[4].Value -match 'WINWORD|EXCEL' }
 ```
-
-
-
 
 **用人话说：** 这条规则在监控网络中是否有LLMNR/NBT-NS投毒活动。LLMNR和NBT-NS是Windows的本地名称解析协议，当DNS查询失败时会使用。攻击者用Responder等工具回复这些广播请求，冒充目标服务器，诱骗用户电脑发送密码哈希。禁用这些协议是最有效的防御。
 
@@ -290,15 +301,15 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1187](https://attack.mitre.org/techniques/T1187/)
 - [Microsoft - NTLM认证限制指南](https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/network-security-restrict-ntlm)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Responder - NBT-NS/LLMNR响应工具](https://github.com/SpiderLabs/Responder)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [SANS - Forced Authentication Attacks](https://www.sans.org/white-papers/forced-authentication-attacks/) - 强制认证攻击白皮书

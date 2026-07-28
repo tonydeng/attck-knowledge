@@ -8,21 +8,31 @@
 
 | 维度 | 你需要知道的 |
 |------|-------------|
-| 这是什么？ | 数据销毁（T1485）是攻击者用来破坏目标系统或数据的技术 |
-| 为什么危险？ | 攻击者可以对目标造成不可逆的破坏，可能导致业务完全中断 |
-| 谁需要关心？ | 安全运维团队、系统管理员、业务负责人 |
-| 你的第一步防御 | 定期备份数据并测试恢复流程，确保备份与生产环境隔离 |
-| 如果只做一件事 | 监控异常的数据删除或修改行为，设置关键文件完整性告警 |
+| 这是什么？ | 攻击者用擦除、覆写、加密后丢弃密钥等方式永久销毁数据，与勒索不同，销毁不可恢复 |
+| 为什么危险？ | 数据永久丢失，即使支付赎金也无法恢复，业务可能完全中断且无法重建 |
+| 谁需要关心？ | 安全运维团队、系统管理员、备份恢复团队 |
+| 你的第一步防御 | 实施离线备份和异地备份，确保备份不可被生产环境的攻击者触及 |
+| 如果只做一件事 | 监控大批量文件删除/覆写行为（如sdelete/dd/cipher /w），设置关键文件完整性告警 |
 
 ## 难度等级
 
 ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 备份与灾备基本原理
+- [ ] 加密算法基础
+- [ ] 系统恢复功能（VSS/启动修复）
 
 ## 技术描述
 
 数据销毁（T1485）是MITRE ATT&CK框架中影响战术的一种技术。攻击者故意覆盖、擦除或破坏数据，使其永久性不可恢复。这是影响战术中最具破坏性的技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为影响战术只是'破坏数据'——在勒索攻击中，加密数据只是最后一步。在此之前，攻击者会系统地：禁用备份系统、删除卷影副本、关闭安全告警、窃取敏感数据（双重勒索）。破坏的后果不只是宕机，还包括数据泄露、品牌声誉损失和监管罚款。
 想象有人闯进你家，不是把文件锁在保险柜里勒索你，而是直接点火把文件烧成灰。数据销毁就是"烧文件"——攻击者使用专门的擦除工具，把硬盘上的数据覆盖上随机字符（就像在写满字的纸上再涂满墨水），或者直接破坏硬盘的引导区让整个电脑报废。与勒索软件（T1486）不同，数据销毁不要求赎金，纯粹是为了搞破坏。
 
 **技术原理：**
@@ -183,6 +193,10 @@ graph TD
 - 在关键服务器上部署文件完整性监控（FIM），覆盖MBR和系统文件
 - 使用EDR的磁盘I/O行为分析，检测异常的大规模覆写操作
 - 监控启动扇区（MBR/GPT）的变更告警
+
+## 避坑指南
+
+防御者最痛苦教训：备份不在离线状态。3-2-1备份策略是底线。
 
 ## 检测建议
 
@@ -354,11 +368,11 @@ mkfs.ext4 test_disk.img
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Data Destruction](https://attack.mitre.org/techniques/T1485/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Krebs - Handala Stryker Wiper Attack](https://krebsonsecurity.com/2026/03/iran-backed-hackers-claim-wiper-attack-on-medtech-firm-stryker/)
 - [Lotus Wiper Analysis - Kaspersky](https://securelist.com/tr/lotus-wiper/119472/)
@@ -366,13 +380,13 @@ mkfs.ext4 test_disk.img
 - [AcidRain / Viasat Attack - SentinelOne](https://www.sentinelone.com/blog/acidrain-viperrat-new-malware-linked-to-viasat-satellite-hack/)
 - [NotPetya Analysis - Welivesecurity](https://www.welivesecurity.com/2017/07/04/analysis-of-telebots-cunning-connection/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [DBAN](https://dban.org/) - 磁盘数据擦除工具
 - [TestDisk](https://www.cgsecurity.org/wiki/TestDisk) - 数据恢复工具
 - [Foremost](https://foremost.sourceforge.net/) - 文件恢复和取证工具
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Wiper Attacks in 2026 - NetSecurity](https://www.netsecurity.com/wiper-attacks-in-2026-the-return-of-destructive-cyber-operations/) - 2026年擦除器攻击分析
 - [CISA - Wiper Malware](https://www.cisa.gov/news-events/alerts/2022/03/wiper-malware) - CISA擦除器恶意软件指南

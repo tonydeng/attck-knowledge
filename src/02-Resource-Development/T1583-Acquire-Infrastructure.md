@@ -1,342 +1,377 @@
 # 获取基础设施 (T1583)
 
-## 一句话理解
+## 一句话通俗理解
 
-> 攻击者花钱买域名、租服务器、搭VPN，就像小偷在作案前先租一间仓库藏赃物。
+> **攻击者在发动攻击前，先买好/租好/搭好作案要用的"场地和工具"——域名、服务器、DNS服务器、僵尸网络等**
 
 ## 30秒速查卡
 
-| 项目 | 内容 |
-|------|------|
-| 攻击目标 | 购买域名、服务器等攻击基础设施 |
-| 典型手法 | 使用匿名支付和虚假注册信息购买网络资源 |
-| 关键检测点 | 监控新注册域名、异常DNS查询和短生命周期域名 |
-| 难度等级 | ⭐⭐ |
-
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者购买、租用或自行搭建用于支持攻击行动的基础设施（域名、服务器、VPS、DNS服务器、僵尸网络等） |
+| 为什么危险？ | 这些基础设施是后续钓鱼、C2通信、数据外泄的"根据地"，没有它们攻击无法持续运转 |
+| 谁需要关心？ | 威胁情报团队、安全运维团队、域名/云服务提供商的安全团队 |
+| 你的第一步防御 | 建立域名和IP信誉库，对新注册域名和已知恶意ASN的流量进行标记和监控 |
+| 如果只做一件事 | 对入站流量做威胁情报关联，拦截已知恶意域名和新注册域名（<30天）的访问 |
 
 ## 难度等级
 
-⭐⭐（中级）— 技术门槛不高，但需要一定的资金和匿名化操作意识。
+⭐⭐ 中级 - 需要资金、匿名支付能力和基础设施运维经验
+
+**前置知识要求**：了解域名注册流程、DNS工作原理、云服务器/VPS基本概念
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 域名注册和DNS解析的基本原理
+- [ ] 云服务器/VPS的概念和用途
+- [ ] 僵尸网络的基本概念
+- [ ] 匿名支付方式（加密货币等）
 
 ## 技术描述
 
-获取基础设施是指攻击者通过购买、租赁或其他方式获得可以用于支持攻击行动的网络资源。这些资源包括：
+**获取基础设施**（T1583）是 **资源开发**（TA0042）战术下的技术，指攻击者在发动攻击之前，购买、租用或自行搭建用于支持攻击行动的基础设施。
 
-- **域名**：用于搭建钓鱼网站、托管恶意软件、作为C2通信地址
-- **服务器/VPS**：用于存放恶意软件、接收窃取的数据、运行C2服务
-- **DNS服务器**：用于劫持DNS解析、实施中间人攻击
-- **Web服务**：利用合法的第三方平台（如GitHub、Pastebin、云存储）托管恶意内容
-- **无服务器平台**：利用AWS Lambda、Azure Functions等运行恶意代码
-- **机器人网络**：租用僵尸网络进行DDoS攻击或大规模钓鱼
+> 📡 **打个比方**：就像骗子在行骗之前要先租一间办公室、装一部电话、印一盒名片——这些"硬件准备"就是获取基础设施。攻击者也需要提前准备好域名（伪装门面）、服务器（作案据点）、DNS服务器（指路牌）、僵尸网络（打手团）等。
 
-攻击者为什么要"买"而不是"偷"？因为购买的基础设施更可控、更稳定，而且可以通过匿名支付（加密货币）和虚假注册信息来隐藏真实身份。选择信誉好的云服务商还能让恶意流量混在正常流量中，增加检测难度。
+### 具体怎么理解？
 
-## 子技术列表
+攻击者获取基础设施的方式主要有三种：
 
-| 子技术 ID | 名称 | 一句话理解 |
-|-----------|------|------------|
-| T1583.001 | 域名 | 注册一个看起来很像正规网站的域名，比如"paypa1.com" |
-| T1583.002 | DNS服务器 | 自己架设DNS服务器，想把用户导到哪里就导到哪里 |
-| T1583.003 | 虚拟专用服务器(VPS) | 租一台云服务器，用完就扔，不留痕迹 |
-| T1583.004 | 服务器 | 买一台物理服务器，长期运营C2基础设施 |
-| T1583.005 | 机器人网络 | 租一个僵尸网络，操控成千上万台"肉鸡" |
-| T1583.006 | Web服务 | 利用合法平台（GitHub、Pastebin）托管恶意内容 |
-| T1583.007 | 无服务器 | 用云函数运行恶意代码，无需维护服务器 |
-| T1583.008 | 恶意广告(Malvertising) | 买广告位投放恶意广告，用户点击即中招 |
+1. **购买**：用加密货币或窃取的信用卡购买域名、VPS、云服务
+2. **租用**：短期租用服务器、CDN等服务，用完即弃
+3. **自行搭建**：利用已入侵的设备组建僵尸网络，或自行架设DNS服务器
+
+这些基础设施在攻击链中的作用：
+- **域名** → 用于钓鱼网站、C2通信、恶意软件下载
+- **VPS/服务器** → 托管C2服务端、钓鱼页面、数据中转
+- **DNS服务器** → 实现DNS隧道、C2域名解析、隐蔽通信
+- **僵尸网络** → 发动DDoS、分布式扫描、大规模垃圾邮件
+- **Web服务** → 利用合法平台（GitHub、Pastebin、云存储）托管恶意内容，借助合法域名信誉绕过检测
+
+**过渡段：** 不要误以为获取基础设施只是一次性的"买域名"动作——在成熟的APT组织中，基础设施获取是一个持续运营的过程，攻击者会不断轮换IP、域名和服务器来规避封锁和追踪。
+
+### 为什么有效？
+
+这种技术之所以有效，是因为：
+1. **匿名性**：攻击者可以通过隐私保护服务、虚假注册信息、加密货币支付来隐藏真实身份
+2. **合法性外衣**：域名注册和云服务器租用本身是合法行为，难以在获取阶段就阻断
+3. **可替换性**：即使某个域名或服务器被发现并封锁，攻击者可以快速获取新的替代品
+4. **基础设施规模可扩展**：从单个域名到上千个C2节点的僵尸网络，攻击者可以按需扩展
+
+## 真实攻击流程
+
+```mermaid
+graph TD
+    A["攻击者确定攻击目标和所需基础设施类型"] --> B["用加密货币购买域名和VPS"]
+    B --> C["配置DNS解析指向C2服务器"]
+    C --> D["部署C2框架或钓鱼页面到VPS"]
+    D --> E["使用隐私保护服务隐藏WHOIS信息"]
+    E --> F["基础设施就绪，可用于钓鱼/C2/数据外泄"]
+    style D fill:#ff6b6b,stroke:#333,stroke-width:2px
+```
+
+**步骤详解：**
+
+1. **需求评估** - 攻击者根据攻击目标确定需要什么类型的基础设施：钓鱼需要相似域名，C2需要稳定服务器，DDoS需要僵尸网络
+2. **采购部署** - 通过域名注册商购买域名，通过云服务商租用VPS，使用加密货币或窃取的信用卡支付以保持匿名
+3. **DNS配置** - 将域名解析指向C2服务器IP，可能使用CDN或域名前置（Domain Fronting）来隐藏真实C2地址
+4. **服务部署** - 在VPS上部署C2框架（如Cobalt Strike Team Server、Covenant）、钓鱼页面或恶意软件托管站点
+5. **匿名化处理** - 启用WHOIS隐私保护，使用代理注册商，配置SSL证书增加合法性外观
+6. **投入运营** - 基础设施就绪后用于实际攻击行动，持续监控可用性并准备备用节点
 
 ## 攻击流程
 
 ### 典型攻击流程
 
 ```
-确定需求 --> 匿名化操作 --> 配置基础设施 --> 投入使用
+识别基础设施需求 --> 注册/购买域名 --> 租用VPS与服务器 --> 配置DNS解析 --> 部署C2或僵尸网络 --> 测试与匿名化验证
 ```
 
 ```mermaid
 graph TD
-    A["确定攻击需求"] --> B["匿名化操作"]
-    B --> C["配置基础设施"]
-    C --> D["投入使用"]
-    D --> E["发起攻击"]
-    
-    style A fill:#e1f5fe,stroke:#333,stroke-width:1px
-    style B fill:#fff3e0,stroke:#333,stroke-width:1px
-    style C fill:#f3e5f5,stroke:#333,stroke-width:1px
-    style D fill:#e8f5e9,stroke:#333,stroke-width:1px
+    A["识别基础设施需求"] --> B["注册/购买域名"]
+    B --> C["租用VPS与服务器"]
+    C --> D["配置DNS解析"]
+    D --> E["部署C2或僵尸网络"]
+    E --> F["测试与匿名化验证"]
 ```
 
 **步骤详解：**
 
-1. **确定攻击需求**
-   - 通俗描述：攻击者先想清楚需要什么类型的资源
-   - 技术细节：根据攻击目标和技术路线确定需求（钓鱼域名/C2服务器/分发渠道等）
-   - 常用工具：域名注册商、VPS提供商、云服务商
+1. **识别基础设施需求**
+   - 通俗描述：根据攻击目标确定需要买什么"装备"——钓鱼要伪装域名、C2要稳定服务器、DDoS要僵尸网络
+   - 技术细节：依据侦察阶段掌握的目标技术栈、员工邮箱域名、外部服务依赖，决定基础设施类型、规模和地理分布
+   - 常用工具：无（基于侦察报告的需求规划）
 
-2. **匿名化操作**
-   - 通俗描述：用假身份、加密货币完成购买，隐藏真实身份
-   - 技术细节：通过VPN/Tor注册账户，使用加密货币（如比特币、门罗币）支付，编造虚假注册信息
-   - 常用工具：Tor浏览器、加密货币钱包、隐私保护服务
+2. **注册/购买域名**
+   - 通俗描述：在域名注册商买下与目标品牌相似的域名，比如把 `paypa1.com` 当成 `paypal.com`
+   - 技术细节：选择同形异义字符（homoglyph）、增删字符、变更TLD（如 `.co`、`.io`、`.support`）构造钓鱼域名；使用隐私保护服务隐藏WHOIS；通过加密货币或窃取的信用卡支付
+   - 常用工具：Namecheap、GoDaddy、Punycode转换工具、dnstwist
 
-3. **配置基础设施**
-   - 通俗描述：设置DNS解析、部署服务、配置SSL证书
-   - 技术细节：配置域名DNS记录指向C2服务器，部署恶意服务端，申请或伪造SSL证书
-   - 常用工具：Cloudflare、Let's Encrypt、Nginx、Apache
+3. **租用VPS与服务器**
+   - 通俗描述：在云服务商那里租几台服务器，用来托管C2服务端、钓鱼页面或恶意软件下载站
+   - 技术细节：选择对滥用监管宽松的"子弹服务器托管"（bulletproof hosting）提供商；多区域分散部署规避单点封锁；使用虚假注册身份和加密货币结算
+   - 常用工具：AWS、DigitalOcean、Vultr、Hetzner、匿名VPS服务商
 
-4. **投入使用**
-   - 通俗描述：将基础设施用于实际的攻击行动
-   - 技术细节：发送钓鱼邮件指向已配置的钓鱼域名，在服务器上托管恶意软件供下载
-   - 常用工具：钓鱼工具包（GoPhish等）、C2框架（Cobalt Strike等）
+4. **配置DNS解析**
+   - 通俗描述：把刚买的域名"指路"到自己的C2服务器IP上，让别人访问域名时实际连到攻击者机器
+   - 技术细节：设置A记录、CNAME、MX记录；利用域名前置（Domain Fronting）通过合法CDN域名套壳C2流量；配置短TTL加速域名轮换；使用DNS over HTTPS隐蔽查询
+   - 常用工具：Cloudflare、BIND、PowerDNS、dnscontrol
+
+5. **部署C2或僵尸网络**
+   - 通俗描述：在租来的服务器上装好"指挥部"软件，或者通过已入侵设备组建可远程调度的"肉鸡"网络
+   - 技术细节：部署C2框架（Cobalt Strike Team Server、Covenant、Sliver）并配置Malleable C2 Profile伪装合法流量；僵尸网络通过bot master下发指令，利用P2P或中心化拓扑增强韧性
+   - 常用工具：Cobalt Strike、Sliver、Covenant、Mythic、Mirai变种
+
+6. **测试与匿名化验证**
+   - 通俗描述：上线前先自测通不通、快不快、能不能被溯源，确保"阵地"稳固不留把柄
+   - 技术细节：从外部测试C2连通性与回包延迟；验证WHOIS隐私保护、SSL证书签发、支付链路无个人身份泄露；使用SSL证书（Let's Encrypt或偷来的证书）提升合法性外观；扫描自身基础设施确认无暴露的指纹特征
+   - 常用工具：Let's Encrypt、certbot、censys.io（自查暴露面）、curl、openssl
 
 ## 真实案例
 
-### 案例1：FancyBear服务器暴露——500天未更换的间谍基础设施
-- **时间**：2024-2025年
-- **目标**：北约、多国政府和军事机构
-- **手法**：安全研究人员发现APT28（Fancy Bear）在NameCheap上租用的VPS服务器（IP: 203.161.50.145）自2024年9月起一直在使用，超过500天未更换。在公开目录中发现了2,800份被窃取的政府和军事电子邮件、240套被窃取的凭证（含TOTP 2FA密钥）、140条静默的邮件转发规则，以及来自多个国家受害者通讯录的11,500个联系地址。这个案例说明即使是最老练的APT组织也可能在基础设施管理上犯错。
-- **链接**：[FancyBear Server Exposure Reveals Stolen Credentials, 2FA Secrets and NATO-Linked Targets](https://cybersecuritynews.com/fancybear-server-exposure-reveals-stolen-credentials/)
+### 案例1：APT29（Cozy Bear）利用SolarWinds供应链攻击中的基础设施
 
-### 案例2：APT28利用路由器DNS劫持——大规模中间人攻击
-- **时间**：2024-2026年
-- **目标**：欧洲政府、军事和外交机构
-- **手法**：自2024年以来，APT28利用TP-Link路由器漏洞（CVE-2023-50224）入侵小型办公室/家庭办公室（SOHO）路由器，修改其DHCP DNS设置，将流量重定向到攻击者控制的恶意DNS服务器。这些恶意DNS服务器进行中间人攻击（AitM），拦截和篡改网络流量。该行动影响范围广泛，涉及多个欧洲国家。
-- **链接**：[APT28 exploit routers to enable DNS hijacking operations](https://www.ncsc.gov.uk/news/apt28-exploit-routers-to-enable-dns-hijacking-operations)
+- **时间**：2020年
+- **目标**：美国多家政府机构和企业（通过SolarWinds供应链）
+- **攻击组织**：APT29（俄罗斯对外情报局SVR背景）
+- **手法**：APT29提前数月注册了 `avengerscloud[.]com` 等多个C2域名，租用AWS、GoDaddy等云服务搭建C2基础设施。攻击者使用了域名前置（Domain Fronting）技术，通过合法CDN域名（如 `cloudflare.com`）来隐蔽C2流量，使流量看起来像是访问合法云服务
+- **影响**：约18,000个SolarWinds客户安装了后门更新，至少9个联邦机构受影响
+- **参考链接**：[CISA Alert AA21-077A](https://www.cisa.gov/news-events/cybersecurity-advisories/aa21-077a)
 
-### 案例3：Sophos发现虚拟机基础设施被大规模恶意使用
-- **时间**：2025年
-- **目标**：全球各行业组织
-- **手法**：SophosLabs分析师调查了多起WantToCry远程勒索软件事件，发现攻击者使用由ISPsystem（合法IT基础管理平台提供商）提供的Windows模板预配置虚拟机。CTU研究人员识别出多个与网络犯罪活动相关的互联网暴露系统，包括勒索软件运营和商品恶意软件交付。这些虚拟机具有自动生成的NetBIOS主机名，表明是批量部署的。
-- **链接**：[Malicious use of virtual machine infrastructure | SOPHOS](https://www.sophos.com/en-us/blog/malicious-use-of-virtual-machine-infrastructure)
+### 案例2：FIN7购买域名和VPS搭建钓鱼基础设施
 
-### 案例4：大规模钓鱼域名注册活动
-- **时间**：2023年
-- **目标**：全球消费者
-- **手法**：在一个大规模网络钓鱼活动中，攻击者使用了超过800个不同的诈骗域名，冒充全球约340家合法公司，包括知名银行、邮政服务、快递服务、社交媒体和电子商务网站。这些域名采用`target[.]cheap_domain`的格式，例如`fedex.pay-i.cfd`和`fedex.send-nl.online`，利用廉价域名后缀降低注册成本。
-- **链接**：[Analysis of a Massive Phishing Campaign | Imperva](https://www.imperva.com/blog/analysis-of-a-phishing-campaign/)
+- **时间**：2015-2018年
+- **目标**：美国多家餐饮连锁企业（Arby's、Chipotle等）
+- **攻击组织**：FIN7（也称Carbanak Group，俄罗斯背景）
+- **手法**：FIN7通过域名注册商大量购买与企业合法域名高度相似的域名（如将 `chipotle.com` 注册为 `chipotle-update.com`），租用廉价VPS托管钓鱼页面。攻击者还购买了SSL证书使钓鱼站点呈现HTTPS安全标识，增加可信度
+- **影响**：窃取超过1500万张支付卡信息，造成数亿美元损失
+- **参考链接**：[美国司法部起诉书](https://www.justice.gov/opa/pr/three-members-notorious-international-cybercrime-group-fin7-cybercriminal-organization)
+
+### 案例3：Mirai僵尸网络利用IoT设备组建攻击基础设施
+
+- **时间**：2016年
+- **目标**：Dyn（DNS服务提供商）、Krebs on Security网站等
+- **攻击组织**：Anna-senpai（Mirai作者）
+- **手法**：Mirai恶意软件通过扫描互联网上的IoT设备（网络摄像头、路由器、DVR），利用默认密码和已知漏洞批量入侵，将被感染设备组成庞大的僵尸网络。峰值时控制超过60万台设备，这些设备成为攻击者可随时调用的DDoS基础设施
+- **影响**：对Dyn的DDoS攻击导致美国东海岸Twitter、Netflix、PayPal等大量网站无法访问
+- **参考链接**：[Krebs on Security分析](https://krebsonsecurity.com/2016/10/source-code-for-iot-botnet-mirai-released/)
+
+## 子技术列表
+
+| 子技术ID | 中文名称 | 通俗解释 |
+|----------|----------|----------|
+| T1583.001 | 域名 | 注册一个看起来很像正规网站的域名，比如"paypa1.com" |
+| T1583.002 | DNS服务器 | 自己架设DNS服务器，想把用户导到哪里就导到哪里 |
+| T1583.003 | 虚拟专用服务器 | 租一台云服务器，用完就扔，不留痕迹 |
+| T1583.004 | 服务器 | 买一台物理服务器，长期运营C2基础设施 |
+| T1583.005 | 僵尸网络 | 租一个僵尸网络，操控成千上万台"肉鸡" |
+| T1583.006 | Web服务 | 利用合法平台（GitHub、Pastebin）托管恶意内容 |
+| T1583.007 | 无服务器 | 用云函数运行恶意代码，无需维护服务器 |
+| T1583.008 | 恶意广告 | 买广告位投放恶意广告，借合法广告网络传播 |
 
 ## 红队视角
 
 > ⚠️ **免责声明**：以下内容仅用于合法的安全测试、渗透测试和教育目的。未经授权对他人系统进行测试是违法行为。
 
-作为红队成员，获取基础设施是最基础的操作之一：
+### 实战技巧
 
-- **域名选择技巧**：注册与目标相似的域名（同形异义词攻击），使用国际化域名（IDN）创建视觉上相似的欺骗域名
-- **匿名化策略**：使用加密货币支付、通过Tor注册、使用隐私保护服务隐藏WHOIS信息
-- **基础设施多样化**：不要把所有鸡蛋放在一个篮子里，分散部署C2、钓鱼、数据外泄等不同功能的基础设施
-- **利用免费资源**：很多云服务商提供免费试用期，可以零成本获取基础设施
-- **选择信誉好的服务商**：恶意流量混在AWS、Azure等大厂的正常流量中更难被检测
+1. **域名选择策略**：选择与目标品牌高度相似的域名（typosquatting、homoglyph攻击），增加钓鱼成功率
+2. **基础设施分层**：使用跳板机架构，第一层C2使用合法云服务，第二层使用自建VPS，增加溯源难度
+3. **快速轮换**：准备好备用域名和IP池，一旦C2被封锁立即切换，保持攻击连续性
+4. **合法外衣**：利用CDN、域名前置、云函数等合法服务作为中转，使恶意流量看起来像正常流量
+
+### 常用工具
+
+| 工具名称 | 用途 | 说明 |
+| -------- | ---- | ---- |
+| DomainTools Iris | 域名注册和信誉查询 | 用于侦察已有域名注册情况 |
+| Namecheap / Porkbun | 域名注册商 | 支持加密货币支付和WHOIS隐私保护 |
+| DigitalOcean / Vultr | VPS租用 | 廉价VPS，适合短期C2部署 |
+| Cobalt Strike Team Server | C2框架部署 | 需部署在自建服务器上 |
+| Cloudflare | CDN和DNS托管 | 可用于域名前置和流量中转 |
+
+### 注意事项
+
+- 在授权的测试环境中使用这些技术
+- 所有基础设施采购和部署应记录在测试报告中
+- 注意操作安全（OPSEC），避免基础设施关联暴露测试活动
 
 ## 蓝队视角
 
-蓝队应该关注以下防御要点：
+### 检测要点
 
-- **域名监控**：监控与组织域名相似的新注册域名，特别是使用同形异义词或不同顶级域名的变体
-- **威胁情报**：订阅威胁情报源，及时获取已知恶意域名和IP地址的更新
-- **DNS监控**：监控异常的DNS查询模式，特别是对新注册域名或短生命周期域名的查询
-- **网络流量分析**：识别与已知C2基础设施的异常通信模式
+1. **域名信誉监控**：监控新注册域名（<30天）、WHOIS隐私保护域名、与内部品牌相似的域名
+2. **DNS异常检测**：检测组织内部主机对已知恶意DNS服务器的查询、DNS隧道特征
+3. **基础设施关联分析**：将IP、域名、SSL证书、注册信息关联分析，识别攻击者基础设施集群
+
+### 监控建议
+
+- 订阅威胁情报源，获取已知恶意域名和IP列表
+- 部署DNS监控（如PassiveDNS），记录所有DNS查询
+- 对出站流量做威胁情报关联，检测对已知C2基础设施的连接
+- 监控云服务API调用日志，检测异常的VPS/域名注册行为（如使用被盗账户）
+
+## 避坑指南
+
+防御者最痛苦的教训：只封锁已知恶意IP而不做基础设施关联分析。攻击者可以在数小时内更换IP，但域名注册信息、SSL证书指纹、ASN信息之间存在关联——不做好关联分析，就会陷入"打地鼠"式的被动封锁循环。
 
 ## 检测建议
 
+### 检测思路
+
+检测获取基础设施活动的关键是：攻击者虽然可以匿名获取基础设施，但在使用时会产生可观测的网络痕迹。
+
 ### 网络层检测
 
-监控与已知恶意基础设施的网络通信，识别异常域名解析和基础设施扫描行为。
+**用人话说：** 这条规则在检测"你的内网机器正在访问攻击者刚买好的C2域名"。攻击者买了域名、租了VPS、配好DNS后，下一步就是让被控的机器去连这个C2。你通过DNS日志和防火墙日志可以发现：内网某台机器突然开始解析一个以前从没访问过的新域名，而且这个域名注册不到30天、用了WHOIS隐私保护、解析到的IP在某个廉价VPS服务商的IP段——这些信号叠在一起，高度可疑。
 
-| 检测层面 | 检测方法 | 数据来源 | 检测规则示例 |
-|---------|---------|---------|-------------|
-| 网络边界 | 恶意域名/IP黑名单匹配 | DNS日志、NetFlow | 将威胁情报中的恶意域名/IP导入网络边界防火墙和DNS sinkhole |
-| 网络边界 | 短生命周期域名检测 | DNS查询日志 | 检测注册时间≤30天但收到大量解析请求的域名 |
-| 网络流量 | DoH/DoT隧道检测 | DNS over HTTPS流量 | 监控企业内部使用公共DoH服务器（如8.8.8.8/1.1.1.1）的DNS流量 |
+**Sigma规则示例（DNS查询新注册域名）**：
 
-**Snort/Suricata规则示例：**
+```yaml
+title: 检测对新注册域名的DNS查询
+status: experimental
+description: 检测内部主机对新注册域名（<30天）的DNS查询，可能是C2通信
+logsource:
+    category: dns
+    product: any
+detection:
+    selection:
+        query|re: '.*'
+    filter_trusted:
+        query|re:
+            - '.*\.microsoft\.com$'
+            - '.*\.google\.com$'
+            - '.*\.windows\.com$'
+    condition: selection and not filter_trusted
+    timeframe: 24h
+    # 需配合威胁情报源标注新注册域名
+level: low
+tags:
+    - attack.t1583
+    - attack.resource_development
+```
+
+**PassiveDNS关联检测**：
+
 ```bash
-# 检测到已知恶意C2域名的DNS查询
-alert udp $HOME_NET any -> any 53 (msg:"Potential C2 DNS Query to Malicious Domain"; content:"|04|evil|03|com|00|"; classtype:trojan-activity; sid:1000003; rev:1;)
-
-# 检测异常数量的DNS ANY查询（可能为基础设施探测）
-alert udp $HOME_NET any -> any 53 (msg:"Excessive DNS ANY queries - possible recon"; dns_query_type; content:"ANY"; threshold:type threshold, track by_src, count 50, seconds 60; classtype:recon; sid:1000004; rev:1;)
+# 查找解析到同一IP的多个不同域名（可能属于同一攻击者）
+# 假设PassiveDNS数据格式：timestamp,query,answer
+awk -F',' '{print $3 "\t" $2}' passivedns.log | sort | uniq -c | sort -rn | head -20
 ```
 
 ### 主机层检测
 
-监控主机上的网络连接行为和DNS解析行为，识别与恶意基础设施的通信。
+**用人话说：** 这条规则在检测"你内网的机器正在和已知的恶意C2服务器通信"。攻击者的C2基础设施IP和域名一旦被威胁情报标记，你就可以在防火墙或EDR上做匹配——如果发现有机器在连这些已知的坏IP/域名，说明那台机器已经被攻陷了。
 
-| 检测层面 | 检测方法 | 数据来源 | 检测规则示例 |
-|---------|---------|---------|-------------|
-| 进程网络连接 | 异常出站连接监控 | Windows Event ID 5156/Sysmon Event ID 3 | 监控非浏览器进程发起的异常HTTPS连接 |
-| 主机DNS | 本地DNS缓存审计 | PowerShell Get-DnsClientCache | 检查本地DNS缓存中是否存在已知恶意域名的解析记录 |
-| 主机防火墙 | 防火墙策略审计 | Windows Firewall日志 | 检测异常出站规则授权 |
+**检测异常C2连接（基于威胁情报）**：
 
-**Windows事件检测规则：**
-```powershell
-# 检测powershell执行DNS查询
-Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Sysmon/Operational';ID=22} | Where-Object {$_.Message -match "QueryName.*\.xyz|\.top|\.loan"}
+```bash
+# 从防火墙日志中匹配已知恶意IP
+while read malicious_ip; do
+    grep "$malicious_ip" firewall.log
+done < known_malicious_ips.txt
 ```
 
-### 应用层检测
+### 基础设施关联分析
 
-通过Sigma规则和YARA规则检测与恶意基础设施相关的应用程序行为和文件特征。
-
-
-## 用人话说
-
-> **检测解读**：这个技术的检测重点是发现攻击者在"备战"阶段的异常采购行为。正常企业不会频繁注册域名或租用服务器然后弃之不用，也不会用加密货币批量购买基础设施。如果你看到短时间内大量新域名指向同一IP，或者员工账户突然在注册多个云服务，这很可能是在搞资源开发。
->
-> **避坑指南**：不要只盯着已知恶意域名，很多新注册的域名还没进黑名单。要关注"行为模式"而非"静态指标"——批量注册、匿名支付、短生命周期域名都是危险信号。
-
-**Sigma规则示例：**
-
-```yaml
-title: 新注册域名与品牌相似域名监控
-id: bd1c3a9a-8e2f-4d6b-9c5a-1f3e7d2a8b0c
-status: experimental
-description: 检测与已知品牌名称相似的异常域名注册和DNS查询活动
-logsource:
-  category: dns
-  product: windows
-detection:
-  selection:
-    QueryName|contains:
-      - 'paypa1'
-      - 'amaz0n'
-      - 'g00gle'
-      - 'micros0ft'
-    QueryType: 'A'
-  condition: selection
-falsepositives:
-  - 合法域名中的数字和字母组合
-level: medium
-```
-
-```yaml
-title: 新注册域名批量DNS查询检测
-id: cd2d4b0b-9f3a-5e7c-0d6b-2a4f8e3c9d1e
-status: experimental
-description: 检测针对短生命周期域名的批量DNS查询
-logsource:
-  category: dns
-  product: windows
-detection:
-  selection:
-    QueryName|endswith:
-      - '.xyz'
-      - '.top'
-      - '.loan'
-      - '.work'
-    QueryType: 'A'
-  timeframe: 5m
-  condition: selection | count() by SrcIp > 20
-falsepositives:
-  - 合法的批量域名解析服务
-level: medium
-```
+**用人话说：** 这条规则在检测"攻击者的一组基础设施"。攻击者通常会批量购买域名和VPS，这些资产之间往往共享相同的注册信息、SSL证书或IP段。你把一个已知恶意域名关联到的IP找出来，再看这个IP上还托管了哪些其他域名——这些域名很可能也属于同一攻击者，可以一并封锁。
 
 ## 缓解措施
 
 ### 优先级1：关键措施
 
-**措施名称：** 域名防御性注册与监控
+**威胁情报驱动的访问控制**：在网络边界和DNS层面部署威胁情报过滤，拦截对已知恶意域名和IP的访问
 
-**具体实施步骤：**
-1. 注册组织品牌名称常见的拼写错误域名变体
-2. 订阅域名监控服务（如DomainTools），发现新注册的相似域名
-3. 配置自动化告警，发现可疑域名时立即通知安全团队
-
-**配置示例：**
 ```bash
-# 使用dnstwist发现与组织域名相似的域名
-dnstwist --format csv example.com | grep -v "example.com$"
+# DNS黑洞配置示例（BIND）
+# 将已知恶意域名解析到黑洞地址
+zone "malicious-domain.com" {
+    type master;
+    file "/etc/namedb/blackhole.zone";
+};
 ```
 
 ### 优先级2：重要措施
 
-**措施名称：** 部署DNSSEC和邮件认证协议
-
-**具体实施步骤：**
-1. 在域名注册商处启用DNSSEC支持
-2. 配置SPF、DKIM和DMARC记录防止邮件欺骗
-3. 定期检查DNS记录的完整性
-
-**措施名称：** 强制启用多因素认证（MFA）
-
-**具体实施步骤：**
-1. 对所有远程访问服务（VPN、RDP、管理控制台）强制启用MFA
-2. 优先使用硬件安全密钥（如YubiKey）或认证器应用
-3. 禁用短信验证码等较弱的MFA方式
+**新注册域名监控**：对新注册域名（<30天）的访问进行标记和延迟处理，降低新C2域名的影响
 
 ### 优先级3：建议措施
 
-**措施名称：** 威胁情报集成
-
-**具体实施步骤：**
-1. 订阅威胁情报源（如AlienVault OTX、IBM X-Force）
-2. 将威胁情报馈入SIEM系统，自动关联已知恶意基础设施
-3. 定期更新IP黑名单和域名黑名单
-
-**措施名称：** 安全意识培训
-
-**具体实施步骤：**
-1. 定期培训员工识别钓鱼域名和可疑链接
-2. 模拟钓鱼攻击测试员工的识别能力
-3. 建立便捷的举报机制
-
-### MITRE ATT&CK 缓解措施映射
-
-| 缓解措施ID | 缓解措施名称 | 适用性  | 说明                 |
-| ------ | ------ | :--: | ------------------ |
-| M0130  | 资产访问保护 |  适用  | 通过访问控制和MFA保护管理接口   |
-| M0131  | 资产管理   |  适用  | 跟踪组织拥有的基础设施和证书     |
-| M0105  | 网络安全架构 | 部分适用 | 零信任架构可减少基础设施被滥用的影响 |
-| M0132  | 威胁情报计划 |  适用  | 订阅威胁情报服务监控恶意基础设施   |
+**供应商协同**：与域名注册商和云服务提供商合作，举报和关停恶意基础设施
 
 ## 动手实验
 
-> ⚠️ **重要提示**：所有实验必须在隔离的实验室环境中进行，禁止对未授权的真实系统进行测试。
+> ⚠️ **所有实验必须在隔离的实验室环境中进行**
 
-### 实验1：域名侦察
-```bash
-# 使用whois查询域名注册信息
-whois example-phishing.com
+### 实验1：域名侦察（初级）
 
-# 使用dig查询DNS记录
-dig example-phishing.com ANY
+**目标**：理解攻击者如何选择和注册欺骗性域名
 
-# 使用dnstwist发现相似域名
-dnstwist --format csv example.com
-```
+**步骤**：
+1. 使用DomainTools或WHOIS查询查看某品牌域名的注册信息
+2. 检查是否存在typosquatting域名（如将 `google.com` 输入为 `gooogle.com`）
+3. 查看新注册域名的WHOIS记录特征
 
-### 实验2：搭建钓鱼域名（仅供学习）
-1. 在Namecheap或GoDaddy注册一个测试域名
-2. 使用Let's Encrypt申请免费SSL证书
-3. 搭建一个简单的钓鱼登录页面
-4. 观察域名解析和证书颁发过程
+**预期输出**：一份域名侦察报告，包含WHOIS信息、注册时间、隐私保护状态
 
-### 实验3（高级）：恶意基础设施追踪与威胁情报分析
-1. 使用Shodan/Censys搜索与已知APT组织关联的基础设施（C2服务器IP段、SSL证书指纹）
-2. 配置威胁情报平台（如MISP或OpenCTI），将发现的IOC导入并关联分析
-3. 使用DomainTools逆向查询WHOIS信息，发现关联域名集群
-4. 将分析结果与MITRE ATT&CK T1583子技术映射，形成完整的攻击者基础设施画像
+### 实验2：基础设施关联分析（中级）
+
+**目标**：掌握通过PassiveDNS关联分析攻击者基础设施集群的方法
+
+**步骤**：
+1. 获取一个已知恶意域名的解析IP
+2. 通过PassiveDNS查询该IP上托管的其他域名
+3. 检查这些域名的注册信息是否有共同特征
+
+**学习要点**：掌握基础设施关联分析的思路和方法
+
+### 实验3：C2检测规则验证（高级）
+
+**目标**：验证C2基础设施检测规则的有效性
+
+**步骤**：
+1. 在实验环境中模拟C2域名解析和连接
+2. 部署DNS监控和威胁情报过滤规则
+3. 验证检测告警是否触发
+
+**学习要点**：理解攻防对抗中基础设施检测的实际效果
 
 ## 术语解释
 
-| 术语 | 英文原名 | 通俗解释 |
-|------|----------|----------|
-| 命令与控制 | Command & Control (C2) | 攻击者用来远程控制被入侵系统的"遥控器" |
-| 虚拟专用服务器 | Virtual Private Server (VPS) | 在物理服务器上划分出的独立虚拟机，像租了一间独立的"网络仓库" |
-| 域名系统 | Domain Name System (DNS) | 将人类可读的域名（如google.com）转换为IP地址的系统，就像电话本 |
-| 同形异义词攻击 | Homograph Attack | 利用不同语言字符集（如西里尔字母、希腊语）创建视觉上相似的欺骗域名 |
-| 国际化域名 | Internationalized Domain Name (IDN) | 支持非ASCII字符的域名，如包含中文的域名 |
-| 恶意广告 | Malvertising | 利用在线广告网络传播恶意软件的恶意广告 |
-| 初始访问经纪人 | Initial Access Broker (IAB) | 专门入侵组织网络并出售访问权限的犯罪分子 |
-| WHOIS | WHOIS | 查询域名注册信息（所有者、注册日期等）的协议和服务 |
+| 术语 | 通俗解释 |
+|------|---------|
+| **ATT&CK** | MITRE公司维护的攻击技术知识库，像一本"黑客手法百科全书" |
+| **获取基础设施** | T1583，攻击者在攻击前购买/租用/搭建所需的域名、服务器等"作案工具" |
+| **资源开发** | TA0042，获取基础设施所属的战术阶段 |
+| **C2** | 命令与控制，攻击者用来远程控制被入侵系统的"遥控器" |
+| **域名前置** | 利用合法CDN域名作为流量外衣，隐藏真实C2地址的技术 |
+| **PassiveDNS** | 被动DNS，记录历史DNS解析关系的数据库，用于溯源分析 |
+| **WHOIS** | 域名注册信息查询协议，可查到域名所有者、注册时间等 |
+| **僵尸网络** | 大量被恶意软件感染并受攻击者远程控制的设备网络 |
+
+## 被引用情况
+
+本技术被以下文件引用：
+
+- [02-Resource-Development/README.md](./README.md) - 资源开发战术索引
 
 ## 参考资料
 
-- [MITRE ATT&CK 获取基础设施](https://attack.mitre.org/techniques/T1583/)
-- [MITRE ATT&CK 获取基础设施：域名](https://attack.mitre.org/techniques/T1583/001/)
-- [MITRE ATT&CK 获取基础设施：DNS服务器](https://attack.mitre.org/techniques/T1583/002/)
-- [MITRE ATT&CK 获取基础设施：VPS](https://attack.mitre.org/techniques/T1583/003/)
-- [MITRE ATT&CK 获取基础设施：服务器](https://attack.mitre.org/techniques/T1583/004/)
-- [APT28 exploit routers to enable DNS hijacking operations](https://www.ncsc.gov.uk/news/apt28-exploit-routers-to-enable-dns-hijacking-operations)
-- [FancyBear Server Exposure](https://cybersecuritynews.com/fancybear-server-exposure-reveals-stolen-credentials/)
-- [Malicious use of virtual machine infrastructure | SOPHOS](https://www.sophos.com/en-us/blog/malicious-use-of-virtual-machine-infrastructure)
-- [Analysis of a Massive Phishing Campaign | Imperva](https://www.imperva.com/blog/analysis-of-a-phishing-campaign/)
-- [TeamCity Intrusion Saga | FortiGuard Labs](https://www.fortinet.com/blog/threat-research/teamcity-intrusion-saga-apt29-suspected-exploiting-cve-2023-42793)
+### 📚 官方文档（深入了解）
+
+- [MITRE ATT&CK - 获取基础设施 (T1583)](https://attack.mitre.org/techniques/T1583/) - 官方技术定义
+- [MITRE ATT&CK Navigator](https://mitre-attack.github.io/attack-navigator/) - ATT&CK 可视化工具
+
+### 🔧 工具与资源（动手试试）
+
+- [DomainTools](https://www.domaintools.com/) - 域名情报和WHOIS查询
+- [VirusTotal](https://www.virustotal.com/) - 域名和IP信誉查询
+- [SecurityTrails](https://securitytrails.com/) - PassiveDNS和历史DNS数据查询
+
+### 📰 安全报告（真实攻击）
+
+- [CISA Alert AA21-077A - SolarWinds供应链攻击](https://www.cisa.gov/news-events/cybersecurity-advisories/aa21-077a) - APT29基础设施分析
+- [Krebs on Security - Mirai僵尸网络分析](https://krebsonsecurity.com/2016/10/source-code-for-iot-botnet-mirai-released/) - Mirai僵尸网络基础设施

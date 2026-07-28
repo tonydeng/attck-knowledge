@@ -4,13 +4,34 @@
 
 > **收集受害者网络信息就像绘制一张目标的"地图"，了解有哪些路（网络）、哪些门（端口）和哪些锁（安全设备）。**
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者收集目标网络的域名、DNS记录、IP范围、拓扑结构和安全设备信息，为后续入侵绘制"网络地图" |
+| 为什么危险？ | 知道了你的网络结构和安全设备位置，攻击者就能精准选择最薄弱的入口并绕过防护 |
+| 谁需要关心？ | 网络运维团队、DNS管理员、安全架构师 |
+| 你的第一步防御 | 限制DNS区域传送、隐藏DNS版本信息、最小化公网暴露面 |
+| 如果只做一件事 | 禁用未授权的DNS AXFR（区域传送），这是泄露网络拓扑的最大单点风险 |
+
 ## 难度等级
 
-⭐⭐ 中级 - 需要基础的网络知识和信息检索能力
+⭐⭐ 中级 - 需要DNS协议、网络拓扑、IP编址的基础知识
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] DNS协议基础（A/MX/TXT/CNAME记录、AXFR区域传送）
+- [ ] IP编址和BGP路由基础（CIDR、ASN、公网IP段）
+- [ ] 网络拓扑概念（子网、VLAN、traceroute路径分析）
 
 ## 技术描述
 
 **通俗解释：**
+
+**过渡段：** 不要误以为网络侦察只是简单的'谷歌搜索'——真正的网络信息收集是系统化的DNS枚举、IP范围映射和拓扑推断。攻击者通过WHOIS查到注册信息，通过DNS记录发现子域名和邮件服务器，通过BGP数据确定IP段，最后用traceroute画出网络结构。每一条DNS记录都可能暴露一个内部系统，每一次AXFR区域传送都可能泄露完整的网络拓扑。
 你要闯入一栋大楼，首先得知道大楼在哪、有几层、有几个入口、装了什么监控系统。攻击者在入侵目标网络前，也需要先搞清楚目标的网络结构：有哪些域名、IP地址是多少、DNS怎么配置的、用了哪些安全设备等。这些信息能帮助攻击者找到最薄弱的突破口。
 
 **技术原理：**
@@ -189,6 +210,10 @@ graph TD
 - 限制DNS区域传送仅允许授权服务器
 - 使用被动DNS服务监控域名的DNS变化
 
+## 避坑指南
+
+新手常犯的错误：以为DNS区域传送（AXFR）只在内网生效。实际上，如果DNS服务器配置不当，公网任何人都能请求AXFR获取你的完整DNS记录——这等于把整张网络地图拱手送人。检查方法很简单：从外部执行 `dig axfr yourdomain.com @yourdns.com`，如果返回完整记录说明配置有漏洞。
+
 ## 检测建议
 
 ### 网络层检测
@@ -222,6 +247,8 @@ cat /var/log/named.log | grep -E "query|update"
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：** 这条规则在检测"谁在偷你的DNS区域数据"——AXFR（区域传送）本来是主从DNS服务器之间同步数据用的，正常情况下只有你自己的备用DNS服务器会请求。如果外部IP发起了AXFR请求，说明攻击者想一次性把你所有DNS记录全部拿走——这比逐条查询高效得多，一次请求就能拿到所有子域名、邮件服务器、内部主机名的完整列表。Volt Typhoon在侦察美国关键基础设施时就大量使用了DNS区域传送来快速映射目标网络。检测的关键信号是：来自非授权IP的AXFR请求，或者单个IP短时间内查询大量不同类型的DNS记录（A/MX/TXT/AAAA全查一遍）。
 ```yaml
 title: DNS AXFR Transfer Request
 status: experimental
@@ -355,7 +382,7 @@ sudo apt update && sudo apt install dnsrecon
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - 收集受害者网络信息 (T1590)](https://attack.mitre.org/techniques/T1590/)
 - [MITRE ATT&CK - 域名属性 (T1590.001)](https://attack.mitre.org/techniques/T1590/001)
@@ -365,19 +392,19 @@ sudo apt update && sudo apt install dnsrecon
 - [MITRE ATT&CK - IP地址 (T1590.005)](https://attack.mitre.org/techniques/T1590/005)
 - [MITRE ATT&CK - 网络安全设备 (T1590.006)](https://attack.mitre.org/techniques/T1590/006)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CISA: Volt Typhoon Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a) - 关键基础设施侦察威胁
 - [Volexity: Exchange Zero-Day](https://www.volexity.com/blog/2021/03/02/active-exploitation-of-microsoft-exchange-zero-day-vulnerabilities/) - HAFNIUM侦察案例
 - [Mandiant M-Trends 2026](https://services.google.com/fh/files/misc/m-trends-2026-executive-edition-en.pdf) - AI增强的网络侦察趋势
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [DNSRecon](https://github.com/darkoperator/dnsrecon) - DNS侦察工具
 - [Amass](https://github.com/owasp-amass/amass) - 子域名枚举工具
 - [Shodan](https://www.shodan.io/) - 互联网设备搜索引擎
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [CISA: T1590 信息页](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1590)
 - [Startup Defense: T1590 Analysis](https://www.startupdefense.io/mitre-attack-techniques/t1590-gather-victim-network-information/)

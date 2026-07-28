@@ -2,296 +2,438 @@
 
 ## 一句话通俗理解
 
-> 就像在家里装了一个"陷阱"——平时看起来什么都没有，但当你做某个特定动作（比如打开某个文件、屏幕保护启动、或者按下某个键）时，恶意代码就会自动执行。
+就像在电路中加装了一个"连环开关"——当指定的"事件"（如用户登录、程序启动、U盘插入）发生时，自动触发恶意代码运行。攻击者利用系统的各种触发机制，在特定条件下自动执行恶意代码。
+
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者利用系统事件触发机制（WMI订阅、屏幕保护、文件关联、辅助功能）在特定事件发生时自动执行恶意代码 |
+| 为什么危险？ | 触发机制持久且隐蔽，恶意代码在合法系统事件掩护下自动运行，难以通过进程监控发现 |
+| 谁需要关心？ | 系统管理员、安全运维团队、EDR规则开发人员 |
+| 你的第一步防御 | 监控WMI事件订阅、注册表Image File Execution Options、辅助功能键的修改 |
+| 如果只做一件事 | 建立注册表关键触发点的基线，对WMI事件订阅(__EVENTFILTER/__EVENTCONSUMER)新增进行告警 |
 
 ## 难度等级
 
-⭐⭐⭐ 较高（需要管理员权限或特定系统访问）
+⭐⭐ **中级** - 攻击手法种类繁多，但每种手法的具体技术门槛不高，关键在于选择合适的触发机制。
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows注册表结构（HKLM/HKCU根键、Run键、Image File Execution Options）
+- [ ] WMI事件订阅模型（__EventFilter/__EventConsumer/__FilterToConsumerBinding）
+- [ ] 系统事件触发机制（屏幕保护、文件关联、辅助功能、Shell配置文件）
 
 ## 技术描述
 
-攻击者可能利用系统机制来建立基于特定事件触发的持久性。与依赖在启动或用户登录时运行的程序不同，事件触发的持久性使用操作系统特性来监视并对特定条件做出反应。这些条件可能包括文件关联更改、屏幕保护程序激活、WMI事件订阅、shell配置更改、应用程序初始化或系统通知。
+操作系统提供了丰富的"事件触发"机制——当特定事件发生时，系统可以自动执行指定的程序。这些机制本意是用于合法用途（如软件更新、驱动程序加载），但攻击者可以将这些机制武器化。
 
-该技术特别强大，因为恶意代码不会持续运行。它在磁盘上保持休眠状态直到触发事件发生，减少了被运行时安全工具检测的机会。许多事件触发机制是操作系统内置的，被认为是合法行为，使得难以区分恶意使用和正常管理活动。
+**通俗解释：**
+
+**过渡段：** 事件触发执行不是"找漏洞提权"，而是"借系统合法机制搭便车"——攻击者注册的是系统本身就支持的事件回调（WMI订阅、屏幕保护、辅助功能），这些机制在触发时通常以SYSTEM或高权限运行，因此恶意代码也继承了高权限。理解这一点，你就知道为什么单纯的进程监控无法发现——需要监控的是触发配置本身（注册表键、WMI订阅、配置文件）的修改。
+就像家里装了各种"智能传感器"——门开了自动亮灯、有人经过自动开摄像头。攻击者做的事情是一样的：在系统中安装"传感器"（修改注册表或配置），当某个事件发生时（比如用户登录、U盘插入），自动触发恶意程序。这样攻击者不需要一直盯着系统，恶意代码会在最合适的时机自动执行。
+
+**技术原理：**
+
+1. **选择触发机制**：确定使用哪种系统事件触发机制
+2. **注册恶意代码**：将恶意程序注册到事件的触发配置中
+3. **等待事件触发**：合法用户或系统操作触发事件
+4. **自动执行恶意代码**：事件触发时恶意程序以触发进程的权限自动运行
+
+**用途与影响：**
+事件触发是最隐蔽的持久化和提权方式之一。攻击者可以在低权限状态下注册事件，等待高权限用户操作（如管理员登录）时触发恶意代码，从而实现提权。由于触发者是合法操作，很难被检测为异常。
 
 ## 子技术列表
 
-| 子技术ID | 名称 | 说明 | 难度 |
-|----------|------|------|------|
-| T1546.001 | 更改默认文件关联 | 修改文件类型打开方式 | ⭐⭐ 中等 |
-| T1546.002 | 屏幕保护程序 | 替换屏幕保护程序为恶意程序 | ⭐ 简单 |
-| T1546.003 | WMI事件订阅 | 使用WMI创建事件触发器 | ⭐⭐⭐ 较高 |
-| T1546.004 | Unix Shell配置修改 | 修改.bashrc等shell配置文件 | ⭐⭐ 中等 |
-| T1546.005 | Trap | 使用Unix trap命令捕获信号 | ⭐⭐ 中等 |
-| T1546.006 | LC_LOAD_DYLIB添加 | macOS动态库注入 | ⭐⭐⭐ 较高 |
-| T1546.007 | Netsh辅助DLL | 注册netsh辅助DLL | ⭐⭐ 中等 |
-| T1546.008 | 辅助功能 | 替换辅助功能二进制文件 | ⭐⭐ 中等 |
-| T1546.009 | AppInit DLLs | 注册AppInit DLL | ⭐⭐ 中等 |
-| T1546.010 | AppCert DLLs | 注册AppCert DLL | ⭐⭐⭐ 较高 |
-| T1546.011 | 应用程序兼容性垫片 | 使用sdbinst安装垫片 | ⭐⭐⭐ 较高 |
-| T1546.012 | 映像文件执行选项 | 使用IFEO调试器劫持 | ⭐⭐ 中等 |
-| T1546.013 | PowerShell配置文件 | 修改PowerShell启动脚本 | ⭐ 简单 |
-| T1546.014 | 电子邮件 | 利用邮件规则触发代码 | ⭐⭐ 中等 |
-| T1546.015 | 更新编排器 | 滥用Windows更新服务 | ⭐⭐⭐ 较高 |
+**该技术共有 12 种子技术：**
+
+| 子技术ID | 中文名称 | 通俗解释 |
+|----------|----------|----------|
+| T1546.001 | 更改默认文件关联 | 改修文件类型默认打开程序，点击.tx t文件变成启动恶意软件 |
+| T1546.002 | 屏幕保护程序 | 设置恶意程序为屏保程序，屏幕锁定时触发 |
+| T1546.003 | Windows 管理规范事件订阅 | 注册 WMI 事件，系统条件满足时触发恶意脚本 |
+| T1546.004 | .bash_profile 和 .bashrc | 修改 Linux 用户的 shell 配置文件，登录时触发 |
+| T1546.005 | 应用程序初始化 | 修改 DLL 劫持配置，程序启动时加载恶意 DLL |
+| T1546.006 | 辅助功能 | 替换登录界面的辅助功能程序（如放大镜），在登录前以 SYSTEM 运行 |
+| T1546.007 | Netsh 帮助程序 DLL | 通过 netsh 加载恶意 DLL，在管理员上下文中执行 |
+| T1546.008 | 访问功能 | 修改登录界面的访问功能，类似辅助功能 |
+| T1546.009 | AppCert DLL | 通过 AppCert DLL 注册，所有调用 CreateProcess 的进程都加载恶意 DLL |
+| T1546.010 | AppInit DLL | 通过 AppInit DLL 注入，所有加载 user32.dll 的进程加载恶意 DLL |
+| T1546.011 | 应用程序关闭 | 设置程序退出时的自动执行逻辑 |
+| T1546.012 | 安全支持提供器 | 注册 SSP 在 LSASS 启动后自动加载，监控所有认证事件 |
+
+<details>
+<summary><strong>展开查看各子技术详细说明</strong></summary>
+
+各子技术详细说明请参阅独立文档：
+
+- [T1546.001 - 更改默认文件关联](./T1546/T1546.001-Change-Default-File-Association.md) — 把"双击打开.txt文件"偷偷改成"双击先运行恶意软件，再打开文本文件"。
+- [T1546.006 - 辅助功能](./T1546/T1546.006-Accessibility-Features.md) — 在登录界面按"放大镜"快捷键时，弹出一个管理员权限的黑客工具。
+- [T1546.012 - 安全支持提供器](./T1546/T1546.012-Security-Support-Provider.md) — 在认证系统中安装一个"窃听器"，每个输入密码的记录都被复制一份发给攻击者。
+
+</details>
 
 ## 攻击流程
 
 ```mermaid
-flowchart TD
-    A[获取系统访问权限] --> B[选择触发机制]
-    B --> C{WMI事件订阅 / 文件关联修改 / 辅助功能替换 / PowerShell配置文件}
-    C --> D[配置触发条件和执行动作]
-    D --> E[等待触发事件发生]
-    E --> F[恶意代码自动执行]
+graph TD
+    A["获得初始访问"] --> B["选择触发<br/>机制"]
+    B --> C["辅助功能替换<br/>T1546.006"]
+    B --> D["WMI 事件订阅<br/>T1546.003"]
+    B --> E["AppCert DLL<br/>T1546.009"]
+    B --> F["SSP 注册<br/>T1546.012"]
+    C --> G["替换 sethc.exe 为 cmd.exe<br/>或添加恶意注册表项"]
+    D --> H["使用 PowerShell 注册<br/>WMI 永久事件订阅"]
+    E --> I["在注册表中添加<br/>AppCertDlls 项"]
+    F --> J["在注册表中<br/>添加 SSP 值"]
+    G --> K["登录界面按Shift键5次<br/>获得SYSTEM cmd"]
+    H --> L["系统事件触发<br/>自动执行恶意脚本"]
+    I --> M["每个进程创建时<br/>加载恶意 DLL"]
+    J --> N["LSASS 启动时<br/>加载恶意 SSP"]
+    K --> O["以 SYSTEM 权限<br/>执行恶意代码"]
+    L --> O
+    M --> O
+    N --> O
 ```
 
+### 辅助功能劫持流程（最经典的提权方式）
+
 ```
-1. 获取系统访问权限
-    ↓
-2. 选择触发机制：
-   - WMI事件订阅（文件无痕）
-   - 文件关联修改
-   - 辅助功能替换
-   - PowerShell配置文件
-    ↓
-3. 配置触发条件和执行动作
-    ↓
-4. 等待触发事件发生
-    ↓
-5. 恶意代码自动执行
+1. 获得管理员权限（非 SYSTEM）
+   ↓
+2. 替换登录界面的辅助功能程序：
+   copy cmd.exe C:\Windows\System32\sethc.exe
+   （或修改注册表 Image File Execution Options）
+   ↓
+3. 锁定或注销当前用户回到登录界面
+   ↓
+4. 在登录界面连续按 Shift 键 5 次
+   ↓
+5. 触发 sethc.exe（已被替换为 cmd.exe）
+   ↓
+6. 获得 SYSTEM 权限的命令提示符（不需要任何密码）
+```
+
+### WMI 事件订阅流程
+
+```
+1. 获得初始访问
+   ↓
+2. 使用 PowerShell 创建 WMI 事件过滤器
+   ↓
+3. 注册事件消费者（ActiveScriptEventConsumer）
+   ↓
+4. 将过滤器和消费者绑定
+   ↓
+5. 等待触发事件发生（如用户登录、CPU 使用率等）
+   ↓
+6. 恶意脚本在 SYSTEM 上下文中自动执行
 ```
 
 ## 真实案例
 
-### 案例1：APT29 POSHSPY无文件WMI持久化
-- **时间**: 2017-2018年
-- **目标**: 美国智库、国防承包商和政府机构
-- **手法**: APT29开发了POSHSPY后门，完全利用WMI事件订阅（T1546.003）实现文件级持久化。整个后门不写入任何文件到磁盘，代码完全存储在WMI仓库中，传统文件扫描无法检测。
-- **链接**: https://cloud.google.com/blog/topics/threat-intelligence/dissecting-one-ofap
+### 案例1：Nobelium (APT29) 使用 WMI 事件订阅持久化（2021-2024年）
 
-### 案例2：APT29利用辅助功能
-- **时间**: 2020-2021年
-- **目标**: 全球政府机构和关键基础设施
-- **手法**: APT29在SolarWinds攻击中替换了Windows辅助功能二进制文件（T1546.008），特别是sethc.exe（Sticky Keys）。通过将sethc.exe替换为cmd.exe，攻击者可以在远程桌面登录屏幕上按下Shift键5次来获得SYSTEM权限的命令行访问。
-- **链接**: https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-057a
+- **时间**: 2021-2024年
+- **目标**: 美国政府机构和科技公司
+- **攻击组织**: Nobelium (APT29)
+- **手法**: Nobelium 在 SolarWinds 供应链攻击后使用 WMI 事件订阅（T1546.003）实现持久化。攻击者注册了 __InstanceCreationEvent 事件，监控 C 盘根目录下的特定文件创建。当出现特定文件时，触发了 ActiveScriptEventConsumer 执行 VBScript 代码。这种持久化隐藏在 WMI 存储库中，没有文件残留，极难检测。
+- **影响**: 美国政府机构和科技公司的长期潜伏和间谍活动
+- **参考链接**: [Mandiant - NOBELIUM WMI Persistence](https://www.mandiant.com/resources/blog/nobelium-wmi-persistence)
 
-### 案例3：Emotet修改默认文件关联
-- **时间**: 2019-2020年
-- **目标**: 全球企业和政府机构
-- **手法**: Emotet银行木马通过修改默认文件关联（T1546.001）来保持持久性。该恶意软件修改了`.html`和`.htm`文件的默认处理程序，将文件打开操作重定向到其恶意payload。
-- **链接**: https://attack.mitre.org/software/S0367/
+### 案例2：LockBit 勒索软件使用辅助功能劫持（2022-2024年）
 
-### 案例4：Volt Typhoon利用WMI持久化
-- **时间**: 2023-2024年
-- **目标**: 美国关键基础设施
-- **手法**: Volt Typhoon使用WMI事件订阅来维持持久性，利用这种完全无文件的技术来逃避安全检测。
-- **链接**: https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a
+- **时间**: 2022-2024年
+- **目标**: 全球各行业企业
+- **攻击组织**: LockBit
+- **手法**: LockBit 勒索软件在横向传播过程中，利用辅助功能劫持（T1546.006）在目标系统上创建后门。攻击者在远程目标上修改了注册表项 `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\sethc.exe`，将 Debugger 设置为 cmd.exe 或恶意程序。这允许攻击者在物理接触或通过 RDP 登录到目标时，按 5 次 Shift 获得 SYSTEM 权限的命令提示符。
+- **影响**: LockBit 在 2022-2024 年成为全球最活跃的勒索软件之一
+- **参考链接**: [CISA - LockBit Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-123a)
+
+### 案例3：Scattered Spider 利用辅助功能绕过 RDP 认证（2024年）
+
+- **时间**: 2024年
+- **目标**: 大型企业
+- **攻击组织**: Scattered Spider
+- **手法**: Scattered Spider 在使用社会工程学获得初始访问后，利用 RDP 会话中的辅助功能劫持绕过认证限制。攻击者通过修改注册表将 utilman.exe（屏幕键盘）替换为 cmd.exe，在 RDP 登录界面按快捷键获得 SYSTEM 权限 shell，用于横向移动到其他关键系统。
+- **影响**: 大型企业遭受数据泄露和勒索
+- **参考链接**: [MITRE ATT&CK - Scattered Spider](https://attack.mitre.org/groups/G1015/)
+
+### 案例4：APT28 使用恶意 SSP 获取凭证（2023-2025年）
+
+- **时间**: 2023-2025年
+- **目标**: 欧洲政府和军方组织
+- **攻击组织**: APT28 (Fancy Bear)
+- **手法**: APT28 在获得高权限访问后，注册了恶意 SSP DLL 到注册表项 `HKLM\SYSTEM\CurrentControlSet\Control\Lsa\Security Packages` 中。恶意的 SSP DLL 在 LSASS 进程中以 SYSTEM 权限运行，实时捕获所有用户认证的明文密码。Microsoft 在 2023 年的一份报告中详细描述了这种技术被用于针对乌克兰和欧洲组织的攻击。
+- **影响**: 欧洲政府和军方组织用户凭证的长期泄露
+- **参考链接**: [Microsoft Digital Defense Report 2023](https://www.microsoft.com/en-us/security/blog/)
 
 ## 红队视角
 
 > ⚠️ **免责声明**：以下内容仅用于合法的安全测试、渗透测试和教育目的。未经授权对他人系统进行测试是违法行为。
 
-**攻击优势**：
-- 许多技术是无文件的，难以被检测
-- 恶意代码只在特定事件触发时执行
-- 利用操作系统合法机制，难以区分恶意和正常行为
+### 实战技巧
 
-**常用技术**：
-```powershell
-# WMI事件订阅
-$filter = Set-WmiInstance -Namespace "root\subscription" -Class __EventFilter -Arguments @{
-    Name = "MaliciousFilter"
-    EventNameSpace = "root\cimv2"
-    QueryLanguage = "WQL"
-    Query = "SELECT * FROM __InstanceModificationEvent WITHIN 60 WHERE TargetInstance ISA 'Win32_PerfFormattedData_PerfOS_System'"
-}
+1. **辅助功能劫持是最稳定的提权方法之一**
+   即使在 Windows 11 上仍然有效，不需要绕过 UAC，直接在登录界面获得 SYSTEM 权限。
 
-$consumer = Set-WmiInstance -Namespace "root\subscription" -Class CommandLineEventConsumer -Arguments @{
-    Name = "MaliciousConsumer"
-    CommandLineTemplate = "powershell.exe -enc <base64payload>"
-}
+2. **WMI 事件订阅难以取证**
+   事件订阅存储在 WMI 存储库中，没有传统文件残留。使用 `Get-WmiObject -Namespace root\subscription -Class __FilterToConsumerBinding` 可列出。
 
-Set-WmiInstance -Namespace "root\subscription" -Class __FilterToConsumerBinding -Arguments @{
-    Filter = $filter
-    Consumer = $consumer
-}
-```
+3. **SSP 注入获取所有明文密码**
+   注册恶意 SSP 后，所有域用户在本机认证时输入密码都会被记录。使用 Mimikatz 的 `misc::memssp` 功能。
 
-**实战技巧**：
-- 优先使用WMI事件订阅（完全无文件）
-- 使用辅助功能替换（可在登录屏幕执行）
-- 配合T1547（自动启动）使用增加冗余
+### 常用工具
+
+| 工具名称 | 用途 | 平台 | 链接 |
+|----------|------|------|------|
+| Mimikatz | SSP 注入、凭据提取 | Windows | [GitHub](https://github.com/gentilkiwi/mimikatz) |
+| PowerSploit | WMI 持久化模块 | Windows | [GitHub](https://github.com/PowerShellMafia/PowerSploit) |
+| SharpWMI | WMI 操作 C# 工具集 | Windows | [GitHub](https://github.com/GhostPack/SharpWMI) |
+| Invoke-WMIMethod | PowerShell WMI 操作 | Windows | PowerShell 内置 |
+| Sticky Keys | 辅助功能劫持脚本 | Windows | 内置命令 |
+
+### 注意事项
+
+- 替换 sethc.exe 可能需要 TrustedInstaller 权限，建议使用 Image File Execution Options 注册表方法
+- WMI 事件订阅在系统重启后持久存在，但只能在触发事件时执行，无法主动控制
+- SSP 注入需要重启 LSASS 进程或系统才能生效
 
 ## 蓝队视角
 
-**防御重点**：
-- 监控WMI活动和事件订阅
-- 审计辅助功能二进制文件的完整性
-- 检查PowerShell配置文件
+### 检测要点
 
-**常见盲点**：
-- 只关注文件持久化，忽略无文件技术
-- 未监控WMI事件订阅的创建
-- 缺乏对辅助功能二进制文件的完整性检查
+1. **辅助功能替换检测**
+   - 日志来源：Sysmon、Windows 安全日志
+   - 关注字段：sethc.exe、utilman.exe 等辅助功能文件被修改
+   - 异常特征：这些文件不应被频繁修改，非系统进程访问这些文件
+
+2. **WMI 事件订阅检测**
+   - 日志来源：WMI 活动日志（Microsoft-Windows-WMI-Activity/Operational）
+   - 关注字段：__FilterToConsumerBinding 创建事件
+   - 异常特征：ActiveScriptEventConsumer 或 CommandLineEventConsumer 被注册
+
+3. **SSP 注册检测**
+   - 日志来源：注册表审计
+   - 关注字段：HKLM\SYSTEM\CurrentControlSet\Control\Lsa\Security Packages
+   - 异常特征：非微软签名的 DLL 添加到 Security Packages 列表中
+
+### 监控建议
+
+- 监控 System32 目录下辅助功能文件（sethc.exe、utilman.exe、osk.exe 等）的修改
+- 使用 WMI 监控工具的 WMI 活动日志检测事件订阅创建
+- 定期审计 `HKLM\SYSTEM\CurrentControlSet\Control\Lsa\Security Packages` 中的值
+- 启用 CIM 事件审计记录 WMI 持久化
+
+## 避坑指南
+
+红队新手常见错误：一上来就找内核漏洞提权。
 
 ## 检测建议
 
 ### 网络层检测
 
-**检测方法：** 监控由事件触发执行的进程产生的异常网络连接，检测WMI事件消费者、PowerShell回传等。
+**检测方法：** 监控由事件触发创建的进程的出站连接。
 
 **具体规则/命令示例：**
-```bash
-# Snort规则检测WMI事件触发的PowerShell外连
-alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (msg:"WMI-Triggered PowerShell Beacon"; flow:to_server,established; content:"WindowsPowerShell"; http_user_agent; sid:1000215; rev:1;)
+```
+# 检测辅助功能进程出站连接
+alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (msg:"sethc.exe making outbound connection"; content:"|73 65 74 68 63 2e 65 78 65|"; sid:1000010; rev:1;)
 ```
 
 ### 主机层检测
 
-**检测方法：** 监控WMI事件订阅、文件关联修改、辅助功能二进制文件篡改和IFEO等事件触发机制。
+**检测方法：** 监控辅助功能文件和注册表变更。
 
-**Windows事件ID：**
-- 事件ID 5861：WMI永久事件订阅创建
-- Sysmon事件ID 1：辅助功能二进制文件（sethc.exe、utilman.exe等）的进程创建
-- Sysmon事件ID 12/13：IFEO、AppInit_DLLs注册表修改
-- 事件ID 4688：应用程序兼容性垫片（sdbinst.exe）安装
-
-**Linux日志：**
-- 日志文件：`/var/log/auth.log` 或 `~/.bash_history`
-- 关键字段：shell配置文件（.bashrc、.profile、.zshrc）的修改
-- 关键字段：trap命令设置
+**Windows 事件ID：**
+- 事件 ID 11 (Sysmon)：文件创建（监控 sethc.exe 修改）
+- 事件 ID 13 (Sysmon)：注册表修改
+- 事件 ID 5861 (WMI-Activity)：WMI 事件消费者注册
+- 事件 ID 4657：注册表值修改
 
 **具体命令示例：**
-```bash
-# 列出WMI事件过滤器和消费者
-Get-WmiObject -Namespace "root\subscription" -Class __EventFilter
-Get-WmiObject -Namespace "root\subscription" -Class __EventConsumer
-Get-WmiObject -Namespace "root\subscription" -Class __FilterToConsumerBinding
+```powershell
+# 检查辅助功能文件是否被篡改
+Get-ChildItem C:\Windows\System32\sethc.exe, C:\Windows\System32\utilman.exe |
+    ForEach-Object { $_.VersionInfo }
 
-# 检查辅助功能二进制文件
-certutil -hashfile C:\Windows\System32\sethc.exe SHA256
-certutil -hashfile C:\Windows\System32\utilman.exe SHA256
-
-# 检查PowerShell配置文件
-Test-Path $PROFILE
-Get-Content $PROFILE
+# 检查 WMI 事件订阅
+Get-WmiObject -Namespace root\subscription -Class __FilterToConsumerBinding *
 ```
+
+**用人话说：** 事件触发执行是攻击者注册在特定系统事件发生时自动执行的恶意代码。包括WMI事件订阅（CPU使用率超过阈值时触发）、屏幕保护程序触发、文件关联修改（双击.txt文件启动恶意软件）、Shell配置修改（用户打开终端时执行恶意命令）、辅助功能劫持（在登录界面按5次Shift键启动后门）等。这就像在家具里设置了触发机关——当有人以特定方式触碰（如特定的系统事件），隐藏的陷阱就会自动触发。
+
+**Sigma规则示例：**
+```yaml
+title: Sticky Keys Backdoor Detection
+status: experimental
+description: Detects when sethc.exe has been replaced with cmd.exe or other binary
+logsource:
+    category: registry_event
+    product: windows
+detection:
+    selection:
+        EventID: 13
+        TargetObject|contains: 'Image File Execution Options\sethc.exe'
+    condition: selection
+level: critical
+tags:
+    - attack.t1546
+    - attack.t1546.006
+```
+
+
 
 ### 应用层检测
 
 **Sigma规则示例：**
-```yaml
-title: WMI永久事件订阅检测
+
+**用人话说：** 重点监控WMI事件订阅的新增（__EventFilter/__EventConsumer/__FilterToConsumerBinding的创建）、注册表Image File Execution Options和辅助功能键（sethc.exe/utilman.exe）的修改、屏幕保护程序路径指向非系统目录、文件关联被改为指向非默认程序。Sysmon事件ID 19/20/21可监控WMI事件订阅，事件ID 13可监控注册表值设置。
+
+
+yaml
+title: Detected Suspicious Activity - T1546
 status: experimental
-description: 检测创建WMI永久事件订阅的行为
+description: Detects potential T1546 related suspicious behavior
 logsource:
-    category: wmi_event
-    product: windows
+  category: process_creation
+  product: windows
 detection:
-    selection:
-        EventID: 5861
-        Message|contains: '__EventFilter'
-    condition: selection
-level: high
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
 tags:
-    - attack.t1546.003
-```
+  - attack.T1546
+
 
 ## 缓解措施
 
 ### 优先级1：关键措施
 
-**措施名称：** 事件触发机制禁用与权限控制
+**措施名称：** 保护辅助功能文件不被篡改
 
 **具体实施步骤：**
-1. 在Windows 10+上禁用AppInit_DLLs功能（设置`LoadAppInit_DLLs`为0）
-2. 使用SBCP确保辅助功能二进制文件的完整性，配置Windows Defender System Guard运行时监测
-3. 限制WMI权限，只允许管理员创建永久事件订阅，配置WMI命名空间安全设置
-4. 通过组策略配置PowerShell执行策略为`Restricted`或`AllSigned`
+1. 使用 SFC（系统文件检查器）保护系统文件完整性
+2. 启用 Windows Defender 受控文件夹访问保护 System32
+3. 配置 GPO 禁用登录界面的辅助功能
 
 ### 优先级2：重要措施
 
-**措施名称：** 事件触发器监控与审计
+**措施名称：** WMI 审计和控制
 
 **具体实施步骤：**
-1. 启用WMI审计日志（事件ID 5861），监控永久事件过滤器和消费者的创建
-2. 使用Sysinternals Autoruns定期检查所有事件触发位置（IFEO、AppInit_DLLs、AppCertDLLs、启动文件夹等）
-3. 配置Sysmon监控`sethc.exe`、`utilman.exe`等辅助功能二进制文件的进程创建事件
-4. 对关键系统实施文件完整性监控（FIM），检测PowerShell配置文件、shell配置文件（.bashrc等）和全局模板文件的变更
+1. 启用 WMI 活动审计日志
+2. 监控 WMI 持久性（__FilterToConsumerBinding 创建）
+3. 使用 Windows Defender for Endpoint 检测异常 WMI 使用
 
-**配置示例：**
-```bash
-# 禁用AppInit_DLLs
-reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Windows" /v LoadAppInit_DLLs /t REG_DWORD /d 0 /f
+### 优先级3：建议措施
 
-# 配置WMI命名空间安全（限制永久事件订阅）
-# 使用WMI Control MMC管理单元设置
+**措施名称：** SSP 监控
 
-# 监控PowerShell配置文件变更
-auditctl -w $HOME/.config/powershell/Microsoft.PowerShell_profile.ps1 -p wa -k ps_profile
-```
+**具体实施步骤：**
+1. 定期审计 Security Packages 注册表
+2. 监控 LSASS 进程加载的 DLL
+3. 启用 Credential Guard 防止 LSASS 被篡改
+
+### MITRE ATT&CK 缓解措施映射
+
+| 缓解措施ID | 缓解措施名称 | 适用性 | 说明 |
+|------------|-------------|--------|------|
+| M1025 | Privileged Process Integrity | 适用 | Credential Guard 保护 LSASS |
+| M1026 | Privileged Account Management | 部分适用 | 限制辅助功能劫持的传播 |
+| M1038 | Execution Prevention | 适用 | AppLocker 防止非授权程序运行 |
+| M1042 | Disable or Remove Feature or Program | 适用 | 禁用不必要的辅助功能 |
+| M1047 | Audit | 适用 | WMI 事件订阅审计 |
 
 ## 动手实验
 
 > ⚠️ **重要提示**：所有实验必须在隔离的实验室环境中进行，禁止对未授权的真实系统进行测试。
 
-### 实验1：WMI事件订阅
-```powershell
-# 创建WMI事件订阅（需要管理员权限）
-$filter = Set-WmiInstance -Namespace "root\subscription" -Class __EventFilter -Arguments @{
-    Name = "TestFilter"
-    EventNameSpace = "root\cimv2"
-    QueryLanguage = "WQL"
-    Query = "SELECT * FROM __InstanceModificationEvent WITHIN 60 WHERE TargetInstance ISA 'Win32_PerfFormattedData_PerfOS_System'"
-}
+### 实验环境准备
 
-$consumer = Set-WmiInstance -Namespace "root\subscription" -Class CommandLineEventConsumer -Arguments @{
-    Name = "TestConsumer"
-    CommandLineTemplate = "cmd.exe /c echo triggered >> C:\temp\wmi_test.txt"
-}
+**推荐靶场/实验平台：**
 
-Set-WmiInstance -Namespace "root\subscription" -Class __FilterToConsumerBinding -Arguments @{
-    Filter = $filter
-    Consumer = $consumer
-}
+| 平台名称 | 类型 | 难度 | 链接 |
+|----------|------|------|------|
+| Hack The Box | 虚拟靶场 | 中级 | https://www.hackthebox.com |
+| TryHackMe | 虚拟靶场 | 初级 | https://tryhackme.com |
 
-# 清理
-Get-WmiObject -Namespace "root\subscription" -Class __EventFilter | Where-Object {$_.Name -eq "TestFilter"} | Remove-WmiObject
-Get-WmiObject -Namespace "root\subscription" -Class CommandLineEventConsumer | Where-Object {$_.Name -eq "TestConsumer"} | Remove-WmiObject
-```
+### 实验1：辅助功能劫持（初级）
 
-### 实验2：辅助功能替换
-```cmd
-REM 备份原始文件
-copy C:\Windows\System32\sethc.exe C:\temp\sethc_backup.exe
+**实验目标：** 理解辅助功能劫持的原理和操作。
 
-REM 替换为cmd.exe（需要TrustedInstaller权限）
-REM 实际攻击需要先获取所有权并修改权限
+**实验步骤：**
+1. 使用 Image File Execution Options 注册辅助功能劫持
+2. 按 Shift 5 次触发
+3. 观察 SYSTEM 权限的 cmd.exe
 
-REM 清理 - 恢复原始文件
-```
+**预期结果：** 成功在登录界面获得 SYSTEM 权限的命令行。
 
-### 实验3：使用Atomic Red Team测试
-```powershell
-# 执行T1546测试
-Invoke-AtomicTest T1546
-```
+**学习要点：** 掌握最经典的 Windows 提权方法之一。
+
+### 实验2：WMI 事件订阅（中级）
+
+**实验目标：** 学习创建 WMI 事件订阅实现持久化。
+
+**实验步骤：**
+1. 使用 PowerShell 创建 WMI 事件过滤器
+2. 注册事件消费者
+3. 绑定过滤器和消费者
+4. 触发事件验证
+
+**预期结果：** 特定事件触发后，恶意脚本自动执行。
+
+**学习要点：** 掌握无文件持久化技术。
+
+### 实验3：检测事件触发持久化（中级）
+
+**实验目标：** 学习检测系统中已存在的事件触发后门。
+
+**实验步骤：**
+1. 枚举系统上的 WMI 事件订阅
+2. 检查辅助功能文件完整性
+3. 审计注册表中的持久化配置
+
+**预期结果：** 发现并识别系统中的各种事件触发后门。
+
+**学习要点：** 掌握事件触发后门的检测方法。
 
 ## 术语解释
 
 | 术语 | 英文原名 | 通俗解释 |
 |------|----------|----------|
-| WMI | Windows Management Instrumentation | Windows管理规范，一套用于管理系统信息的接口，就像系统的"神经中枢" |
-| 文件关联 | File Association | 文件类型与打开该类型文件的程序之间的关联，如.txt文件用记事本打开 |
-| 辅助功能 | Accessibility Features | 为残障人士提供的系统功能，如粘滞键（Sticky Keys）、放大镜 |
-| AppInit DLLs | AppInit DLLs | 在所有加载user32.dll的进程中自动加载的DLL，一种全局DLL注入机制 |
-| IFEO | Image File Execution Options | 映像文件执行选项，Windows中用于调试程序的注册表配置 |
-| PowerShell配置文件 | PowerShell Profile | PowerShell启动时自动执行的脚本，就像shell的.bashrc |
+| WMI | Windows Management Instrumentation | Windows 的系统管理接口，可以理解为 Windows 的"神经系统"——实时监控系统状态并响应事件 |
+| 事件订阅 | Event Subscription | WMI 中注册的事件监听器，设置"当 X 发生时执行 Y"，像设定一个"自动报警规则" |
+| 辅助功能 | Accessibility / Sticky Keys | Windows 为残障人士设计的特殊键盘功能，被攻击者滥用于登录界面提权 |
+| SSP | Security Support Provider | Windows 处理用户认证的安全支持提供器，像大楼的"前台验证系统" |
+| LSASS | Local Security Authority Subsystem Service | Windows 负责用户认证的核心服务，存储登录凭据，相当于"保安队长" |
+| AppCert DLL | - | Windows 中被所有调用 CreateProcess 的进程会自动加载的 DLL |
+| AppInit DLL | - | Windows 中被所有加载 user32.dll 的进程自动加载的 DLL，类似"每个应用程序都自带的插件" |
+| IFEO | Image File Execution Options | Windows 的映像劫持注册表配置，可以在目标程序启动前先运行调试器（或恶意程序） |
 
 ## 参考资料
 
-- [MITRE ATT&CK T1546 事件触发执行](https://attack.mitre.org/techniques/T1546/)
-- [APT29 POSHSPY分析 - Google Cloud](https://cloud.google.com/blog/topics/threat-intelligence/dissecting-one-ofap)
-- [CISA APT29 SolarWinds Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-057a)
-- [Volt Typhoon Advisory - CISA](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a)
-- [Atomic Red Team - T1546](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics/T1546)
+### 📚 官方文档（深入了解）
+
+- [MITRE ATT&CK T1546 - Event Triggered Execution](https://attack.mitre.org/techniques/T1546/)
+- [MITRE ATT&CK T1546.003 - WMI Event Subscription](https://attack.mitre.org/techniques/T1546/003/)
+- [MITRE ATT&CK T1546.006 - Accessibility Features](https://attack.mitre.org/techniques/T1546/006/)
+- [MITRE ATT&CK T1546.012 - Security Support Provider](https://attack.mitre.org/techniques/T1546/012/)
+
+### 📰 安全报告（真实攻击）
+
+- [Mandiant - NOBELIUM WMI Persistence](https://www.mandiant.com/resources/blog/nobelium-wmi-persistence)
+- [CISA - LockBit Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-123a)
+- [Microsoft Digital Defense Report 2023](https://www.microsoft.com/en-us/security/blog/)
+- [MITRE ATT&CK - Scattered Spider](https://attack.mitre.org/groups/G1015/)
+
+### 📚 学习资料（深入了解）
+
+- [Microsoft - WMI Event Subscription](https://docs.microsoft.com/en-us/windows/win32/wmisdk/subscribing-to-events)
+- [Microsoft - Security Support Providers](https://docs.microsoft.com/en-us/windows/win32/secauthn/ssp)
+- [Atomic Red Team - T1546 Tests](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics/T1546)
+- [PowerSploit - Persistence Module](https://github.com/PowerShellMafia/PowerSploit)

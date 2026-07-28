@@ -4,7 +4,26 @@
 
 > 攻击者通过蹭你家Wi-Fi或者伪造一个假的Wi-Fi热点来入侵你的网络——不需要撬门，只需要在你旁边就能连进来。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者通过各种手段打开目标网络入口的技术 |
+| 为什么危险？ | 初始访问是所有攻击的入口，一旦突破就打开了后续攻击的大门 |
+| 谁需要关心？ | 所有人（员工可能会收到钓鱼邮件） |
+| 你的第一步防御 | 部署多因素认证（MFA），让单一密码泄露无法导致系统失陷 |
+| 如果只做一件事 | 对员工进行钓鱼安全意识培训，这是投入产出比最高的防御 |
+
 ## 难度等级
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 漏洞利用基本概念（CVE/缓解措施）
+- [ ] 社会工程学基础（钓鱼/诱饵）
+- [ ] 网络攻击面概念（暴露面/攻击向量）
 
 - ⭐⭐ **中级**（需要一定基础）——需要了解无线网络协议、加密机制和专门的硬件工具
 
@@ -25,6 +44,8 @@ Wi-Fi网络（Wi-Fi Networks）是一种初始访问技术，攻击者通过连�
 2. **凭据获取**：通过暴力破解或社会工程学获取Wi-Fi密码
 3. **邪恶双胞胎**：设置与合法网络相同的假热点
 4. **最近邻居攻击**：通过入侵临近建筑的系统作为跳板
+
+**过渡段：** 不要误以为初始访问就是'找一个漏洞打进去'这么简单——攻击者会同时尝试多种入口。
 5. **协议漏洞利用**：利用WPA2/WPA3中的漏洞
 
 ## 子技术列表
@@ -154,6 +175,10 @@ graph TD
 - 实施802.1X认证和VLAN分段
 - 定期进行无线安全评估（如使用Wigle.net检查覆盖范围）
 
+## 避坑指南
+
+防御者最常见盲区：过度关注漏洞修复而忽略社会工程学攻击。
+
 ## 检测建议
 
 ### 网络层检测
@@ -196,6 +221,10 @@ iw dev wlan0 info
 **检测方法：** 监控无线网络中的异常ARP和DNS活动。
 
 **Sigma规则示例：**
+
+**用人话说：**初始访问检测的关键是识别异常入口。钓鱼邮件一般会有一些痕迹，比如发件人域名近似但不完全匹配、邮件中包含不常见的附件类型。但这些很容易被绕过，所以更靠谱的检测是看用户点击后的行为——如果Word文档启动了PowerShell，那基本可以认定是被钓鱼了。
+
+**用人话说：**初始访问检测的关键不是只看邮件，而是看用户点击后的行为——如果Word文档启动了PowerShell，基本可以认定被钓鱼了。
 ```yaml
 title: 检测未授权的无线接入点
 status: experimental
@@ -342,23 +371,23 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Wi-Fi Networks (T1669)](https://attack.mitre.org/techniques/T1669/)
 - [CISA - Wi-Fi Networks (T1669)](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1669)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Nearest Neighbor Attack - Volexity](https://www.volexity.com/blog/2024/11/22/the-nearest-neighbor-attack-how-a-russian-apt-weaponized-nearby-wi-fi-networks-for-covert-access/) - APT28利用"最近邻居"Wi-Fi攻击的详细分析（2024年）
 - [Wi-Fi Networks Attack Analysis - SOC Journal](https://socjournal.com/wi-fi-networks-attack-analysis-t1669-rogue-access-point-evil-twin/) - 邪恶双胞胎攻击技术分析
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Aircrack-ng](https://www.aircrack-ng.org/) - 完整的Wi-Fi安全测试工具集
 - [KRACK Attack](https://www.krackattacks.com/) - KRACK漏洞官方页面
 - [Fluxion](https://github.com/FluxionNetwork/fluxion) - 邪恶双胞胎攻击工具
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Wi-Fi Security Best Practices Guide](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1669) - CISA Wi-Fi安全指南
 - [Wi-Fi Networks - Startup Defense](https://www.startupdefense.io/mitre-attack-techniques/t1669-wi-fi-networks) - T1669技术详解

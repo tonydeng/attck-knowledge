@@ -4,7 +4,26 @@
 
 > 攻击者偷偷在你家安装了一个窃听器或后门设备——通过物理方式将恶意硬件植入目标网络中。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者通过各种手段打开目标网络入口的技术 |
+| 为什么危险？ | 初始访问是所有攻击的入口，一旦突破就打开了后续攻击的大门 |
+| 谁需要关心？ | 所有人（员工可能会收到钓鱼邮件） |
+| 你的第一步防御 | 部署多因素认证（MFA），让单一密码泄露无法导致系统失陷 |
+| 如果只做一件事 | 对员工进行钓鱼安全意识培训，这是投入产出比最高的防御 |
+
 ## 难度等级
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 漏洞利用基本概念（CVE/缓解措施）
+- [ ] 社会工程学基础（钓鱼/诱饵）
+- [ ] 网络攻击面概念（暴露面/攻击向量）
 
 - ⭐⭐⭐ **高级**（需要深入技术知识）——需要物理接触能力、硬件知识和绕过物理安全的技能
 
@@ -31,6 +50,8 @@
 - 绕过几乎所有基于网络的安全控制（防火墙、IDS等）
 - 恶意流量从内部网络生成，看起来像正常流量
 - 物理安全往往比网络安全更容易被忽视
+
+**过渡段：** 不要误以为初始访问就是'找一个漏洞打进去'这么简单——攻击者会同时尝试多种入口。
 - 设备可能长期不被发现
 
 ## 子技术列表
@@ -161,6 +182,10 @@ graph TD
 - 部署无线入侵检测系统（WIDS）
 - 定期进行物理安全审计
 
+## 避坑指南
+
+防御者最常见盲区：过度关注漏洞修复而忽略社会工程学攻击。
+
 ## 检测建议
 
 ### 网络层检测
@@ -201,6 +226,10 @@ lsusb
 **检测方法：** 监控异常的键盘输入和进程创建。
 
 **Sigma规则示例：**
+
+**用人话说：**初始访问检测的关键是识别异常入口。钓鱼邮件一般会有一些痕迹，比如发件人域名近似但不完全匹配、邮件中包含不常见的附件类型。但这些很容易被绕过，所以更靠谱的检测是看用户点击后的行为——如果Word文档启动了PowerShell，那基本可以认定是被钓鱼了。
+
+**用人话说：**初始访问检测的关键不是只看邮件，而是看用户点击后的行为——如果Word文档启动了PowerShell，基本可以认定被钓鱼了。
 ```yaml
 title: 可疑的USB键盘注入攻击
 status: experimental
@@ -342,24 +371,24 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Hardware Additions (T1200)](https://attack.mitre.org/techniques/T1200/)
 - [CISA - Hardware Additions (T1200)](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1200)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [DarkVishnya - Kaspersky](https://www.kaspersky.com/blog/dark-vishnya-attack/24867/) - 东欧银行硬件植入攻击详细分析
 - [Pwn Plug - Ars Technica](https://arstechnica.com/information-technology/2012/03/the-pwn-plug-is-a-little-white-box-that-can-hack-your-network/) - Pwn Plug网络植入设备分析
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Hak5 USB Rubber Ducky](https://shop.hak5.org/products/usb-rubber-ducky) - USB键盘注入工具
 - [Flipper Zero Official](https://flipperzero.one/) - 多功能便携式硬件攻击工具
 - [O.MG Cable](https://o.mg.lol/) - 恶意USB线缆
 - [Raspberry Pi](https://www.raspberrypi.com/) - 低成本网络植入平台
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [USB Attack Methods Guide](https://arstechnica.com/information-technology/2012/03/the-pwn-plug-is-a-little-white-box-that-can-hack-your-network/) - USB攻击技术指南
 - [Physical Security Assessment Guide](https://www.kaspersky.com/blog/dark-vishnya-attack/24867/) - 物理安全评估指南

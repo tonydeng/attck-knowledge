@@ -18,11 +18,21 @@
 
 ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 文件系统与存储基础
+- [ ] 数据压缩与归档基本概念
+- [ ] 邮件系统与协作平台工作原理
+
 ## 技术描述
 
 可移动介质数据收集（T1025）是MITRE ATT&CK框架中收集战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要低估收集阶段的隐蔽性——攻击者收集数据时，不会一次性复制所有文件引起注意。而是像'精明的窃贼'一样：先确认最有价值的文件类型（.xlsx > .docx > 随机文件），然后用合法工具（如7zip、rar甚至是系统自带的compress-archive）打包，混在正常的网络流量中传输。
 U盘、移动硬盘、SD卡这些"可移动介质"就像你随身携带的文件袋——里面可能装着工作文档、项目备份、重要资料。攻击者在控制了你的电脑后，会检查插在上面的一切外部存储设备，把里面的文件复制走。甚至有些恶意软件会专门等待你插入U盘的瞬间，自动开始窃取数据。
 
 **技术原理：**
@@ -166,6 +176,10 @@ graph TD
 - 部署USB设备控制策略，仅允许授权USB设备接入
 - 启用Windows事件日志中的USB设备接入审计
 - 对从可移动介质到系统盘的数据复制操作进行告警
+
+## 避坑指南
+
+检测盲点：对合法压缩工具的滥用视而不见。
 
 ## 检测建议
 
@@ -333,17 +347,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1025](https://attack.mitre.org/techniques/T1025/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Stuxnet USB Propagation Analysis - Symantec](https://symantec-enterprise-blogs.security.com/blogs/threat-intelligence/stuxnet-十年)
 - [Turla Carbon Malware Analysis - ESET](https://www.welivesecurity.com/2020/06/18/turla-looking-behind-curtain-carbon/)
 - [Emotet Malware Analysis - CrowdStrike](https://www.crowdstrike.com/blog/emotet-malware-analysis/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [USB Device Control Policy](https://docs.microsoft.com/en-us/windows/security/threat-protection/device-guard/enable-virtualization-based-protection-of-code-integrity) - Windows设备控制策略
 - [USBDeview](https://www.nirsoft.net/utils/usb_devices_view.html) - USB设备查看工具

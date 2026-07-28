@@ -184,7 +184,7 @@ def main():
         # Technique entries with Chinese names, deduplicated by TID
         tech_files = sorted(
             f for f in os.listdir(dirpath)
-            if f.endswith(".md") and f != "README.md"
+            if f.endswith(".md") and f != "README.md" and f != "MAPPING.md"
         )
 
         # Deduplicate: group by tech_id, prefer file without spaces

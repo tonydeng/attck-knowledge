@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows认证体系（NTLM/Kerberos/LSASS）
+- [ ] 哈希基础（NTLM Hash/SHA）
+- [ ] 网络认证协议（SMB/LDAP/Kerberos）
+
 ## 技术描述
 
 窃取应用访问令牌（T1528）是MITRE ATT&CK框架中凭证访问战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误解凭证访问只是'窃取密码'——在现代企业中，凭证存在于内存、磁盘、网络流量和云API等多个位置。攻击者关注的不是密码本身，而是'能用它做什么'：一个服务账号的哈希就能横向移动到数十台服务器，OAuth令牌可以访问整个SaaS租户的数据。
 当你用微信或Google账号登录一个网站时，网站不保存你的密码，而是发给你一个"通行证"（访问令牌）。这个通行证在一定时间内有效，可以用来访问你的信息。攻击者偷走这个通行证，就能冒充你访问所有关联的服务——不需要知道你的密码，也不需要MFA验证。就像你进游乐园时手腕上戴了一个手环，有了它就能玩所有项目。小偷只需要偷走你的手环，就能冒充你玩所有项目。
 
 **技术原理：**
@@ -165,6 +175,10 @@ graph TD
 - 监控令牌刷新频率和来源，检测异常地理位置
 - 使用云平台的异常检测功能
 
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
+
 ## 检测建议
 
 ### 网络层检测
@@ -186,9 +200,6 @@ Zeek检测规则：http请求到169.254.169.254，来自非预期进程
 # 检测AWS IMDS访问
 grep -r "169.254.169.254" /var/log/syslog
 ```
-
-
-
 
 **用人话说：** 这条规则在监控OAuth令牌是否被异常使用。OAuth令牌是云服务的登录凭证，正常情况下令牌会在固定设备和位置使用。如果发现同一个令牌突然从不同地理位置或设备发起API请求，那很可能是攻击者偷到了令牌，正在冒充合法用户访问云资源。
 
@@ -287,17 +298,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1528](https://attack.mitre.org/techniques/T1528/)
 - [Microsoft - OAuth令牌保护](https://learn.microsoft.com/en-us/azure/security/fundamentals/token-protection)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Microsoft - Nobelium令牌分析](https://www.microsoft.com/en-us/security/blog/2021/05/28/breaking-down-nobeliums-latest-targeted-activity/)
 - [Obsidian Security - 2026令牌攻击分析](https://www.obsidiansecurity.com/blog/token-based-attacks-how-attackers-bypass-mfa)
 - [CISA - Scattered Spider](https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-320a)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [OAuth 2.0安全最佳实践](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics)

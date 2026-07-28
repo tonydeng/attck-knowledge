@@ -4,13 +4,35 @@
 
 > **查询公开AI服务就像让ChatGPT当你的"军师"，帮你想办法侦察目标、写钓鱼邮件、研究漏洞。**
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者用ChatGPT/Claude/Gemini/Copilot等公开AI服务做侦察——让AI帮忙研究目标技术栈、生成定制化钓鱼文案、分析漏洞公告、甚至编写恶意代码 |
+| 为什么危险？ | AI让攻击者能更快、更大规模地侦察，且降低了技术门槛(不会写代码的人也能用AI生成钓鱼工具)；AI还能把零散信息整合成完整目标画像 |
+| 谁需要关心？ | 安全意识培训团队(员工可能在AI里输入公司机密)、数据防泄漏(DLP)团队、邮件安全团队 |
+| 你的第一步防御 | 制定企业AI使用政策，禁止员工在公开AI服务中输入公司机密、源码、内部文档 |
+| 如果只做一件事 | 部署DLP规则，拦截员工向chat.openai.com/claude.ai等AI服务上传敏感文档(含源码/凭证/内部报告) |
+
 ## 难度等级
 
 ⭐⭐ 中级 - 需要了解AI工具的使用方法和提示工程技巧
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 大语言模型(LLM)工作原理和提示工程(prompt engineering)
+- [ ] 公开AI服务(ChatGPT/Claude/Gemini/Copilot)的能力边界和数据政策
+- [ ] 数据防泄漏(DLP)和AI使用治理框架
+- [ ] AI辅助攻击场景(钓鱼文案生成/漏洞分析/恶意代码辅助)
+
 ## 技术描述
 
 **通俗解释：**
+
+**过渡段：** 不要误以为用AI做侦察只是'让ChatGPT写封钓鱼邮件'——在攻击者手中，AI是情报整合和攻击加速器。攻击者把从LinkedIn扒到的员工名单、从GitHub找到的项目代码、从新闻稿读到的业务节奏，一股脑喂给AI，让它生成针对每个高管定制化的鱼叉钓鱼文案；把CVE漏洞公告丢给AI让它分析利用思路；甚至让AI把多个OSINT来源的信息交叉关联，拼出完整的组织架构和攻击面地图。AI让一个技术平平的攻击者具备了过去只有APT才有的定制化攻击能力。
 现在ChatGPT、Claude等AI工具非常强大，攻击者也在利用这些工具来提升攻击效率。他们可以让AI帮忙：研究目标公司的技术栈、生成钓鱼邮件内容、分析漏洞公告、甚至编写恶意代码。AI让攻击者能够更快、更大规模地进行侦察，同时降低了技术门槛。
 
 **技术原理：**
@@ -92,9 +114,9 @@ graph TD
 
 - **时间**: 2024年
 - **目标**: 全球多个组织
-- **攻击组织**: 多个APT组织（Charcoal Typhoon、Salmon Typhoon、APT28等）
+- **攻击组织**: 多个国家关联APT组织（Charcoal Typhoon、Salmon Typhoon、APT28等）
 - **手法**: 微软和OpenAI联合披露，五个国家关联的APT组织被观察到利用LLM自动化攻击链的各个阶段。具体包括：使用LLM进行目标侦察、生成钓鱼邮件内容、分析安全公告和编写恶意软件脚本。被点名的组织包括中国的Charcoal Typhoon和Salmon Typhoon、伊朗的Crimson Sandstorm、朝鲜的Emerald Sleet和俄罗斯的Forest Blizzard（APT28）
-- **影响**: 多个APT组织的攻击效率得到显著提升
+- **影响**: 上述APT组织的攻击效率得到显著提升
 - **参考链接**: [Microsoft: AI Threat Actors](https://www.microsoft.com/en-us/security/blog/2024/02/14/staying-ahead-of-threat-actors-in-the-age-of-ai/)
 
 ### 案例2：APT28利用LLM研究卫星通信能力
@@ -170,6 +192,15 @@ graph TD
 - 实施DLP防止敏感信息泄露到AI服务
 - 更新邮件安全策略检测AI生成的钓鱼内容
 
+## 避坑指南
+
+新手常犯的错误：只关注攻击者用AI，忽略了**员工也在用AI泄密**。员工把公司源码粘贴到ChatGPT让它debug，把内部财务报告喂给Claude让它写摘要，把客户数据上传到Gemini做分析——这些行为都会把机密信息送到AI厂商的服务器，可能被用于训练或被攻击者通过提示注入窃取。2023年三星电子员工把源代码和会议纪要粘贴到ChatGPT后，公司全面禁止内部使用公开AI服务。正确做法是：制定企业AI使用政策(明确允许/禁止的AI服务和数据类型)，部署DLP拦截向AI服务上传敏感文档的行为，对必须用AI的场景部署私有化部署的LLM。
+
+**自查清单：**
+- 检查DLP是否覆盖向chat.openai.com/claude.ai/gemini.google.com等AI域名上传文件的行为
+- 审计员工是否有向GitHub Copilot提交公司私有代码仓库的行为(可能泄露源码)
+- 制定企业AI使用政策并完成全员培训
+
 ## 检测建议
 
 ### 网络层检测
@@ -193,6 +224,8 @@ tcpdump -i eth0 -A | grep -E "api.openai.com|api.anthropic.com"
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：** 攻击者用AI做侦察本身在目标系统上无痕(他们只是调用AI API)，你检测不到攻击者在问ChatGPT什么。但你能做两件事：1)**防员工泄密**——部署DLP监控员工向AI服务(chat.openai.com/claude.ai/gemini.google.com)上传敏感文档的行为，拦截源码/凭证/内部报告的外发；2)**监控AI辅助攻击的下游效应**——如果发现一批钓鱼邮件的文案风格高度一致且质量明显高于过往(说明用了AI生成)，或者发现针对你组织的鱼叉钓鱼突然规模化(每个高管都收到定制化邮件)，那很可能攻击者在用AI批量生成攻击内容。
 ```yaml
 title: Suspicious AI API Query
 status: experimental
@@ -323,11 +356,11 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - 查询公开AI服务 (T1682)](https://attack.mitre.org/techniques/T1682/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Microsoft: Staying Ahead of Threat Actors in the Age of AI](https://www.microsoft.com/en-us/security/blog/2024/02/14/staying-ahead-of-threat-actors-in-the-age-of-ai/) - APT组织使用LLM的案例
 - [Anthropic LLM ATT&CK Navigator](https://red.anthropic.com/2026/attack-navigator/) - AI增强的攻击分析
@@ -335,12 +368,12 @@ tags:
 - [Mandiant M-Trends 2026](https://services.google.com/fh/files/misc/m-trends-2026-executive-edition-en.pdf) - AI在攻击中的使用
 - [Cofense: AI-Powered Phishing 2026](https://cofense.com/Blog/Cofense-Report-Reveals-AI-Powered-Phishing-Accelerated-to-One-Attack-Every-19-Seconds) - AI驱动的钓鱼攻击趋势
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [ChatGPT](https://chat.openai.com/) - OpenAI的AI助手
 - [Claude](https://claude.ai/) - Anthropic的AI助手
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [NanoFirewall: LLMProbe](https://blog.nanofirewall.com/llmprobe-early-2026-automated-scanning-of-public-llm-inference-endpoints/) - AI端点扫描活动
 - [CISA: AI Security Guidance](https://www.cisa.gov/ai)

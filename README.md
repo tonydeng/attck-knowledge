@@ -2,10 +2,10 @@
 
 [![mdbook build](https://github.com/tonydeng/attck-knowledge/actions/workflows/deploy.yml/badge.svg)](https://github.com/tonydeng/attck-knowledge/actions/workflows/deploy.yml)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-brightgreen)](https://tonydeng.github.io/attck-knowledge/)
-[![MITRE ATT&CK v19](https://img.shields.io/badge/MITRE%20ATT%26CK-v19-blue)](https://attack.mitre.org/matrices/enterprise/)
+[![MITRE ATT&CK v19.1.1](https://img.shields.io/badge/MITRE%20ATT%26CK-v19-blue)](https://attack.mitre.org/matrices/enterprise/)
 [![中文](https://img.shields.io/badge/lang-中文-red)](.)
 
-基于 [MITRE ATT&CK® v19 Enterprise](https://attack.mitre.org/matrices/enterprise/) 矩阵的完整中文知识库，覆盖全部 **15 个战术**、**254 个技术** 和 **900+ 个子技术**。
+基于 [MITRE ATT&CK® v19 Enterprise](https://attack.mitre.org/matrices/enterprise/) 矩阵的完整中文知识库，覆盖全部 **15 个战术**、**254 个技术** 和 **617 个子技术**。
 
 > 每篇技术文档包含：通俗理解、技术原理、真实案例、红蓝队视角、检测建议、动手实验。适合安全分析师、渗透测试工程师、蓝队防御人员、安全学习者阅读。
 
@@ -32,22 +32,22 @@
 | 序号 | 战术名称 | TA ID | 技术数 | 子技术数 | 目录 |
 |:---:|---------|:-----:|:------:|:--------:|------|
 | 01 | 侦察 | TA0043 | 12 | 34 | [`01-Reconnaissance`](./src/01-Reconnaissance/README.md) |
-| 02 | 资源开发 | TA0042 | 10 | 41 | [`02-Resource-Development`](./src/02-Resource-Development/README.md) |
-| 03 | 初始访问 | TA0001 | 10 | 11 | [`03-Initial-Access`](./src/03-Initial-Access/README.md) |
-| 04 | 执行 | TA0002 | 20 | 46 | [`04-Execution`](./src/04-Execution/README.md) |
-| 05 | 持久化 | TA0003 | 25 | 106 | [`05-Persistence`](./src/05-Persistence/README.md) |
-| 06 | 权限提升 | TA0004 | 13 | 89 | [`06-Privilege-Escalation`](./src/06-Privilege-Escalation/README.md) |
-| 07 | 隐蔽 | TA0005 | 25 | 172 | [`07-Stealth`](./src/07-Stealth/README.md) |
-| 08 | 防御削弱 | TA0112 | 24 | 134 | [`08-Defense-Impairment`](./src/08-Defense-Impairment/README.md) |
-| 09 | 凭证访问 | TA0006 | 19 | 63 | [`09-Credential-Access`](./src/09-Credential-Access/README.md) |
-| 10 | 发现 | TA0007 | 34 | 24 | [`10-Discovery`](./src/10-Discovery/README.md) |
-| 11 | 横向移动 | TA0008 | 11 | 14 | [`11-Lateral-Movement`](./src/11-Lateral-Movement/README.md) |
-| 12 | 收集 | TA0009 | 17 | 18 | [`12-Collection`](./src/12-Collection/README.md) |
-| 13 | 命令与控制 | TA0011 | 18 | 33 | [`13-Command-and-Control`](./src/13-Command-and-Control/README.md) |
-| 14 | 渗漏 | TA0010 | 9 | 9 | [`14-Exfiltration`](./src/14-Exfiltration/README.md) |
-| 15 | 影响 | TA0040 | 11 | 12 | [`15-Impact`](./src/15-Impact/README.md) |
+| 02 | 资源开发 | TA0042 | 9 | 41 | [`02-Resource-Development`](./src/02-Resource-Development/README.md) |
+| 03 | 初始访问 | TA0001 | 11 | 11 | [`03-Initial-Access`](./src/03-Initial-Access/README.md) |
+| 04 | 执行 | TA0002 | 20 | 44 | [`04-Execution`](./src/04-Execution/README.md) |
+| 05 | 持久化 | TA0003 | 22 | 90 | [`05-Persistence`](./src/05-Persistence/README.md) |
+| 06 | 权限提升 | TA0004 | 13 | 83 | [`06-Privilege-Escalation`](./src/06-Privilege-Escalation/README.md) |
+| 07 | 隐蔽 | TA0005 | 30 | 118 | [`07-Stealth`](./src/07-Stealth/README.md) |
+| 08 | 防御削弱 | TA0112 | 18 | 38 | [`08-Defense-Impairment`](./src/08-Defense-Impairment/README.md) |
+| 09 | 凭证访问 | TA0006 | 17 | 50 | [`09-Credential-Access`](./src/09-Credential-Access/README.md) |
+| 10 | 发现 | TA0007 | 34 | 15 | [`10-Discovery`](./src/10-Discovery/README.md) |
+| 11 | 横向移动 | TA0008 | 9 | 14 | [`11-Lateral-Movement`](./src/11-Lateral-Movement/README.md) |
+| 12 | 收集 | TA0009 | 17 | 24 | [`12-Collection`](./src/12-Collection/README.md) |
+| 13 | 命令与控制 | TA0011 | 18 | 27 | [`13-Command-and-Control`](./src/13-Command-and-Control/README.md) |
+| 14 | 渗漏 | TA0010 | 9 | 10 | [`14-Exfiltration`](./src/14-Exfiltration/README.md) |
+| 15 | 影响 | TA0040 | 15 | 18 | [`15-Impact`](./src/15-Impact/README.md) |
 
-> **总计**：274 篇文档（15 篇战术概览 + 259 篇技术文档），覆盖 254 个技术、900+ 子技术
+> **总计**：871 篇技术文档（254 个主技术 + 617 个子技术），覆盖 15 个战术
 
 ---
 

@@ -18,11 +18,21 @@
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows认证体系（NTLM/Kerberos/LSASS）
+- [ ] 哈希基础（NTLM Hash/SHA）
+- [ ] 网络认证协议（SMB/LDAP/Kerberos）
+
 ## 技术描述
 
 多因素认证拦截（T1111）是MITRE ATT&CK框架中凭证访问战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误解凭证访问只是'窃取密码'——在现代企业中，凭证存在于内存、磁盘、网络流量和云API等多个位置。攻击者关注的不是密码本身，而是'能用它做什么'：一个服务账号的哈希就能横向移动到数十台服务器，OAuth令牌可以访问整个SaaS租户的数据。
 多因素认证（MFA）就像一栋大楼有两道门——第一道是指纹锁（密码），第二道是保安人工确认（验证码）。按理说这样很安全，但攻击者现在有办法同时骗过两道门：要么在登录的时候实时转发密码和验证码（中间人钓鱼），要么反复发验证码把用户烦到主动"同意"，要么直接偷走登录后的"通行证"（会话令牌）跳过MFA。
 
 **技术原理：**
@@ -179,6 +189,10 @@ graph TD
 - 监控SIM卡变更事件与账户活动关联分析
 - 使用风险条件访问策略，将高风险认证指向更严格的验证
 
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
+
 ## 检测建议
 
 ### 网络层检测
@@ -199,9 +213,6 @@ graph TD
 - 事件ID 50076：MFA失败
 - 事件ID 50125：MFA注册变更
 - 登录日志中的异常IP地理位置
-
-
-
 
 **用人话说：** 这条规则在监控多因素认证（MFA）配置是否被篡改。MFA是防止账户被盗用的'最后一道防线'。正常情况下MFA配置不会被频繁修改。如果发现有新的MFA设备被注册、MFA被禁用、或者认证策略被修改，那就是攻击者在试图绕过MFA保护。
 
@@ -299,21 +310,21 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1111](https://attack.mitre.org/techniques/T1111/)
 - [CISA - MFA风险分析](https://www.cisa.gov/mfa)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Microsoft - MFA推送疲劳攻击分析](https://www.microsoft.com/en-us/security/blog/2022/12/12/targeted-phishing-attacks-against-okta-and-microsoft-365/)
 - [Obsidian Security - 2026令牌攻击分析](https://www.obsidiansecurity.com/blog/token-based-attacks-how-attackers-bypass-mfa)
 - [WorkOS - 2026年AiTM攻击分析](https://workos.com/blog/how-attackers-are-bypassing-mfa-using-ai-in-2026)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [EvilGinx2](https://github.com/kgretzky/evilginx2) - MFA钓鱼反向代理
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Cloudflare - 0ktapus攻击分析](https://blog.cloudflare.com/2022-okta-phishing-attack/)

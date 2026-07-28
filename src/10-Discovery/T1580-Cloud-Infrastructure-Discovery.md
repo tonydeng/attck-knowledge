@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 云基础设施发现（T1580）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 云基础设施包括计算资源（虚拟机）、网络资源（虚拟网络、防火墙规则）、存储资源（存储桶、磁盘）和容器资源（Kubernetes集群）。攻击者窃取云凭证后，会逐一枚举这些资源——不仅要知道有什么，更要知道它们之间的网络连接关系和配置情况。这就像拿到大楼的电气和网络布线图，搞清楚哪些房间之间有秘密通道。
 
 **技术原理：**
@@ -176,6 +186,10 @@ graph TD
 - 使用CSPM工具检测异常的API枚举模式
 - 监控Kubernetes审计日志中的 `list`、`get` 操作
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -302,19 +316,19 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1580](https://attack.mitre.org/techniques/T1580/)
 - [AWS CLI Documentation](https://aws.amazon.com/cli/)
 - [Kubernetes Documentation](https://kubernetes.io/docs/home/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Aqua Security - TeamTNT](https://blog.aquasec.com/teamtnt-container-discovery)
 - [Microsoft - Nobelium](https://www.microsoft.com/security/blog/2021/05/28/breaking-down-nobeliums-cloud-account-compromise/)
 - [CrowdStrike - Scattered Spider](https://www.crowdstrike.com/blog/scattered-spider-cloud-activity/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [ScoutSuite](https://github.com/nccgroup/ScoutSuite)
 - [kube-bench](https://github.com/aquasecurity/kube-bench)

@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 远程系统发现（T1018）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 攻击者入侵一台电脑后，不会满足于只在这一台电脑上活动——他们会想知道周围还有哪些电脑，就像小偷潜入一栋楼后会探头看看隔壁房间有没有人。远程系统发现就是攻击者用来探测网络中其他电脑的技术。
 
 **技术原理：**
@@ -73,7 +83,7 @@ graph TD
 
 3. **DNS查询发现服务器**
    - 通俗描述：查询DNS服务器获取域中各种服务的地址
-   - 技术细节：`nslookup -type=SRV _ldap._tcp.dc._msdcs.&lt;domain&gt;`
+   - 技术细节：`nslookup -type=SRV _ldap._tcp.dc._msdcs.<domain>`
    - 常用工具：nslookup.exe
 
 4. **LDAP枚举**
@@ -132,7 +142,7 @@ graph TD
    使用SharpHound收集器自动收集AD环境中的计算机、用户、组和权限关系数据。
 
 3. **使用nltest快速发现域控**
-   `nltest /dclist:&lt;domain&gt;` 是最快获取域控制器列表的方法之一。
+   `nltest /dclist:<domain>` 是最快获取域控制器列表的方法之一。
 
 ### 常用工具
 
@@ -172,6 +182,10 @@ graph TD
 - 启用对LDAP查询的日志记录
 - 监控nltest的异常使用
 - 使用网络检测系统识别扫描行为
+
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
 
 ## 检测建议
 
@@ -259,8 +273,8 @@ tags:
 
 **实验步骤：**
 1. 在域环境中执行 `net view` 查看域中计算机列表
-2. 执行 `nslookup -type=all `&lt;domain&gt;`` 查看DNS记录
-3. 执行 `ping -n 1 `&lt;target&gt;`` 测试连通性
+2. 执行 `nslookup -type=all <domain>` 查看DNS记录
+3. 执行 `ping -n 1 <target>` 测试连通性
 4. 使用 `arp -a` 查看通信记录
 
 **预期结果：** 看到域中其他计算机的信息。
@@ -280,17 +294,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1018](https://attack.mitre.org/techniques/T1018/)
 - [Microsoft - Net View](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/net-view)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Rapid7 - MuddyWater 2026](https://www.rapid7.com/blog/post/tr-muddying-tracks-state-sponsored-shadow-behind-chaos-ransomware/)
 - [The DFIR Report - Lynx Ransomware](https://thedfirreport.com/2025/12/17/cats-got-your-files-lynx-ransomware/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [BloodHound](https://github.com/BloodHoundAD/BloodHound)
 - [PowerView](https://github.com/PowerShellMafia/PowerSploit)

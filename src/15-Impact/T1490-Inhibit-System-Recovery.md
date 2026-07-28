@@ -8,21 +8,31 @@
 
 | 维度 | 你需要知道的 |
 |------|-------------|
-| 这是什么？ | 阻止系统恢复（T1490）是攻击者用来破坏目标系统或数据的技术 |
-| 为什么危险？ | 攻击者可以对目标造成不可逆的破坏，影响组织正常运营 |
-| 谁需要关心？ | 安全运维团队、系统管理员、业务负责人 |
-| 你的第一步防御 | 定期备份数据并测试恢复流程，确保备份与生产环境隔离 |
-| 如果只做一件事 | 监控异常的数据删除或修改行为，设置关键文件完整性告警 |
+| 这是什么？ | 攻击者通过删除或禁用系统恢复功能（卷影副本、系统还原、备份目录），使受害者在遭受破坏后无法自行恢复系统，最大化勒索软件或擦除器攻击的破坏效果 |
+| 为什么危险？ | 这是勒索软件和擦除器攻击的"致命一击"——没有备份可恢复，受害者只能选择支付赎金或承受永久数据丢失。几乎所有现代勒索软件（LockBit、Conti、BlackCat）都将此作为标准操作步骤 |
+| 谁需要关心？ | 安全运维团队、备份管理员、SOC分析师、业务连续性负责人 |
+| 你的第一步防御 | 实施不可变备份策略（如S3 Object Lock、Veeam Hardened Repository），确保备份数据即使被管理员账户也无法删除或篡改 |
+| 如果只做一件事 | 监控 `vssadmin delete shadows`、`wbadmin delete catalog`、`bcdedit /set recoveryenabled No` 这三个关键命令的执行，任何非计划内的执行都应触发最高级别告警 |
 
 ## 难度等级
 
 ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 备份与灾备基本原理
+- [ ] 加密算法基础
+- [ ] 系统恢复功能（VSS/启动修复）
 
 ## 技术描述
 
 阻止系统恢复（T1490）是MITRE ATT&CK框架中影响战术的一种技术。攻击者通过删除或禁用系统的恢复功能，使受害者无法在遭受破坏后自行恢复系统。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为影响战术只是'破坏数据'——在勒索攻击中，加密数据只是最后一步。在此之前，攻击者会系统地：禁用备份系统、删除卷影副本、关闭安全告警、窃取敏感数据（双重勒索）。破坏的后果不只是宕机，还包括数据泄露、品牌声誉损失和监管罚款。
 Windows系统有个自动备份快照功能（卷影副本），就像游戏里的存档点，系统出问题了可以读档恢复。攻击者做的第一件事就是删掉所有存档点——删除卷影副本、禁用系统还原、删掉备份目录。这样一来，当你被勒索软件加密了文件后，既没有备份可以恢复，系统也无法自动修复，只能乖乖交钱。
 
 **技术原理：**
@@ -178,6 +188,10 @@ graph TD
 - 对 `vssadmin.exe`、`wbadmin.exe`、`bcdedit.exe` 等敏感工具设置命令行审计规则
 - 创建"卷影副本数量骤降"的告警规则，实时监控VSS状态
 - 部署备份监控系统（如Veeam ONE），检测备份作业异常失败
+
+## 避坑指南
+
+防御者最痛苦教训：备份不在离线状态。3-2-1备份策略是底线。
 
 ## 检测建议
 
@@ -349,23 +363,23 @@ wmic shadowcopy call create Volume=C:\
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Inhibit System Recovery](https://attack.mitre.org/techniques/T1490/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CISA - Conti Ransomware Analysis](https://www.cisa.gov/news-events/analysis-reports/ar21-265a)
 - [NotPetya Analysis - Welivesecurity](https://www.welivesecurity.com/2017/07/04/analysis-of-telebots-cunning-connection/)
 - [LockBit 3.0 Analysis - Trend Micro](https://www.trendmicro.com/vinfo/us/security/news/ransomware-spotlight/lockbit-3-0)
 - [Poland Wiper Campaign C0063](https://attack.mitre.org/campaigns/C0063/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Sysinternals Suite](https://learn.microsoft.com/sysinternals/) - Windows系统诊断工具集
 - [Veeam Hardened Repository](https://www.veeam.com/) - 不可变备份存储方案
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Microsoft - VSS Documentation](https://learn.microsoft.com/windows/win32/vss/volume-shadow-copy-service-overview) - 卷影复制服务官方文档
 - [CISA - Ransomware Guide](https://www.cisa.gov/stopransomware) - CISA反勒索软件指南

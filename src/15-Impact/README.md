@@ -18,7 +18,6 @@
 - **勒索攻击**：[T1486](T1486-Data-Encrypted-for-Impact.md)（数据加密勒索）、[T1490](T1490-Inhibit-System-Recovery.md)（阻止系统恢复）
 - **数据破坏**：[T1485](T1485-Data-Destruction.md)（数据销毁）、[T1565](T1565-Data-Manipulation.md)（数据篡改）
 - **服务中断**：[T1489](T1489-Service-Stop.md)（停止服务）、[T1529](T1529-System-Shutdown-Reboot.md)（关机重启）、[T1499](T1499-Endpoint-Denial-of-Service.md)（端点DoS）、[T1498](T1498-Network-Denial-of-Service.md)（网络DoS）
-- **资源劫持**：[T1654](T1654-Resource-Hijacking.md)（资源劫持）
 - **声誉攻击**：[T1491](T1491-Defacement.md)（网页篡改）
 - **账户破坏**：[T1531](T1531-Account-Access-Removal.md)（账户访问移除）
 
@@ -40,7 +39,7 @@ graph LR
     J --> K["横向移动<br/>TA0008"]
     K --> L["收集<br/>TA0009"]
     L --> M["命令与控制<br/>TA0011"]
-    M --> N["数据窃取<br/>TA0010"]
+    M --> N["渗漏<br/>TA0010"]
     N --> O["影响<br/>TA0040"]
 
     style O fill:#ff6b6b,stroke:#333,stroke-width:4px,color:#fff
@@ -52,7 +51,7 @@ graph LR
 
 ### 前置战术
 
-- **数据窃取 (TA0010)**：攻击者通常在加密或销毁数据前先窃取敏感数据，实现双重勒索
+- **渗漏 (TA0010)**：攻击者通常在加密或销毁数据前先窃取敏感数据，实现双重勒索
 - **命令与控制 (TA0011)**：攻击者需要通过C2通道下发加密/销毁指令
 - **收集 (TA0009)**：攻击者需要识别和定位有价值的目标数据
 
@@ -72,7 +71,6 @@ graph LR
 | [T1499](./T1499-Endpoint-Denial-of-Service.md) | 端点拒绝服务 | ⭐⭐ | 4 | 让某台服务器累趴下，没法响应正常请求 | ✅ 已完成 |
 | [T1498](./T1498-Network-Denial-of-Service.md) | 网络拒绝服务 | ⭐⭐ | 0 | 用海量流量堵死你的网络，谁都访问不了 | ✅ 已完成 |
 | [T1490](./T1490-Inhibit-System-Recovery.md) | 阻止系统恢复 | ⭐⭐ | 0 | 删掉你的备份，让你被勒索后没法恢复 | ✅ 已完成 |
-| [T1654](./T1654-Resource-Hijacking.md) | 资源劫持 | ⭐⭐ | 2 | 用你的电脑挖矿赚钱，电费你出钱他赚 | ✅ 已完成 |
 | [T1529](./T1529-System-Shutdown-Reboot.md) | 系统关机重启 | ⭐ | 0 | 强行关掉你的服务器，业务全部停摆 | ✅ 已完成 |
 | [T1489](./T1489-Service-Stop.md) | 停止服务 | ⭐ | 0 | 关掉你的数据库或安全软件，为破坏开路 | ✅ 已完成 |
 
@@ -91,14 +89,12 @@ graph LR
 | [T1565.001](./T1565/T1565.001-Stored-Data-Manipulation.md) | 存储数据篡改 | ⭐⭐ | 修改数据库或文件中的已存储数据 | ✅ 已完成 |
 | [T1565.002](./T1565/T1565.002-Transmitted-Data-Manipulation.md) | 传输数据篡改 | ⭐⭐ | 在网络传输过程中拦截并修改数据 | ✅ 已完成 |
 | [T1565.003](./T1565/T1565.003-Real-time-Data-Manipulation.md) | 实时系统数据篡改 | ⭐⭐ | 修改工业控制系统或嵌入式系统的实时数据 | ✅ 已完成 |
-| [T1654.001](./T1654/T1654.001-Compute-Resource-Hijacking.md) | 计算资源劫持 | ⭐⭐ | 利用受害者的CPU/GPU进行挖矿或计算任务 | ✅ 已完成 |
-| [T1654.002](./T1654/T1654.002-Bandwidth-Resource-Hijacking.md) | 带宽资源劫持 | ⭐⭐ | 利用受害者的网络带宽进行DDoS或流量转发 | ✅ 已完成 |
 
 ### 统计信息
 
-- **技术总数**：11 个
-- **子技术总数**：11 个
-- **已完成文档**：11 个
+- **技术总数**：15 个
+- **子技术总数**：18 个
+- **已完成文档**：33 个（15 父技术 + 18 子技术）
 - **进行中**：0 个
 - **待编写**：0 个
 
@@ -147,8 +143,7 @@ graph LR
 **推荐阅读：**
 
 1. **[数据篡改 (T1565)](./T1565-Data-Manipulation.md)** - 最隐蔽的破坏方式，改了你的数据你还不知道
-2. **[资源劫持 (T1654)](./T1654-Resource-Hijacking.md)** - 了解挖矿病毒和僵尸网络，你的电脑在给别人打工
-3. **[账户访问移除 (T1531)](./T1531-Account-Access-Removal.md)** - 了解攻击者怎么通过改密码删账号让你彻底失控
+2. **[账户访问移除 (T1531)](./T1531-Account-Access-Removal.md)** - 了解攻击者怎么通过改密码删账号让你彻底失控
 
 **学习建议：**
 - 在隔离环境中搭建挖矿检测实验
@@ -173,3 +168,5 @@ graph LR
 - [Forensiq](https://www.forensiq.com/) - 数据破坏检测工具
 - [Volatility](https://www.volatilityfoundation.org/) - 内存取证分析
 - [YARA](https://virustotal.github.io/yara/) - 恶意软件模式匹配工具
+
+> **版本**: v19.1 | **更新**: 2026-07-28 | **模板**: 战术README v3.1

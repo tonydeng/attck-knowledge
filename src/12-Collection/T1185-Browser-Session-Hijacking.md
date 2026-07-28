@@ -18,11 +18,21 @@
 
 ⭐⭐⭐ 高级（需要一定经验）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 文件系统与存储基础
+- [ ] 数据压缩与归档基本概念
+- [ ] 邮件系统与协作平台工作原理
+
 ## 技术描述
 
 浏览器会话劫持（T1185）是MITRE ATT&CK框架中收集战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要低估收集阶段的隐蔽性——攻击者收集数据时，不会一次性复制所有文件引起注意。而是像'精明的窃贼'一样：先确认最有价值的文件类型（.xlsx > .docx > 随机文件），然后用合法工具（如7zip、rar甚至是系统自带的compress-archive）打包，混在正常的网络流量中传输。
 你登录网站后，浏览器会保存一个"会话令牌"或"Cookie"——就像你进入游乐园时手上盖的荧光章，工作人员看到这个章就知道你已经买过票了。攻击者如果拿到了你的会话Cookie，就可以冒充你登录网站而完全不需要密码。你登录了公司系统、Gmail、社交媒体，攻击者把这些Cookie一偷，就可以以自己的浏览器冒充你，做任何你能做的事情。更糟糕的是，如果盗窃发生时你正在管理控制台操作，攻击者立刻就能获得你当前的管理权限。
 
 **技术原理：**
@@ -175,6 +185,10 @@ graph TD
 - 监控同一个会话令牌在短时间内从多个IP地址同时使用
 - 配置异常登录行为告警（如地理跳跃、设备变化）
 - 启用令牌绑定（Token Binding）将认证令牌绑定到特定的TLS会话
+
+## 避坑指南
+
+检测盲点：对合法压缩工具的滥用视而不见。
 
 ## 检测建议
 
@@ -341,17 +355,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1185](https://attack.mitre.org/techniques/T1185/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Lumma Stealer Bypasses Chrome App-Bound Encryption](https://www.bleepingcomputer.com/news/security/lumma-stealer-now-bypasses-chromes-new-app-bound-encryption/)
 - [CrystalRAT Analysis - Kaspersky 2026](https://securelist.com/crystalrat-analysis/)
 - [AiTM Phishing Kits Rise - Microsoft 2024](https://www.microsoft.com/security/blog/2024/06/15/aitm-phishing-kits-rise/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [EvilGinx2](https://github.com/kgretzky/evilginx2) - 中间人钓鱼框架
 - [EditThisCookie](https://www.editthiscookie.com/) - Cookie管理扩展

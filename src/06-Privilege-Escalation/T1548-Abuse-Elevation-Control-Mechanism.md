@@ -4,15 +4,36 @@
 
 就像骗过大楼的安保系统，让保安以为你是 VIP——攻击者绕过或利用系统的权限提升控制机制（UAC、sudo），在不被系统阻止的情况下获得管理员权限。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 滥用或绕过操作系统内置的权限提升控制机制（Windows UAC、Linux sudo/su）获取管理员权限 |
+| 为什么危险？ | 这些机制本应防止未授权提权，被绕过意味着攻击者无需漏洞即可获得高权限，且行为看似合法 |
+| 谁需要关心？ | 系统管理员、终端安全运维团队、域安全管理员 |
+| 你的第一步防御 | 将UAC等级设为"始终通知"、审计sudoers配置、监控autoelevate白名单进程的异常调用 |
+| 如果只做一件事 | 监控以高完整性级别运行的进程是否通过UAC绕过路径（如fodhelper/compmgmtlauncher）启动 |
+
 ## 难度等级
 
 ⭐⭐ **中级** - 需要对 UAC 机制和 sudo 配置有深入理解，但利用工具成熟，具体操作不复杂。
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows UAC机制（完整性级别、autoelevate白名单）
+- [ ] Linux sudo/su配置与SUID位概念
+- [ ] 进程令牌与权限令牌概念
 
 ## 技术描述
 
 操作系统有内置的"权限提升控制机制"——在 Windows 上是 UAC（用户账户控制），在 Linux/Mac 上是 sudo 和 su。这些机制的目的是防止恶意程序未经授权就获得管理员权限。攻击者通过绕过或滥用这些机制来提升权限。
 
 **通俗解释：**
+
+**过渡段：** 不要以为UAC/sudo就是'安全防线'——UAC的autoelevate白名单中有数十个微软签名进程可自动提权，攻击者只需通过DLL劫持或COM接口劫持这些进程即可静默提权。Linux的sudo则常因sudoers配置过于宽松(如NOPASSWD)或SUID位被滥用而被绕过。
 在一座高级写字楼里，进入 VIP 区域需要刷卡验证（UAC 弹窗）。攻击者用的方法不是伪造卡，而是：
 1. **绕过**：假装"我只是普通的快递员，但送货地址在安保室里面"——使用不需要验证的特殊路径
 2. **滥用**：发现某个 VIP 的卡"没锁门"（sudo 配置错误），直接推门进去
@@ -200,6 +221,10 @@ graph TD
 - 及时修补 Polkit 相关 CVE 漏洞
 - 部署 EDR 检测 UAC 绕过行为模式
 
+## 避坑指南
+
+红队新手常见错误：一上来就找内核漏洞提权。
+
 ## 检测建议
 
 ### 网络层检测
@@ -249,6 +274,31 @@ tags:
     - attack.t1548
     - attack.t1548.001
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**UAC绕过的核心检测点是：低完整性进程通过COM接口调用autoelevate白名单进程(如fodhelper.exe、computerdefaults.exe、compmgmtlauncher.exe)后，这些进程执行了非预期操作(如注册表修改、创建计划任务)。sudo滥用则关注/etc/sudoers中的NOPASSWD条目和用户被授予超出需要的ALL权限。
+
+
+yaml
+title: Detected Suspicious Activity - T1548
+status: experimental
+description: Detects potential T1548 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1548
+
 
 ## 缓解措施
 
@@ -355,21 +405,21 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK T1548 - Abuse Elevation Control Mechanism](https://attack.mitre.org/techniques/T1548/)
 - [MITRE ATT&CK T1548.001 - Bypass UAC](https://attack.mitre.org/techniques/T1548/001/)
 - [MITRE ATT&CK T1548.002 - Bypass and Abuse Sudo](https://attack.mitre.org/techniques/T1548/002/)
 - [MITRE ATT&CK T1548.004 - Bypass System Authorisation Component](https://attack.mitre.org/techniques/T1548/004/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Mandiant - UAC Bypass Techniques 2024](https://www.mandiant.com/resources/blog/uac-bypass-techniques-2024)
 - [Red Hat - CVE-2021-3560 Polkit](https://access.redhat.com/security/cve/cve-2021-3560)
 - [Red Canary - Common UAC Bypass Techniques](https://redcanary.com/blog/uac-bypass-techniques/)
 - [Sudo - Security Advisories](https://www.sudo.ws/security/advisories/)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Microsoft - How User Account Control Works](https://docs.microsoft.com/en-us/windows/security/identity-protection/user-account-control/how-user-account-control-works)
 - [Sudoers Manual](https://www.sudo.ws/man/1.8.15/sudoers.man.html)

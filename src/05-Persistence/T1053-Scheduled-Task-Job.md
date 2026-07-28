@@ -2,166 +2,231 @@
 
 ## 一句话通俗理解
 
-> 就像给你的电脑设了个"闹钟"——但这个闹钟不是叫你起床，而是在特定时间自动执行恶意代码。每天凌晨3点、每次你登录、或者每次系统启动，恶意程序都会准时"打卡上班"。
+**攻击者利用系统的"定时闹钟"功能，设定恶意程序在特定时间或开机时自动运行——就像在你家装了一个定时炸弹，到点就爆。**
+
 
 ## 30秒速查卡
 
 | 维度 | 你需要知道的 |
 |------|-------------|
-| 这是什么？ | 攻击者利用系统内置的任务调度功能（Windows计划任务、Linux cron、Kubernetes CronJob）来定时自动执行恶意代码，实现持久化访问 |
-| 为什么危险？ | 因为是系统自带功能，杀毒软件不会拦截；可设置启动时、登录时、定时触发，系统重启也不会丢失访问 |
-| 谁需要关心？ | 系统管理员、安全运维人员、Kubernetes集群管理员 |
-| 你的第一步防御 | 监控计划任务创建事件（Windows事件ID 4698），定期审计crontab和systemd定时器的变更 |
-| 如果只做一件事 | 建立计划任务基线，用自动化工具定期对比当前任务列表与基线，发现新增或修改立即告警 |
+| 这是什么？ | 攻击者在已入侵的系统上运行恶意代码的过程 |
+| 为什么危险？ | 执行是攻击活动的核心环节，没有执行就无法实现攻击目的 |
+| 谁需要关心？ | 系统管理员、安全运维团队 |
+| 你的第一步防御 | 限制用户和管理员运行未经签名的脚本和程序 |
+| 如果只做一件事 | 启用应用程序白名单（AppLocker），只让允许的程序运行 |
 
 ## 难度等级
 
-⭐ 简单（需要用户级或管理员权限）
+⭐️⭐️ 中级（需要一定基础）
+
+需要了解不同操作系统的任务调度机制，但操作本身并不复杂。
 
 ## 前置知识检查
 
 **读这个文件需要什么？**
 
-- [ ] 操作系统权限模型：知道什么是用户权限、管理员/SYSTEM/root权限的区别（就像普通员工 vs 老板的权限差别）
-- [ ] 命令行基础：会用schtasks.exe（Windows）和crontab（Linux）查看系统计划任务（就像会查看手机的"定时任务"列表）
-- [ ] 进程与服务概念：知道程序可以"在后台偷偷运行"（就像手机App在后台运行但不显示在前台）
+- [ ] 操作系统进程模型
+- [ ] 常见脚本语言基础（PowerShell/bash/Python）
+- [ ] 代码执行基本概念
 
 ## 技术描述
 
-**过渡段：** 上面的"闹钟"比喻帮你建立了直观印象，但现实中的计划任务机制远比闹钟复杂——它不只是定时响铃。攻击者可以精确控制何时触发（系统启动、用户登录、特定事件）、以什么权限运行（普通用户甚至SYSTEM/root）、执行什么操作（运行脚本、启动程序、下载payload）。更关键的是，每种操作系统都有自己的调度系统（Windows Task Scheduler、Linux cron/systemd timer、Kubernetes CronJob），它们的配置方式、检测方法和防御策略各不相同。下面我们来深入技术细节。
+所有操作系统都有任务调度功能：Windows有任务计划程序（Task Scheduler），Linux有cron，macOS有launchd。这些功能本来是让管理员设定"每天凌晨3点备份数据库"、"每周五生成报告"之类的自动化任务用的。攻击者利用这些功能来实现持久化、权限提升和逃避检测。
 
-攻击者可能滥用任务调度机制以在预定时间或间隔执行恶意代码，通过确保代码定期运行来实现持久性。任务调度设施内置于大多数操作系统和容器编排平台中，允许程序或脚本自动运行并具有可配置的触发器（如登录时、每天、空闲时、系统启动时）。这些机制通常被系统管理员用于合法维护任务，使其成为寻求隐蔽持久性的攻击者常用的"离地攻击"技术。
+**通俗解释：**
+
+**过渡段：** 不要误以为执行只是'运行恶意程序'这么简单——攻击者真正高明的地方在于'就地取材'（Living off the Land）。他们利用系统自带的PowerShell、cmd、wmic等合法工具执行恶意操作，因为它们本身就是操作系统的一部分，安全软件很难完全禁止。
+计划任务就像你家里的"定时闹钟"或"扫地机器人定时清扫"。你的初衷是让它在你不在家时自动工作，但如果坏人控制了你的"闹钟"，他就可以设定在凌晨3点——当你熟睡时——打开所有的门和窗户。攻击者就是利用系统的这些"定时器"来执行恶意操作。
+
+**技术原理：**
+1. 每个操作系统都有内置的任务调度服务（Windows Task Scheduler、Linux cron/systemd）
+2. 任务可以配置触发条件（时间、系统启动、用户登录、特定事件等）
+3. 任务可以指定运行的用户身份（包括高权限用户）
+4. 攻击者创建任务时指向恶意程序，任务触发时恶意代码自动运行
+
+**用途与影响：**
+计划任务可以实现可靠的持久化（即使重启也不会丢失）、权限提升（以管理员/SYSTEM身份运行）、逃避检测（只在特定时间执行），甚至可以在远程系统上创建任务实现横向移动。
 
 ## 子技术列表
 
-| 子技术ID | 名称 | 说明 | 平台 |
-|----------|------|------|------|
-| T1053.001 | At（Windows） | Windows at.exe调度 | Windows |
-| T1053.002 | At（Linux） | Linux at命令 | Linux |
-| T1053.003 | Cron | Unix/Linux cron作业 | Linux/macOS |
-| T1053.005 | 计划任务（Windows） | Windows任务调度器 | Windows |
-| T1053.006 | Systemd定时器 | Linux systemd定时器 | Linux |
-| T1053.007 | 容器编排作业 | Kubernetes CronJob | 容器 |
+**该技术共有 5 个子技术：**
+
+| 子技术ID | 中文名称 | 通俗解释 |
+|----------|----------|----------|
+| T1053.002 | At | Windows的at命令（已弃用），用于创建一次性计划任务 |
+| T1053.003 | Cron | Linux/macOS的定时任务调度器，通过crontab配置 |
+| T1053.005 | 计划任务 | Windows的任务计划程序（schtasks.exe），功能最强大 |
+| T1053.006 | Systemd Timers | Linux systemd的定时器，现代Linux系统的cron替代品 |
+| T1053.007 | 容器编排作业 | Kubernetes CronJob，云原生环境的定时任务 |
+
+<details>
+<summary><strong>展开查看各子技术详细说明</strong></summary>
+
+各子技术详细说明请参阅独立文档：
+
+- [T1053.005 - 计划任务（最常用）](./T1053/T1053.005-Scheduled-Task.md) — Windows的任务计划程序，像手机上的"提醒事项"应用，你可以设置任何程序在指定时间运行。
+
+</details>
 
 ## 攻击流程
 
-```mermaid
-flowchart TD
-    A[攻击者获得系统访问权限] --> B[确定调度机制]
-    B --> C{选择任务调度类型}
-    C -->|Windows| D[使用schtasks.exe创建计划任务]
-    C -->|Linux| E[修改crontab添加定时任务]
-    C -->|macOS| F[创建LaunchDaemon或LaunchAgent]
-    C -->|容器| G[创建Kubernetes CronJob]
-    D --> H[设置高权限运行-SYSTEM或root]
-    E --> H
-    F --> H
-    G --> H
-    H --> I[配置触发器-启动时/登录时/定时]
-    I --> J[设置恶意命令或Payload路径]
-    J --> K[等待任务触发执行恶意代码]
-```
+### 典型攻击流程
 
 ```
-1. 获取系统访问权限
-    ↓
-2. 选择调度机制：
-   - Windows计划任务（schtasks.exe）
-   - Linux cron（crontab）
-   - Systemd定时器
-   - Kubernetes CronJob
-    ↓
-3. 创建调度任务：
-   - 设置触发器（启动时、登录时、定时）
-   - 设置要执行的命令/脚本
-   - 设置运行权限（SYSTEM/root）
-    ↓
-4. 等待任务触发
-    ↓
-5. 恶意代码自动执行
+获得访问权限 --> 确定任务调度机制 --> 创建恶意计划任务 --> 任务触发执行恶意代码 --> 实现持久化或横向移动
 ```
+
+```mermaid
+graph TD
+    A["获得系统访问权限"] --> B["确定操作系统类型"]
+    B --> C["创建恶意计划任务"]
+    C --> D["配置触发条件"]
+    D --> E["任务触发<br/>恶意代码自动运行"]
+    E --> F["持久化<br/>横向移动<br/>载荷下载"]
+
+    style A fill:#ff6b6b,stroke:#333,stroke-width:2px
+    style E fill:#ffeaa7,stroke:#333,stroke-width:2px
+```
+
+**步骤详解：**
+
+1. **获得访问权限**
+   - 通俗描述：先获得执行命令的能力
+   - 技术细节：通过钓鱼、漏洞利用或凭证窃取获得初始访问
+   - 常用工具：Cobalt Strike、Metasploit
+
+2. **确定任务调度机制**
+   - 通俗描述：看目标系统是Windows、Linux还是macOS
+   - 技术细节：Windows用schtasks，Linux用crontab或systemd，macOS用launchd
+   - 常用工具：系统自带命令
+
+3. **创建恶意计划任务**
+   - 通俗描述：设定一个"定时器"，让恶意程序按时运行
+   - 技术细节：Windows: `schtasks /create /tn "Update" /tr "malware.exe" /sc onlogon`
+   - 常用工具：schtasks.exe、crontab
+
+4. **任务触发执行**
+   - 通俗描述：等到设定的时间或事件发生，恶意程序自动启动
+   - 技术细节：任务以配置的用户权限运行，可以是高权限
+   - 常用工具：无
 
 ## 真实案例
 
-### 案例1：APT29利用Scheduled Tasks维持持久性
-- **时间**: 2021年
-- **目标**: 美国联邦政府机构、外交实体和智库
-- **手法**: APT29广泛使用Scheduled Tasks来维持持久性访问。攻击者创建了多个计划任务，配置为在系统启动时、用户登录时或定时执行恶意payload，伪装成合法的系统更新或安全扫描任务。
-- **链接**: https://attack.mitre.org/groups/G0016/
+### 案例1：Black Basta勒索软件利用计划任务进行持久化和横向移动（2024）
 
-### 案例2：Wizard Spider利用Scheduled Tasks
-- **时间**: 2020年
-- **目标**: 全球金融机构和医疗机构
-- **手法**: Wizard Spider在其TrickBot和Conti勒索软件运营中广泛滥用Windows Task Scheduler。TrickBot创建计划任务以实现持久性，Conti使用计划任务来调度加密程序的执行。
-- **链接**: https://attack.mitre.org/software/S0266/
+- **时间**: 2024年
+- **目标**: 全球多个行业的企业
+- **攻击组织**: Black Basta
+- **手法**: Black Basta勒索软件组织在入侵企业网络后，使用`schtasks.exe`创建恶意计划任务来维持持久化访问。他们创建名为"UpdateService"或"SystemCheck"等看似合法的任务，配置为在系统启动时或每隔特定时间执行恶意载荷。同时，他们还通过远程创建计划任务在域内其他系统上部署勒索软件，实现大规模横向移动。
+- **影响**: 数十家企业被加密，造成数亿美元损失
+- **参考链接**: [CISA AA24-131A](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-131a)
 
-### 案例3：TeamTNT利用Container Orchestration Job
-- **时间**: 2021年
-- **目标**: 未受保护的Kubernetes集群和Docker环境
-- **手法**: TeamTNT部署恶意CronJob来运行加密货币挖矿容器，配置为定期运行，确保挖矿进程在被终止后重新启动。
-- **链接**: https://attack.mitre.org/groups/G0139/
+### 案例2：Lazarus Group利用计划任务和DLL侧加载实现持久化（2024）
 
-### 案例4：Volt Typhoon利用Cron持久化
-- **时间**: 2023-2024年
-- **目标**: 美国关键基础设施
-- **手法**: Volt Typhoon在受感染的Linux服务器上使用cron作业维持持久性，添加crontab条目配置为定期执行恶意脚本以与C2服务器通信。
-- **链接**: https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a
+- **时间**: 2024年
+- **目标**: 加密货币交易所和金融科技公司
+- **攻击组织**: Lazarus Group（朝鲜）
+- **手法**: 朝鲜Lazarus组织在获得初始访问后，创建Windows计划任务来维持持久化。他们将恶意DLL侧加载到合法的系统工具中，然后通过计划任务定期执行这些工具。他们使用`schtasks /create`命令创建名称伪装为系统更新或安全扫描的任务，指向被劫持的合法可执行文件。
+- **影响**: 加密货币交易所被窃取大量数字资产
+- **参考链接**: [Mandiant Lazarus分析](https://www.mandiant.com/resources/blog/lazarus-job-opportunities)
+
+### 案例3：加密货币挖矿恶意软件利用cron作业持久化（2024-2025）
+
+- **时间**: 2024-2025年
+- **目标**: 全球Linux云服务器
+- **攻击组织**: Kinsing、TeamTNT
+- **手法**: 多种加密货币挖矿恶意软件在入侵Linux服务器后，通过修改crontab文件实现持久化。他们添加cron条目，每几分钟从远程服务器下载并执行最新的挖矿脚本。即使管理员删除了挖矿进程，cron作业会在下次触发时重新下载并启动。攻击者还会使用隐藏技术，如将cron条目存储在非标准位置。
+- **影响**: 数十万台云服务器被用于挖矿，造成巨额电费
+- **参考链接**: [AquaSec Kinsing分析](https://www.aquasec.com/blog/kinsing-malware-container-vulnerability/)
+
+### 案例4：Kubernetes CronJob滥用进行加密货币挖矿（2024-2025）
+
+- **时间**: 2024-2025年
+- **目标**: 使用Kubernetes的企业
+- **攻击组织**: 多个挖矿团伙
+- **手法**: 攻击者在获得Kubernetes集群访问权限后，创建恶意的CronJob来定期执行加密货币挖矿容器。由于CronJob是Kubernetes原生资源，通常不会被传统安全解决方案监控。攻击者将CronJob部署在不常见的命名空间中，使用看似合法的名称，并配置为在每个节点上运行挖矿工作负载。
+- **影响**: 企业Kubernetes集群被滥用，产生巨额云费用
+- **参考链接**: [Sysdig K8s挖矿分析](https://sysdig.com/blog/cryptojacking-kubernetes/)
 
 ## 红队视角
 
 > ⚠️ **免责声明**：以下内容仅用于合法的安全测试、渗透测试和教育目的。未经授权对他人系统进行测试是违法行为。
 
-**攻击优势**：
-- 计划任务是合法的系统管理工具
-- 可以设置多种触发条件
-- 可以以SYSTEM/root权限执行
+### 实战技巧
 
-**常用命令**：
-```cmd
-REM Windows计划任务
-schtasks /create /tn "WindowsUpdate" /tr "C:\temp\malware.exe" /sc onstart /ru SYSTEM
-schtasks /create /tn "DailyCheck" /tr "C:\temp\beacon.exe" /sc daily /st 03:00
+1. **使用看似合法的任务名称**
+   创建计划任务时使用看起来正常的名称，如"WindowsUpdate"、"SystemMaintenance"、"AdobeUpdater"等，避免引起管理员注意。
 
-REM Linux cron
-echo "0 3 * * * /tmp/backdoor.sh" | crontab -
-echo "@reboot /tmp/backdoor.sh" | crontab -
+2. **使用XML直接创建任务绕过监测**
+   Windows计划任务支持XML格式的导入导出。通过直接写入XML文件到任务目录（C:\Windows\System32\Tasks\），可以绕过一些基于schtasks命令行参数的检测。
 
-REM Kubernetes CronJob
-kubectl create cronjob malicious --image=malicious:latest --schedule="0 3 * * *"
-```
+3. **利用远程计划任务创建进行横向移动**
+   使用`schtasks /create /s target_ip /u domain\user /p password /tn "TaskName" /tr "payload.exe" /sc onlogon`在远程系统上创建任务。
 
-**实战技巧**：
-- 使用看似合法的任务名称（如"WindowsUpdate"、"SystemMaintenance"）
-- 设置随机延迟避免在整点执行
-- 配合T1547（自动启动）使用增加冗余
+### 常用工具
+
+| 工具名称 | 用途 | 平台 | 链接 |
+|----------|------|------|------|
+| schtasks.exe | Windows计划任务命令行工具 | Windows | 系统自带 |
+| crontab | Linux定时任务管理工具 | Linux | 系统自带 |
+| systemctl | Linux systemd服务管理工具 | Linux | 系统自带 |
+| SharpPersist | Windows持久化工具，支持计划任务 | Windows | https://github.com/fireeye/SharPersist |
+| PersistenceSniper | PowerShell持久化检测工具 | Windows | https://github.com/last-byte/PersistenceSniper |
+
+### 注意事项
+
+- 创建计划任务时，确保任务名与已有系统任务不冲突
+- Windows计划任务默认以SYSTEM权限运行，但需要管理员权限才能创建
+- Linux cron作业在当前用户上下文中运行，root用户的cron以root权限运行
 
 ## 蓝队视角
 
-**防御重点**：
-- 监控计划任务的创建和修改
-- 审计cron目录的变更
-- 检查Kubernetes CronJobs
+### 检测要点
 
-**常见盲点**：
-- 只监控Windows，忽略Linux/macOS
-- 未审计容器环境中的调度作业
-- 缺乏对任务执行内容的检查
+1. **监控计划任务创建事件**
+   - 日志来源：Windows安全事件日志 Event ID 4698
+   - 关注字段：任务名称、任务内容、创建者账户
+   - 异常特征：任务名称看起来可疑（如包含随机字符），或任务指向非系统目录的可执行文件
+
+2. **监控schtasks.exe和at.exe的执行**
+   - 日志来源：Sysmon Event ID 1、Windows Event ID 4688
+   - 关注字段：命令行参数、父进程
+   - 异常特征：从Office或浏览器进程创建的schtasks.exe，或包含可疑的任务名和路径
+
+3. **监控Linux cron文件的修改**
+   - 日志来源：Linux auditd、文件完整性监控
+   - 关注字段：/etc/crontab、/var/spool/cron/ 的变更
+   - 异常特征：非管理员用户或非正常工作时间的文件修改
+
+### 监控建议
+
+- 建立计划任务基线，记录正常的系统任务列表
+- 定期通过`schtasks /query /v /fo csv`导出所有任务并与基线对比
+- 监控Windows任务目录C:\Windows\System32\Tasks\的新增和修改
+- 在Linux上使用auditd监控`/etc/crontab`和`/var/spool/cron/`的变更
+
+## 避坑指南
+
+防御者常见误区：只监控恶意文件而忽略脚本执行。
 
 ## 检测建议
 
 ### 网络层检测
 
-**检测方法：** 监控计划任务尝试连接外部C2服务器的网络流量，检测schtasks.exe发起的异常出站连接。
+**检测方法：** 监控远程计划任务创建的网络流量
 
 **具体规则/命令示例：**
-```bash
-# Suricata规则检测计划任务下载payload
-alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"Scheduled Task Downloading Payload"; content:"schtasks"; http_uri; flow:to_server,established; sid:1000201; rev:1;)
+```
+# 监控发往远程135端口的异常连接（远程任务创建使用RPC）
+netstat -an | findstr ":135"
+```
+
+**示例（Snort/Suricata规则）：**
+```
+alert tcp $HOME_NET any -> $HOME_NET 135 (msg:"Possible Remote Scheduled Task Creation"; flow:to_server; sid:1000002; rev:1;)
 ```
 
 ### 主机层检测
-
-**检测方法：** 监控计划任务的创建和修改事件，审计cron和systemd定时器的变更。
 
 **Windows事件ID：**
 - 事件ID 4698：计划任务创建
@@ -170,42 +235,39 @@ alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"Scheduled Task Downloading P
 - 事件ID 4701：计划任务禁用
 - 事件ID 4702：计划任务更新
 
-**Linux日志：**
-- 日志文件：`/var/log/cron`（cron作业执行日志）
-- 日志文件：`/var/log/syslog`（systemd定时器事件）
-- 关键字段：CROND条目中的异常命令执行
-
 **具体命令示例：**
-```bash
+```powershell
+# 查询计划任务创建事件
+Get-WinEvent -FilterHashtable @{LogName='Security'; ID=4698} | Select-Object -First 20
+
 # 列出所有计划任务
-schtasks /query /fo LIST /v
-
-# 检查crontab变更
-crontab -l
-ls -la /var/spool/cron/crontabs/
-
-# 列出systemd定时器
-systemctl list-timers --all
+Get-ScheduledTask | Where-Object {$_.State -ne 'Disabled'} | Select-Object TaskName, TaskPath, State
 ```
 
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：**计划任务检测的核心是发现"谁在创建任务、任务干了什么"。攻击者最爱用schtasks.exe或at.exe创建伪装成系统服务的定时任务（如"WindowsUpdate"、"AdobeFlashUpdate"），以SYSTEM权限开机自启执行恶意脚本。重点关注Windows事件ID 4698（任务创建）中任务名伪装系统服务、执行命令含PowerShell下载器或反弹Shell、以及非管理员用户发起的任务创建。Linux上则关注crontab异常修改和systemd timer新建。
 ```yaml
-title: 计划任务创建检测
+title: Scheduled Task Creation - Suspicious Task Name
 status: experimental
-description: 检测使用schtasks.exe创建计划任务的事件
+description: Detects creation of scheduled tasks with suspicious names
 logsource:
     category: process_creation
     product: windows
 detection:
     selection:
         Image|endswith: '\schtasks.exe'
-        CommandLine|contains: '/create'
+        CommandLine|contains|all:
+            - '/create'
+            - '/tn'
+            - 'UpdateService' or 'SystemMaintenance'
     condition: selection
 level: medium
 tags:
-    - attack.t1053.005
+    - attack.t1053
+    - attack.execution
 ```
 
 ## 缓解措施
@@ -215,85 +277,136 @@ tags:
 **措施名称：** 限制计划任务创建权限
 
 **具体实施步骤：**
-1. 通过组策略限制非管理员用户创建计划任务的权限
-2. 在Linux系统上使用sudoers配置限制crontab和at命令的访问
-3. 在Kubernetes环境中使用RBAC严格限制CronJob的创建权限
-4. 使用AppLocker或WDAC限制计划任务可执行的二进制文件范围
+1. 通过组策略限制谁可以创建或修改计划任务
+2. 非管理员用户不应有创建计划任务的权限
+3. 审查并移除不必要的计划任务创建权限
 
 ### 优先级2：重要措施
 
-**措施名称：** 计划任务审计与监控
+**措施名称：** 定期审计计划任务
 
 **具体实施步骤：**
-1. 配置Windows安全审计策略以记录所有计划任务创建和修改事件（事件ID 4698-4702）
-2. 使用Sysmon监控schtasks.exe、at.exe和crontab的进程创建事件
-3. 定期审查Windows `%SystemRoot%\System32\Tasks\` 目录和Linux `/etc/cron*` 目录
-4. 建立计划任务基线并监控偏离基线的异常任务
+1. 每月导出所有计划任务清单
+2. 对比最新清单与基线，检查新增或修改的任务
+3. 对每个可疑任务进行调查
 
-**配置示例：**
-```bash
-# 配置Windows审计策略记录计划任务事件
-auditpol /set /subcategory:"Other Object Access Events" /success:enable /failure:enable
+**措施名称：** 应用程序控制
 
-# Linux cron访问限制
-echo "user1 - - /usr/sbin/crontab" >> /etc/security/access.conf
-```
+**具体实施步骤：**
+1. 使用AppLocker限制schtasks.exe只能由管理员执行
+2. 在Windows Server Core上禁用不必要的任务计划功能
+
+### 优先级3：建议措施
+
+**措施名称：** 日志集中管理
+
+**具体实施步骤：**
+1. 将计划任务相关事件日志发送到SIEM
+2. 设置告警：当检测到新的计划任务创建时自动通知安全团队
+
+### MITRE ATT&CK 缓解措施映射
+
+| 缓解措施ID | 缓解措施名称 | 适用性 | 说明 |
+|------------|-------------|--------|------|
+| M1018 | 用户账户控制 | 适用 | 限制非管理员用户创建计划任务的能力 |
+| M1022 | 应用程序控制 | 适用 | 限制schtasks.exe的执行权限 |
+| M1026 | 特权账户管理 | 适用 | 保护高权限账户不被用于创建恶意任务 |
+| M1030 | 网络分段 | 部分适用 | 限制远程计划任务创建的网络访问 |
+| M1045 | 软件更新 | 部分适用 | 保持系统最新，防止漏洞利用获得管理员权限 |
 
 ## 动手实验
 
 > ⚠️ **重要提示**：所有实验必须在隔离的实验室环境中进行，禁止对未授权的真实系统进行测试。
 
-### 实验1：Windows计划任务
-```cmd
-REM 创建测试计划任务（需要管理员权限）
-schtasks /create /tn "TestTask" /tr "cmd.exe /c echo test > C:\temp\task_test.txt" /sc onstart
+### 实验环境准备
 
-REM 查看任务
-schtasks /query /tn "TestTask"
+**推荐靶场/实验平台：**
 
-REM 手动触发
-schtasks /run /tn "TestTask"
+| 平台名称 | 类型 | 难度 | 链接 |
+|----------|------|------|------|
+| Detection Lab | 虚拟靶场 | 初级 | https://github.com/clong/DetectionLab |
+| Atomic Red Team | 测试框架 | 初级 | https://github.com/redcanaryco/atomic-red-team |
+| Hack The Box | CTF | 中级 | https://www.hackthebox.com/ |
 
-REM 清理
-schtasks /delete /tn "TestTask" /f
-```
+**所需工具：**
+- Windows虚拟机 + Linux虚拟机
+- PowerShell + Sysmon
+- Atomic Red Team
 
-### 实验2：Linux Cron作业
-```bash
-# 添加cron作业
-echo "* * * * * echo 'Cron test' >> /tmp/cron_test.log" | crontab -
+### 实验1：创建Windows计划任务（初级）
 
-# 查看crontab
-crontab -l
+**实验目标：** 学习使用schtasks.exe创建和管理计划任务
 
-# 清理
-crontab -r
-```
+**实验步骤：**
+1. 以管理员身份打开CMD
+2. 创建一个在用户登录时执行的计划任务：
+   ```cmd
+   schtasks /create /tn "WindowsUpdate" /tr "C:\temp\test.bat" /sc onlogon /ru SYSTEM
+   ```
+3. 查看任务详情：`schtasks /query /tn "WindowsUpdate" /v /fo list`
+4. 删除任务：`schtasks /delete /tn "WindowsUpdate" /f`
 
-### 实验3：使用Atomic Red Team测试
-```powershell
-# 执行T1053测试
-Invoke-AtomicTest T1053
-```
+**预期结果：** 成功创建、查看和删除Windows计划任务
+
+**学习要点：** 理解schtasks命令的语法和任务配置选项
+
+### 实验2：创建Linux cron作业（初级）
+
+**实验目标：** 学习使用crontab创建定时任务
+
+**实验步骤：**
+1. 打开终端
+2. 添加一个每5分钟执行一次的cron作业：
+   ```bash
+   (crontab -l 2>/dev/null; echo "*/5 * * * * /tmp/backup.sh") | crontab -
+   ```
+3. 查看当前cron作业：`crontab -l`
+4. 删除所有cron作业：`crontab -r`
+
+### 实验3：检测计划任务创建（中级）
+
+**实验目标：** 学习使用PowerShell和事件日志检测计划任务的创建
+
+**实验步骤：**
+1. 在创建计划任务前后，查询安全事件日志：
+   ```powershell
+   Get-WinEvent -FilterHashtable @{LogName='Security'; ID=4698} | Select-Object -First 10
+   ```
+2. 使用Sysmon Event ID 1监控schtasks.exe执行
+3. 分析任务XML内容，识别异常任务
 
 ## 术语解释
 
 | 术语 | 英文原名 | 通俗解释 |
 |------|----------|----------|
-| 计划任务 | Scheduled Task | Windows任务调度器中的任务，就像设置了一个定时闹钟 |
-| Cron | Cron | Unix/Linux系统的时间调度守护进程，按照配置文件定期执行命令 |
-| Systemd定时器 | Systemd Timer | Linux systemd中的定时任务机制，比传统cron更灵活 |
-| CronJob | CronJob | Kubernetes中定时执行的作业，用于在容器集群中定期运行任务 |
-| crontab | Crontab | cron的配置文件，定义了要执行的命令和执行时间 |
-| schtasks.exe | schtasks.exe | Windows命令行任务调度工具，用于创建和管理计划任务 |
+| 计划任务 | Scheduled Task | 系统的"定时闹钟"，在指定时间自动运行指定程序 |
+| crontab | Cron Table | Linux的"闹钟设置表"，写好了什么时间做什么事 |
+| schtasks.exe | Scheduled Tasks | Windows的"闹钟管理工具"，用于创建和管理计划任务 |
+| systemd timer | Systemd Timer | Linux新版"闹钟系统"，比cron更强大 |
+| CronJob | Cron Job | Kubernetes上的"云端闹钟"，在容器环境中定时执行任务 |
+| 持久化 | Persistence | 攻击者确保自己"走了还能再回来"的技术 |
+| 触发器 | Trigger | 决定计划任务在"什么时候"或"什么情况下"执行的规则 |
 
 ## 参考资料
 
-### 分类标注
-| 类别 | 链接 |
-|------|------|
-| 📚 深入了解 | [MITRE ATT&CK T1053 计划任务/作业](https://attack.mitre.org/techniques/T1053/) - 如果你想深入了解技术细节 |
-| 🔧 动手试试 | [Atomic Red Team - T1053](https://github.com/redcanaryco/atomic-red-tree/tree/master/atomics/T1053) - 如果你想动手测试计划任务攻击 |
-| 📰 真实攻击 | [APT29 SolarWinds活动分析 - Mandiant](https://www.mandiant.com/resources/evasive-attacker-leverages-solarwinds-supply-chain-compromises) - 真实APT组织如何滥用计划任务 |
-| 📰 真实攻击 | [TrickBot分析 - FireEye](https://www.fireeye.com/blog/threat-research/2020/02/trickbot-malware-analysis.html) - TrickBot勒索软件中的计划任务使用 |
-| 📰 真实攻击 | [Volt Typhoon Advisory - CISA](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a) - Volt Typhoon在Linux服务器上用cron持久化 |
+### 📚 官方文档（深入了解）
+
+- [MITRE ATT&CK T1053官方页面](https://attack.mitre.org/techniques/T1053/)
+- [Windows任务计划程序文档](https://docs.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-start-page)
+- [Linux crontab文档](https://man7.org/linux/man-pages/man5/crontab.5.html)
+
+### 📰 安全报告（真实攻击）
+
+- [CISA Black Basta勒索软件公告](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-131a)
+- [Mandiant Lazarus分析](https://www.mandiant.com/resources/blog/lazarus-job-opportunities)
+
+### 🔧 工具与资源（动手试试）
+
+- [Windows计划任务安全最佳实践](https://www.crowdstrike.com/blog/how-to-detect-and-prevent-scheduled-task-abuse/)
+- [Kubernetes CronJob安全](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/)
+- [Atomic Red Team T1053测试](https://www.atomicredteam.io/atomics/T1053/)
+
+### 📚 学习资料（深入了解）
+
+- [Linux持久化技术](https://www.blackhat.com/docs/us-17/thursday/us-17-Kachalia-Linux-Persistence-Techniques.pdf)
+- [Windows计划任务攻击与检测](https://posts.specterops.io/the-phantom-account-47795296c03a)

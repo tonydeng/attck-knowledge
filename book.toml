@@ -12,6 +12,9 @@ create-missing = false
 [preprocessor.mermaid]
 command = "mdbook-mermaid"
 
+[preprocessor.attck-preprocess]
+command = "python scripts/mdbook-preprocessor.py"
+
 [output.html]
 no-section-label = true
 default-theme = "catppuccin"

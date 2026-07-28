@@ -81,18 +81,18 @@ graph LR
 | [T1048.002](./T1048/T1048.002-Symmetric-Exfiltration.md) | 对称加密渗出 | ⭐⭐ | 用同一把钥匙加解密数据后传输，虽然被看到但打不开 | ✅ 已完成 |
 | [T1048.001](./T1048/T1048.001-Asymmetric-Exfiltration.md) | 非对称加密渗出 | ⭐⭐ | 用公钥加密，只有攻击者的私钥能解密，更安全 | ✅ 已完成 |
 | [T1048.003](./T1048/T1048.003-Plaintext-Exfiltration.md) | 未加密渗出 | ⭐⭐ | 直接明文传输，速度快但容易被截获 | ✅ 已完成 |
-| [T1052.001](./T1052/T1052.001-USB-USB.md) | USB | ⭐⭐ | 用U盘等USB设备拷贝数据带走 | ✅ 已完成 |
+| [T1052.001](./T1052/T1052.001-USB.md) | USB | ⭐⭐ | 用U盘等USB设备拷贝数据带走 | ✅ 已完成 |
 | [T1052.002](./T1052/T1052.002-Air-Gap-Exfiltration.md) | 空气间隙 | ⭐⭐ | 从完全与互联网物理隔离的系统中把数据取出 | ✅ 已完成 |
 | [T1567.001](./T1567/T1567.001-Cloud-Storage.md) | 云存储 | ⭐⭐ | 用网盘（OneDrive、Google Drive、Dropbox）传数据 | ✅ 已完成 |
 | [T1567.002](./T1567/T1567.002-Code-Repository.md) | 代码仓库 | ⭐⭐ | 用GitHub、GitLab等代码托管平台传数据 | ✅ 已完成 |
 | [T1567.003](./T1567/T1567.003-Paste-Site.md) | 文本分享网站 | ⭐⭐ | 用Pastebin等文本分享平台传小数据 | ✅ 已完成 |
-| [T1567.004](./T1567/T1567.004-Webhook-Webhook.md) | Webhook | ⭐⭐ | 用Slack、Discord的Webhook接口传数据 | ✅ 已完成 |
+| [T1567.004](./T1567/T1567.004-Webhook.md) | Webhook | ⭐⭐ | 用Slack、Discord的Webhook接口传数据 | ✅ 已完成 |
 
 ### 统计信息
 
 - **技术总数**：9 个
-- **子技术总数**：9 个
-- **已完成文档**：9 个
+- **子技术总数**：10 个
+- **已完成文档**：19 个（9 父技术 + 10 子技术）
 - **进行中文档**：0 个
 - **待编写文档**：0 个
 
@@ -163,3 +163,5 @@ graph LR
 
 - [rclone](https://rclone.org/) - 云存储同步工具，常被攻击者用于数据渗漏
 - [Cobalt Strike](https://www.cobaltstrike.com/) - 渗透测试框架，内含数据渗漏模块
+
+> **版本**: v19.1 | **更新**: 2026-07-28 | **模板**: 战术README v3.1

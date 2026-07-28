@@ -18,11 +18,21 @@
 
 - ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 系统网络配置发现（T1016）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 每台电脑连接网络时都有自己的身份证——IP地址，还有通讯录——DNS服务器、路由表等。攻击者入侵后，首先会查看这些网络配置信息，就像你搬进新家后看门牌号、看社区地图一样。通过这些信息，攻击者可以了解自己在网络中的位置、有哪些路可以走（路由表）、周围有哪些设备（ARP缓存），以及互联网是否畅通。
 
 **技术原理：**
@@ -84,7 +94,7 @@ graph TD
 
 4. **DNS查询**
    - 通俗描述：查看电话本确认网络中的服务位置
-   - 技术细节：`nslookup &lt;domain&gt;`
+   - 技术细节：`nslookup <domain>`
    - 常用工具：nslookup.exe
 
 ## 真实案例
@@ -176,6 +186,10 @@ graph TD
 - 监控netsh命令的异常执行
 - 关注Linux系统中/etc/resolv.conf的异常读取
 - 使用EDR检测同一主机执行多个网络配置命令的进程链
+
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
 
 ## 检测建议
 
@@ -285,17 +299,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1016](https://attack.mitre.org/techniques/T1016/)
 - [MITRE ATT&CK - T1016.001](https://attack.mitre.org/techniques/T1016/001/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [HivePro - APT41 Campaign 2025](https://hivepro.com/threat-advisory/apt41-cyber-espionage-campaign-targets-u-s-policy-institutions/)
 - [Rapid7 - MuddyWater 2026](https://www.rapid7.com/blog/post/tr-muddying-tracks-state-sponsored-shadow-behind-chaos-ransomware/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [PowerShell Networking Cmdlets](https://learn.microsoft.com/en-us/powershell/module/nettcpip/)
 - [MITRE CAR - Internet Connection Discovery](https://car.mitre.org/analytics/CAR-2013-05-002/)

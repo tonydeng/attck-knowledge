@@ -18,11 +18,21 @@
 
 ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 文件系统与存储基础
+- [ ] 数据压缩与归档基本概念
+- [ ] 邮件系统与协作平台工作原理
+
 ## 技术描述
 
 数据分段（T1074）是MITRE ATT&CK框架中收集战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要低估收集阶段的隐蔽性——攻击者收集数据时，不会一次性复制所有文件引起注意。而是像'精明的窃贼'一样：先确认最有价值的文件类型（.xlsx > .docx > 随机文件），然后用合法工具（如7zip、rar甚至是系统自带的compress-archive）打包，混在正常的网络流量中传输。
 想象一下你从房间的各个角落收集要搬走的物品——书桌上的文件、抽屉里的资料、床底下的箱子——你会先把它们都堆到客厅地板上，再统一装进纸箱。攻击者也是这么做的：他们从多个位置（本地磁盘、网络共享、邮件系统）收集到数据后，先集中复制到同一个临时目录，再进行压缩、加密和传输。这个"先集中再处理"的过程就是数据分段。
 
 **技术原理：**
@@ -179,6 +189,10 @@ graph TD
 - 监控文件系统中大量文件被复制到单一目录的行为
 - 对`%TEMP%`、`%APPDATA%`、`%PROGRAMDATA%`等目录设置文件创建告警
 - 监控`robocopy`、`xcopy`等批量复制工具的使用
+
+## 避坑指南
+
+检测盲点：对合法压缩工具的滥用视而不见。
 
 ## 检测建议
 
@@ -338,19 +352,19 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1074](https://attack.mitre.org/techniques/T1074/)
 - [MITRE ATT&CK - T1074.001](https://attack.mitre.org/techniques/T1074/001/)
 - [MITRE ATT&CK - T1074.002](https://attack.mitre.org/techniques/T1074/002/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [INC Ransomware Analysis - Huntress 2026](https://www.huntress.com/blog/data-exfiltration-threat-actor-infrastructure-exposed)
 - [Carbanak APT Analysis - Kaspersky](https://www.kaspersky.com/blog/carbanak-apt/)
 - [FIN7 Group Analysis - MITRE](https://attack.mitre.org/groups/G0046/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Sysinternals Suite](https://docs.microsoft.com/en-us/sysinternals/downloads/sysinternals-suite)
 - [restic backup](https://restic.net/) - 加密备份工具

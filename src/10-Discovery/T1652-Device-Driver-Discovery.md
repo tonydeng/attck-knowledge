@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 设备驱动发现（T1652）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 设备驱动程序是让操作系统与硬件（如显卡、网卡、硬盘）通信的"翻译官"。攻击者入侵后查看驱动程序列表，主要目的是：检查有没有安全产品的驱动程序（如杀毒软件的底层过滤驱动）、寻找有漏洞的旧版本驱动（可用于权限提升）、检测虚拟化驱动（判断是否在虚拟机中）。就像小偷进入大楼后先看监控系统的品牌和型号，找出盲区。
 
 **技术原理：**
@@ -174,6 +184,10 @@ graph TD
 - 关注驱动查询后的恶意驱动加载行为
 - 检测BYOD（自带易受攻击驱动程序）技术中加载的已知漏洞驱动
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -212,6 +226,31 @@ level: low
 tags:
     - attack.t1652
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1652
+status: experimental
+description: Detects potential T1652 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1652
+
 
 ## 缓解措施
 
@@ -291,19 +330,19 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1652](https://attack.mitre.org/techniques/T1652/)
 - [Microsoft - driverquery](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/driverquery)
 - [Microsoft - fltmc](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/fltmc)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Microsoft - SolarWinds Driver Discovery](https://www.microsoft.com/security/blog/2020/12/18/analyzing-solorigate-the-compromised-dll-file-that-started-a-sophisticated-cyberattack-and-how-microsoft-defender-helps-protect/)
 - [FireEye - FIN7 Anti-Virtualization](https://www.fireeye.com/blog/threat-research/2018/08/fin7-anti-virtualization.html)
 - [CrowdStrike - TrickBot Driver Discovery](https://www.crowdstrike.com/blog/trickbot-driver-discovery/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [PowerShell Win32_SystemDriver](https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-systemdriver)
 - [Windows Driver Signature Enforcement](https://learn.microsoft.com/en-us/windows-hardware/drivers/install/driver-signing)

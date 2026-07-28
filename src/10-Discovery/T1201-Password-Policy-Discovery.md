@@ -18,11 +18,21 @@
 
 - ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 密码策略发现（T1201）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 每个公司都有自己的密码规则——有的要求密码至少8位且包含特殊字符，有的只要求6位数字即可。攻击者入侵系统后，会先查看这些密码策略规则：如果密码要求很简单，就可以轻松进行暴力破解；如果密码要求很复杂，就需要用更高级的凭证窃取方法。就像小偷先摸清楚门锁的档次，再决定是用螺丝刀还是专业开锁器。
 
 **技术原理：**
@@ -172,6 +182,10 @@ graph TD
 - 审计PowerShell `Get-ADDefaultDomainPasswordPolicy` 的异常调用
 - 关联密码策略查询与后续的暴力破解尝试
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -214,6 +228,31 @@ level: medium
 tags:
     - attack.t1201
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1201
+status: experimental
+description: Detects potential T1201 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1201
+
 
 ## 缓解措施
 
@@ -295,17 +334,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1201](https://attack.mitre.org/techniques/T1201/)
 - [Microsoft - Net Accounts](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/net-accounts)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [FireEye - SolarWinds Password Policy Discovery](https://www.fireeye.com/blog/threat-research/2020/12/sunburst-additional-technical-details.html)
 - [CrowdStrike - Password Policy Enumeration](https://www.crowdstrike.com/blog/password-policy-enumeration/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [PowerShell Get-ADDefaultDomainPasswordPolicy](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-addefaultdomainpasswordpolicy)
 - [Microsoft Security Compliance Toolkit](https://learn.microsoft.com/en-us/windows/security/threat-protection/security-compliance-toolkit-10)

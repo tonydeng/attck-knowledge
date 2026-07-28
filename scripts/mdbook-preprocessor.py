@@ -10,9 +10,11 @@ mdBook Preprocessor - ATT&CK 知识库预处理
     mdbook build     # 自动触发本预处理器
     mdbook serve     # 自动触发本预处理器
 
-本脚本遵循 mdBook 预处理器协议：
+本脚本遵循 mdBook 预处理器协议（0.4.x / 0.5.x）：
   - 参数 supports <renderer> → 退出码 0 (支持所有渲染器)
-  - 无参数 → 读取 stdin 的 book JSON, 运行脚本, 原样输出 book JSON
+  - 无参数 → 从 stdin 读取 [context, book] JSON 数组,
+             运行预处理脚本 (直接操作 src/ 文件, 不修改 book JSON),
+             将 book 对象原样输出到 stdout
 """
 
 import json
@@ -29,7 +31,11 @@ def main() -> None:
         # 支持所有渲染器 (html, pdf, ...)
         sys.exit(0)
 
-    # ── 运行预处理脚本 ──
+    # ── 从 stdin 读取 [context, book] JSON 数组 ──
+    # 必须在运行子进程之前读取，避免子进程继承并消耗 stdin。
+    context, book = json.load(sys.stdin)
+
+    # ── 运行预处理脚本（stdin 隔离，防止子进程意外读取） ──
     scripts = [
         ("gen-summary.py", "生成 SUMMARY.md"),
         ("preprocess-md.py", "修正 README.md 链接"),
@@ -47,8 +53,9 @@ def main() -> None:
                 capture_output=True,
                 text=True,
                 check=True,
+                stdin=subprocess.DEVNULL,
             )
-            # 输出脚本自身的 stdout
+            # 输出脚本自身的 stdout 到 stderr（不干扰 stdout 的 book JSON）
             for line in result.stdout.strip().split("\n"):
                 if line.strip():
                     print(f"[preprocessor:{script_name}] {line}", file=sys.stderr)
@@ -61,9 +68,12 @@ def main() -> None:
                 print(e.stderr, file=sys.stderr)
             sys.exit(1)
 
-    # ── 原样传 pass book JSON ──
-    book = json.load(sys.stdin)
-    json.dump(book, sys.stdout)
+    # ── 输出 book 对象到 stdout ──
+    # 预处理脚本直接操作 src/ 文件，不修改 book JSON，因此原样输出。
+    # 使用 sys.stdout.buffer 写入 UTF-8 字节，避免 Windows 默认编码问题。
+    output_json = json.dumps(book, ensure_ascii=False)
+    sys.stdout.buffer.write(output_json.encode("utf-8"))
+    sys.stdout.buffer.flush()
 
 
 if __name__ == "__main__":

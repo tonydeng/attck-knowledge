@@ -18,11 +18,21 @@
 
 - ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 系统所有者/用户发现（T1033）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 攻击者入侵一台电脑后，第一个命令通常是 `whoami`——这个命令会告诉攻击者当前登录的用户名是什么。这就像小偷潜入一间办公室后，先看看桌上的名牌。攻击者需要知道：当前是普通用户还是管理员？是本地账户还是域账户？这决定了后面能做什么。
 
 **技术原理：**
@@ -168,6 +178,10 @@ graph TD
 - 使用Sysmon记录所有whoami执行的命令行参数
 - 关注whoami与其他发现命令的组合模式
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -282,12 +296,12 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1033](https://attack.mitre.org/techniques/T1033/)
 - [Microsoft - Whoami](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/whoami)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Rapid7 - MuddyWater 2026](https://www.rapid7.com/blog/post/tr-muddying-tracks-state-sponsored-shadow-behind-chaos-ransomware/)
 - [The DFIR Report - RansomHub 2025](https://thedfirreport.com/2025/06/30/hide-your-rdp-password-spray-leads-to-ransomhub-deployment/)

@@ -4,13 +4,35 @@
 
 > **搜索开放网站/域名就像在网上"人肉搜索"目标，从社交媒体、搜索引擎和代码仓库中挖掘有用信息。**
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者在LinkedIn、GitHub、Google等公开网站上搜索目标组织泄露的员工信息、凭证和技术细节 |
+| 为什么危险？ | 攻击者能拿到你员工邮箱命名规则、泄露的API密钥、技术栈版本，据此定制钓鱼邮件和漏洞利用 |
+| 谁需要关心？ | 安全团队、HR（社交媒体暴露）、开发团队（代码仓库泄露） |
+| 你的第一步防御 | 在GitHub启用Secret Scanning，搜索自己组织的`org:yourcompany password`看泄露了什么 |
+| 如果只做一件事 | 部署代码泄漏监控（如GitGuardian/TruffleHog），持续扫描公开代码仓库中的凭证 |
+
 ## 难度等级
 
 ⭐ 初级 - 技术门槛低，主要利用公开的网站和搜索引擎
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 搜索引擎高级语法（Google Dorking：site:、filetype:、inurl:、intitle:）
+- [ ] 社交媒体OSINT（LinkedIn高级搜索、Twitter/微博高级搜索）
+- [ ] 代码仓库搜索语法（GitHub: org:、extension:、filename:）
+- [ ] 信息泄露类型识别（凭证、配置文件、API密钥、内部文档）
+
 ## 技术描述
 
 **通俗解释：**
+
+**过渡段：** 不要以为搜索开放网站只是用Google搜搜公司名字——在攻击者手中，这是一套系统化的情报挖掘流程。攻击者会用`site:target.com filetype:pdf`翻出你公开的PDF里的元数据，用`org:yourcompany password`在GitHub上找到开发者不小心提交的凭证，用LinkedIn高级搜索拼出你整个技术团队的架构。这些信息分散在不同平台，交叉验证后就能拼出完整的攻击面地图。
 你想了解一个人，最简单的方法就是上网搜他的名字。攻击者也一样，他们会通过搜索引擎、社交媒体、代码仓库等公开网站搜索目标组织的信息。这些网站上的信息是公开的，不需要任何特殊权限就能访问，所以这种侦察方式非常隐蔽，几乎不可能被检测到。
 
 **技术原理：**
@@ -182,6 +204,10 @@ graph TD
 - 定期进行OSINT审计
 - 建立员工社交媒体使用指南
 
+## 避坑指南
+
+新手常犯的错误：只搜Google不搜代码仓库。实际上GitHub/GitLab上的凭证泄露往往比搜索引擎更致命——一个提交到公开仓库的`.env`文件里的AWS密钥，能让攻击者直接拿到云环境访问权限。专业做法是三个来源（社交媒体+搜索引擎+代码仓库）交叉验证，并定期用`org:yourcompany "API_KEY"`等语法自查泄露。
+
 ## 检测建议
 
 ### 网络层检测
@@ -208,6 +234,8 @@ cat proxy.log | grep -E "linkedin|github|twitter" | awk '{print $1}' | sort | un
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：** 搜索开放网站的检测难点在于——浏览LinkedIn和GitHub本身是合法行为，你没法阻止别人看。但你可以检测自动化工具的指纹：theHarvester、SpiderFoot、Maltego这些OSINT工具在短时间内会发起大量结构化查询（如批量抓取LinkedIn员工列表、遍历GitHub仓库文件），这种"机器行为模式"和正常人工浏览完全不同。代理日志里如果看到同一IP在10分钟内访问了500个LinkedIn profile页面，基本可以判定是OSINT自动化工具。
 ```yaml
 title: Automated OSINT Tool Usage
 status: experimental
@@ -333,25 +361,25 @@ repos:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - 搜索开放网站/域名 (T1593)](https://attack.mitre.org/techniques/T1593/)
 - [MITRE ATT&CK - 社交媒体 (T1593.001)](https://attack.mitre.org/techniques/T1593/001)
 - [MITRE ATT&CK - 搜索引擎 (T1593.002)](https://attack.mitre.org/techniques/T1593/002)
 - [MITRE ATT&CK - 代码仓库 (T1593.003)](https://attack.mitre.org/techniques/T1593/003)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [SentinelOne: Contagious Interview](https://www.sentinelone.com/labs/contagious-interview-threat-actors-scout-cyber-intel-platforms-reveal-plans-and-ops/) - 代码仓库侦察案例
 - [Cofense 2026 Report](https://cofense.com/Blog/Cofense-Report-Reveals-AI-Powered-Phishing-Accelerated-to-One-Attack-Every-19-Seconds) - AI增强的侦察趋势
 - [Recorded Future: Google Dorking Analysis](https://www.recordedfuture.com/threat-intelligence-101/threat-analysis-techniques/google-dorks)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Exploit-DB Google Hacking Database](https://www.exploit-db.com/google-hacking-database) - Google Dorking语法库
 - [SpiderFoot](https://github.com/smicallef/spiderfoot) - 自动化OSINT工具
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [CISA: T1593 Guidance](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1593.001)
 - [Startup Defense: T1593 Analysis](https://www.startupdefense.io/mitre-attack-techniques/t1593-search-open-websites-domains/)

@@ -18,11 +18,21 @@
 
 - ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows认证体系（NTLM/Kerberos/LSASS）
+- [ ] 哈希基础（NTLM Hash/SHA）
+- [ ] 网络认证协议（SMB/LDAP/Kerberos）
+
 ## 技术描述
 
 不安全的凭证（T1552）是MITRE ATT&CK框架中凭证访问战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误解凭证访问只是'窃取密码'——在现代企业中，凭证存在于内存、磁盘、网络流量和云API等多个位置。攻击者关注的不是密码本身，而是'能用它做什么'：一个服务账号的哈希就能横向移动到数十台服务器，OAuth令牌可以访问整个SaaS租户的数据。
 在软件开发和系统管理中，密码经常被无意地留在没有保护的地方：配置文件中写着数据库密码、脚本里硬编码了服务账户凭据、云服务器的"元数据服务"（IMDS）会泄露临时访问密钥、甚至聊天记录里也常有API密钥。攻击者不需要高深的技巧，只要知道去哪里找，就能捡到这些"被遗忘的钥匙"。
 
 **技术原理：**
@@ -192,6 +202,10 @@ graph TD
 - 使用文件完整性监控（FIM）跟踪敏感配置文件的读取活动
 - 监控注册表读取操作，特别是对`HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon`等已知位置的访问
 
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
+
 ## 检测建议
 
 ### 主机层检测
@@ -226,9 +240,6 @@ ausearch -k cred_search | grep -i "grep.*password"
 # AWS CloudWatch告警规则 - 检测IMDS请求
 sourceIPAddress = "169.254.169.254" AND eventName = "AssumeRole"
 ```
-
-
-
 
 **用人话说：** 这条规则在扫描代码仓库和配置文件中是否包含明文密码。很多开发者为了方便，会把数据库密码、API密钥直接写在代码或配置文件里。如果这些文件被攻击者找到，就等于把密码直接送给了他们。定期扫描代码仓库中的敏感信息，能提前发现这些'密码泄露点'。
 
@@ -365,26 +376,26 @@ git secrets --register-aws
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1552 Unsecured Credentials](https://attack.mitre.org/techniques/T1552/)
 - [MITRE ATT&CK - T1552.005 Cloud Instance Metadata API](https://attack.mitre.org/techniques/T1552/005/)
 - [MITRE ATT&CK - T1552.007 Container Credentials](https://attack.mitre.org/techniques/T1552/007/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Mandiant - Salt Typhoon Telecom Analysis](https://www.mandiant.com/resources/blog/salt-typhoon-telecom-analysis) - 2024年电信运营商凭证窃取案例
 - [Unit 42 - TeamTNT Cloud Operations](https://unit42.paloaltonetworks.com/team-tnt-cloud-operations/) - TeamTNT云IMDS凭证窃取分析
 - [GitGuardian - State of Secrets Spraw 2025](https://www.gitguardian.com/report) - 2024年硬编码凭证统计报告
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [LaZagne - 凭证提取工具](https://github.com/AlessandroZ/LaZagne)
 - [truffleHog - Git凭证扫描](https://github.com/trufflesecurity/trufflehog)
 - [SessionGopher - 远程会话凭证提取](https://github.com/Arvanaghi/SessionGopher)
 - [Aqua Security - K8s Secrets安全指南](https://www.aquasec.com/blog/kubernetes-secrets-exposed/)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [AWS - IMDSv2使用指南](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html)
 - [Kubernetes - Secrets管理](https://kubernetes.io/docs/concepts/configuration/secret/)

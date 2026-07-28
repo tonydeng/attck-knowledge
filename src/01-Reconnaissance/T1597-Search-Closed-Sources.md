@@ -4,13 +4,35 @@
 
 > **搜索闭源资料就像花钱买"情报"，从付费平台和地下市场获取公开渠道找不到的深度信息。**
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者花钱购买商业情报(ZoomInfo/RocketReach)、订阅威胁情报服务、或在暗网购买泄露数据库和凭证 |
+| 为什么危险？ | 闭源来源比公开来源更详细更准确——暗网市场能买到员工明文密码，商业情报平台能买到高管手机号，威胁情报能让攻击者知道防御方的检测规则 |
+| 谁需要关心？ | 蓝队(威胁情报团队)、IT运维(凭证泄漏监控)、HR(员工信息保护) |
+| 你的第一步防御 | 订阅凭证泄漏监控服务(如Have I Been Pwned API)，一旦员工邮箱+密码出现在泄露库立即强制重置 |
+| 如果只做一件事 | 监控暗网论坛和Telegram交易群中是否有人在出售你组织的泄露数据(用Flare/DarkOwl等暗网监控服务) |
+
 ## 难度等级
 
 ⭐⭐⭐ 高级 - 需要资金投入和暗网访问经验
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 商业情报平台(ZoomInfo/CrunchBase/RocketReach)的数据来源和字段
+- [ ] 威胁情报供应商(CrowdStrike/Mandiant/Recorded Future)的feed结构
+- [ ] 暗网市场架构(Tor隐藏服务、加密货币支付、信誉体系)
+- [ ] 凭证泄漏数据库(Have I Been Pwned/DeHashed)的查询方式
+
 ## 技术描述
 
 **通俗解释：**
+
+**过渡段：** 不要误以为搜索闭源资料只是'花钱买情报'——在攻击者手中，这是用金钱换精准的情报升级。公开来源告诉你目标有哪些员工，商业情报平台(ZoomInfo)能买到这些员工的直接手机号和职位层级；公开来源告诉你目标用了什么技术栈，暗网市场能买到目标员工的明文密码和会话令牌；威胁情报订阅能告诉攻击者防御方部署了哪些检测规则，从而精准规避。闭源来源把'可能'变成了'确认'。
 公开渠道能收集到的信息有限，有些更详细、更敏感的信息需要花钱买。攻击者会订阅商业情报平台、购买威胁情报报告，甚至在暗网市场上购买泄露的数据库和凭证。这些付费来源通常能提供比公开来源更准确、更及时的情报。
 
 **技术原理：**
@@ -111,8 +133,8 @@ graph TD
 
 - **时间**: 持续进行中
 - **目标**: 各种威胁组织
-- **攻击组织**: 多个APT组织
-- **手法**: 高级威胁组织会访问付费的威胁情报供应商数据和安全报告，了解防御者对其TTPs的了解程度。通过监控这些来源，攻击者可以调整策略以规避已知的检测方法
+- **攻击组织**: APT29（俄罗斯SVR）、APT28（俄罗斯GRU）、Turla（俄罗斯FSB背景）、Lazarus Group（朝鲜）
+- **手法**: 上述高级威胁组织会持续访问付费的威胁情报供应商数据和安全研究报告（如Mandiant、CrowdStrike、Recorded Future等发布的报告），了解防御者对其TTPs的掌握程度。通过监控这些来源，攻击者可以针对性地调整工具、基础设施和攻击模式，规避已知的检测规则和IOC。例如APT29在SolarWinds事件后被观察到根据公开报告调整了其Beacon通信特征
 - **影响**: 攻击者据此调整TTPs，提高隐蔽性
 - **参考链接**: [Mandiant: Threat Intelligence Anti-Patterns](https://www.mandiant.com/resources/blog/threat-intelligence-anti-patterns)
 
@@ -129,7 +151,7 @@ graph TD
 
 - **时间**: 2025-2026年
 - **目标**: 全球各行业组织
-- **攻击组织**: 多个APT组织
+- **攻击组织**: 据Anthropic 2026报告，多个未具名威胁行为者
 - **手法**: 根据Anthropic 2026年LLM ATT&CK Navigator报告，攻击者使用LLM高效分析威胁情报供应商的报告和安全公告，快速理解防御者对其TTPs的了解程度，并自动调整攻击策略。AI使这一过程从数小时缩短到数分钟
 - **影响**: 攻击者从闭源情报中提取价值的速度大幅提升
 - **参考链接**: [Anthropic LLM ATT&CK Navigator](https://red.anthropic.com/2026/attack-navigator/)
@@ -177,6 +199,15 @@ graph TD
 - 定期检查组织的凭证是否出现在泄露数据库中
 - 参与行业威胁情报共享计划
 
+## 避坑指南
+
+新手常犯的错误：以为只有暗网才算闭源。实际上商业情报平台(ZoomInfo、RocketReach、CrunchBase)的数据杀伤力不亚于暗网——它们合法出售员工直拨电话、职位层级、邮箱格式，攻击者用这些数据做精准鱼叉钓鱼或深伪语音诈骗(2024年某跨国公司财务人员被Deepfake CEO语音骗走2500万美元，攻击者用的就是商业情报平台买到的高管声音样本和职位信息)。正确做法是：定期检查这些平台是否列出了你的员工数据(部分平台支持opt-out删除)，同时部署凭证泄漏监控(Have I Been Pwned API)覆盖暗网泄露。
+
+**自查清单：**
+- 在ZoomInfo/RocketReach搜索你的公司名，看看能买到多少员工的直接联系方式
+- 用Have I Been Pwned检查公司域名下有多少邮箱出现在泄露库
+- 监控Telegram暗网交易群(用Flare/DarkOwl)是否有人在出售你组织的@yourdomain.com邮箱凭证
+
 ## 检测建议
 
 ### 网络层检测
@@ -200,6 +231,8 @@ tcpdump -i eth0 port 9001 -X | grep -E "market|buy|sell|credentials"
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：** 搜索闭源来源本身在目标系统上完全无痕——攻击者访问暗网市场或商业情报平台不会触发你的告警。但你能做的是**主动出击**：部署暗网监控服务(Flare/DarkOwl/Recorded Future)监控是否有人在出售你组织的泄露数据，订阅凭证泄漏监控(Have I Been Pwned/DeHashed API)一旦员工邮箱+密码出现在泄露库立即强制重置。如果发现Tor出口节点IP在短时间内访问你多个员工门户，或者发现一批员工凭证突然从陌生地理位置登录，那很可能有人刚从暗网买到了你们的凭证库。
 ```yaml
 title: Tor Browser Usage Detection
 status: experimental
@@ -312,22 +345,22 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - 搜索闭源资料 (T1597)](https://attack.mitre.org/techniques/T1597/)
 - [MITRE ATT&CK - 威胁情报供应商 (T1597.001)](https://attack.mitre.org/techniques/T1597/001)
 - [MITRE ATT&CK - 购买技术数据 (T1597.002)](https://attack.mitre.org/techniques/T1597/002)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Recorded Future: EXOTIC LILY](https://www.recordedfuture.com/exotic-lily-target-society) - 商业情报被用于侦察的案例
 - [Anthropic LLM ATT&CK Navigator](https://red.anthropic.com/2026/attack-navigator/) - AI增强的情报分析
 - [Mandiant M-Trends 2026](https://services.google.com/fh/files/misc/m-trends-2026-executive-edition-en.pdf)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Have I Been Pwned](https://haveibeenpwned.com/) - 凭证泄露查询
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Startup Defense: T1597 Analysis](https://www.startupdefense.io/mitre-attack-techniques/t1597-search-closed-sources)

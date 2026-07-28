@@ -4,15 +4,36 @@
 
 就像用U盘在两个不联网的电脑之间"人肉快递"传递情报——攻击者通过U盘在隔离网络和外界之间传递C2指令。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者通过USB等可移动介质在物理隔离的网络间传递C2指令和数据 |
+| 为什么危险？ | 可以跨越物理隔离（air-gapped）网络，绕过所有网络层防护 |
+| 谁需要关心？ | 安全运维团队、物理安全团队 |
+| 你的第一步防御 | 禁用或严格管控可移动介质的使用 |
+| 如果只做一件事 | 监控可移动介质的挂载事件和自动运行文件执行 |
+
 ## 难度等级
 
 - ⭐ 初级（新手可学）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络协议基础（TCP/IP/DNS/HTTP）
+- [ ] C2通信模式
+- [ ] 加密通信基本原理
 
 ## 技术描述
 
 通过可移动介质通信（Communication Through Removable Media）是 MITRE ATT&CK 框架中命令与控制战术下的一种特殊技术，编号为 T1092。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为C2只是'恶意软件发心跳包'——现代C2基础设施堪比小型互联网公司。攻击者使用CDN隐藏真实服务器、用Domain Fronting伪装流量目的地、借助合法云服务（如GitHub Issues、Slack API）作为通信通道。攻击者的C2流量与正常流量混杂在一起，传统IoC检测几乎无效。
 有些高安全级别的网络（如军事网络、核设施控制系统）与互联网完全物理隔离（称为"气隙网络"或"物理隔离网络"），攻击者无法通过网络直接连接到这些系统。但攻击者发现了一个"漏洞"——即使是最安全的隔离网络，有时也需要通过U盘等可移动介质来传输数据。攻击者就利用这个通道：把C2指令写入U盘，然后让不知情的内部人员把U盘插到隔离网络的电脑上，恶意软件读取指令并执行。
 
 **技术原理：**
@@ -178,6 +199,10 @@ graph TD
 - 部署端点检测和响应（EDR）系统监控 USB 事件
 - 定期审计可移动介质的使用情况
 
+## 避坑指南
+
+SOC常见误区：只检测已知恶意域名和IP。
+
 ## 检测建议
 
 ### 主机层检测
@@ -196,6 +221,31 @@ graph TD
 Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Partition/Diagnostic'; ID=1006}
 ```
 
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1092
+status: experimental
+description: Detects potential T1092 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1092
+
+
 ### 网络层检测
 
 **检测方法：** 可移动介质 C2 主要在主机层检测，网络层检测有限。
@@ -203,6 +253,10 @@ Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Partition/Diagnostic'
 ### Sigma规则示例
 
 **Sigma规则示例：**
+
+**用人话说：**C2检测关注通信行为特征而非IP黑名单——固定间隔心跳、非常规DNS查询、小数据包频繁发送比内容分析更有效。
+
+**用人话说：**C2检测关注通信行为特征而非IP黑名单——固定间隔心跳包、非常规DNS查询、小数据包频繁发送比内容分析更有效。
 ```yaml
 title: USB设备连接后可疑进程执行
 status: experimental
@@ -314,11 +368,11 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1092](https://attack.mitre.org/techniques/T1092/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Stuxnet USB 传播分析](https://www.welivesecurity.com/2010/10/04/stuxnet-usb-spread/)
 - [Agent.BTZ - 美国军方网络入侵](https://attack.mitre.org/software/S0029/)

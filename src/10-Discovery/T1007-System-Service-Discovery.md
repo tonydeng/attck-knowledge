@@ -16,6 +16,14 @@
 
 ## 难度等级
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 操作系统信息查询命令（whoami/systeminfo/ipconfig等）
+- [ ] Active Directory基本概念（域/用户/组策略）
+
 - ⭐⭐ 中级（需要一定基础）
 
 ## 技术描述
@@ -23,6 +31,8 @@
 系统服务发现（T1007）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 电脑上有很多"后台程序"在默默运行，比如打印服务、数据库服务、安全软件服务等。攻击者入侵后，会像小偷翻看店里的设备清单一样，查看这些后台服务的运行情况。通过服务发现，攻击者可以判断这台电脑是普通工作站还是重要的服务器，有没有安全软件在保护，以及哪些服务可能存在漏洞可以利用。
 
 **技术原理：**
@@ -126,7 +136,7 @@ graph TD
 ### 实战技巧
 
 1. **使用WMI远程查询服务**
-   `Get-WmiObject Win32_Service -ComputerName &lt;target&gt;` 可以远程查询其他系统上的服务，无需在目标上安装任何软件。配合有效的域凭证，可以批量枚举内网中所有Windows系统的服务状态。
+   `Get-WmiObject Win32_Service -ComputerName <target>` 可以远程查询其他系统上的服务，无需在目标上安装任何软件。配合有效的域凭证，可以批量枚举内网中所有Windows系统的服务状态。
 
 2. **关注安全产品服务的状态**
    使用 `sc query` 检查安全产品服务的状态。如果检测到 `WinDefend` 已停止，说明防御已经被绕过或禁用。如果安全服务正在运行，考虑使用进程注入或内存加载的方式避免触发文件扫描。
@@ -174,6 +184,10 @@ graph TD
 - 配置Sysmon监控 `sc.exe`、`net.exe` 的创建事件
 - 使用Windows Defender for Identity检测异常的WMI活动
 - 在SIEM中建立基线，识别服务查询的异常频率模式
+
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
 
 ## 检测建议
 
@@ -333,17 +347,17 @@ Computer Configuration -> Administrative Templates -> Windows Components -> Wind
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1007](https://attack.mitre.org/techniques/T1007/)
 - [Microsoft - Sc.exe Query](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/sc-query)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Kaspersky - Lazarus MATA Framework](https://securelist.com/mata-multi-platform-cyber-framework/102140/)
 - [Rapid7 - MuddyWater 2026 Analysis](https://www.rapid7.com/blog/post/tr-muddying-tracks-state-sponsored-shadow-behind-chaos-ransomware/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Sysinternals PsService](https://learn.microsoft.com/en-us/sysinternals/downloads/psservice)
 - [PowerShell Get-Service Documentation](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-service)

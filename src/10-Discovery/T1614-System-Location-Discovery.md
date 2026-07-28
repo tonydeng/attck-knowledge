@@ -18,11 +18,21 @@
 
 - ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 系统位置发现（T1614）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 很多恶意软件是有"目标"的——比如只攻击韩国的银行用户，或者只感染中东地区的政府机构。那么恶意软件怎么知道自己是不是在正确的目标电脑上呢？它通过检查系统语言、时区、键盘布局等信息来判断电脑的大致地理位置。就像通过一个人说的语言和口音，可以大概猜出他来自哪个国家。
 
 **技术原理：**
@@ -175,6 +185,10 @@ graph TD
 - 关注恶意软件中读取区域设置后执行条件分支的行为模式
 - 监控Linux系统中读取 `$LANG` 环境变量的行为
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -216,6 +230,31 @@ level: medium
 tags:
     - attack.t1614
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1614
+status: experimental
+description: Detects potential T1614 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1614
+
 
 ## 缓解措施
 
@@ -294,19 +333,19 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1614](https://attack.mitre.org/techniques/T1614/)
 - [MITRE ATT&CK - T1614.001](https://attack.mitre.org/techniques/T1614/001/)
 - [Microsoft - GetSystemDefaultLangID](https://learn.microsoft.com/en-us/windows/win32/api/winnls/nf-winnls-getsystemdefaultlangid)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Kaspersky - Lazarus Language Detection](https://securelist.com/lazarus-language-detection-and-targeting/102400/)
 - [CrowdStrike - Kimsuky Geographic Filtering](https://www.crowdstrike.com/blog/kimsuky-geographic-filtering-malware/)
 - [FireEye - APT33 Geographic Targeting](https://www.fireeye.com/blog/threat-research/2019/09/apt33-geographic-region-filtering.html)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [PowerShell Get-WinSystemLocale](https://learn.microsoft.com/en-us/powershell/module/international/get-winsystemlocale)
 - [Win32_TimeZone WMI Class](https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-timezone)

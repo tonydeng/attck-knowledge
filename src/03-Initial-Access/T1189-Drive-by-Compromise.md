@@ -4,7 +4,26 @@
 
 > 攻击者在你常去的网站上埋了"地雷"，你一踩上去（访问网站），恶意代码就自动在你电脑里爆炸执行了。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者通过各种手段打开目标网络入口的技术 |
+| 为什么危险？ | 初始访问是所有攻击的入口，一旦突破就打开了后续攻击的大门 |
+| 谁需要关心？ | 所有人（员工可能会收到钓鱼邮件） |
+| 你的第一步防御 | 部署多因素认证（MFA），让单一密码泄露无法导致系统失陷 |
+| 如果只做一件事 | 对员工进行钓鱼安全意识培训，这是投入产出比最高的防御 |
+
 ## 难度等级
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 漏洞利用基本概念（CVE/缓解措施）
+- [ ] 社会工程学基础（钓鱼/诱饵）
+- [ ] 网络攻击面概念（暴露面/攻击向量）
 
 - ⭐⭐ **中级**（需要一定基础）——需要了解Web漏洞、JavaScript和浏览器安全
 
@@ -30,6 +49,8 @@
 - 入侵合法网站后注入隐藏的iframe或JavaScript
 - 修改网站引用的第三方脚本文件
 - 通过恶意广告（Malvertising）投放恶意代码
+
+**过渡段：** 不要误以为初始访问就是'找一个漏洞打进去'这么简单——攻击者会同时尝试多种入口。
 - 利用XSS漏洞注入恶意脚本
 
 ## 子技术列表
@@ -96,7 +117,7 @@ graph TD
 
 - **时间**: 2024年
 - **目标**: 多个东欧和亚洲国家的政府机构
-- **攻击组织**: 多个APT组织
+- **攻击组织**: APT41（双重用途组织，疑似中国背景）、Sandworm（俄罗斯GRU）、ScarCruft（朝鲜Reconnaissance General Bureau背景）
 - **手法**: 多个APT组织在2024年被观察到持续使用水坑攻击技术。攻击者入侵政府门户网站、行业论坛和学术网站，在其中注入恶意JavaScript代码。这些代码利用浏览器零日漏洞或已知漏洞来执行恶意载荷。攻击者使用多阶段加载器和混淆技术来逃避检测。水坑攻击在2024年仍然是针对高价值目标的有效初始访问手段。
 - **影响**: 多个政府机构和智库被入侵
 - **参考链接**: [MITRE ATT&CK T1189](https://attack.mitre.org/techniques/T1189/)
@@ -157,6 +178,10 @@ graph TD
 - 使用浏览器隔离技术，将Web浏览与用户系统隔离
 - 保持浏览器和插件及时更新
 
+## 避坑指南
+
+防御者最常见盲区：过度关注漏洞修复而忽略社会工程学攻击。
+
 ## 检测建议
 
 ### 网络层检测
@@ -194,6 +219,10 @@ Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Sysmon/Operational'; 
 **检测方法：** 监控Web应用中的异常代码注入。
 
 **Sigma规则示例：**
+
+**用人话说：**初始访问检测的关键是识别异常入口。钓鱼邮件一般会有一些痕迹，比如发件人域名近似但不完全匹配、邮件中包含不常见的附件类型。但这些很容易被绕过，所以更靠谱的检测是看用户点击后的行为——如果Word文档启动了PowerShell，那基本可以认定是被钓鱼了。
+
+**用人话说：**初始访问检测的关键不是只看邮件，而是看用户点击后的行为——如果Word文档启动了PowerShell，基本可以认定被钓鱼了。
 ```yaml
 title: 浏览器进程启动可疑子进程
 status: experimental
@@ -340,22 +369,22 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Drive-by Compromise (T1189)](https://attack.mitre.org/techniques/T1189/)
 - [CISA - Drive-by Compromise (T1189)](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1189)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [3CX Supply Chain Compromise - Google Cloud](https://cloud.google.com/blog/topics/threat-intelligence/3cx-software-supply-chain-compromise/) - 结合供应链攻击和水坑攻击的典型案例分析
 - [Andariel Watering Hole Attacks - AhnLab](https://www.ahnlab.com/global/warn/virusDetail.do?warningsno=23000003) - 朝鲜APT组织的水坑攻击分析
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [BeEF - Browser Exploitation Framework](https://beefproject.com/) - 浏览器利用框架
 - [Social Engineering Toolkit](https://github.com/trustedsec/social-engineer-toolkit) - 社会工程学工具包
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Shadowserver Strategic Web Compromise](http://blog.shadowserver.org/2012/05/15/cyber-espionage-strategic-web-compromises-trusted-websites-serving-dangerous-results/) - 水坑攻击分析
 - [Red Canary 2024 Initial Access Report](https://redcanary.com/threat-detection-report/trends/initial-access/) - 2024年初始访问技术趋势

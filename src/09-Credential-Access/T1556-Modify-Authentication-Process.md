@@ -18,11 +18,21 @@
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows认证体系（NTLM/Kerberos/LSASS）
+- [ ] 哈希基础（NTLM Hash/SHA）
+- [ ] 网络认证协议（SMB/LDAP/Kerberos）
+
 ## 技术描述
 
 修改认证流程（T1556）是MITRE ATT&CK框架中凭证访问战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误解凭证访问只是'窃取密码'——在现代企业中，凭证存在于内存、磁盘、网络流量和云API等多个位置。攻击者关注的不是密码本身，而是'能用它做什么'：一个服务账号的哈希就能横向移动到数十台服务器，OAuth令牌可以访问整个SaaS租户的数据。
 之前的凭证访问技术都是"偷"——偷密码、偷令牌、偷票据。而修改认证流程是"改"——直接修改认证系统本身。比如：在Windows的登录流程中插入一个恶意组件，让每个用户登录时都把密码发给攻击者；在Linux的PAM（可插拔认证模块，相当于系统的"门锁接口"）中添加一个后门密码；在云端的身份提供商（IdP）中修改配置，让攻击者控制的账户也能登录。这就像小偷不撬锁，而是让锁匠改了锁芯的结构。
 
 **技术原理：**
@@ -196,6 +206,10 @@ graph TD
 - 定期审计AD FS服务器上所有已注册的信任关系
 - 使用Microsoft Defender for Identity检测DC上的LSASS异常加载
 
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
+
 ## 检测建议
 
 ### 网络层检测
@@ -235,9 +249,6 @@ Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\ `
 auditctl -w /etc/pam.d/ -p wa -k pam_modification
 ausearch -k pam_modification
 ```
-
-
-
 
 **用人话说：** 这条规则在监控认证系统是否被篡改。认证系统是验证用户身份的'门卫'。正常情况下认证系统的配置和代码不会被修改。如果发现认证相关的配置被修改、DLL被注入、或者认证流程被篡改，那就是攻击者在修改认证系统，准备截获所有用户的登录密码。
 
@@ -375,26 +386,26 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1556 Modify Authentication Process](https://attack.mitre.org/techniques/T1556/)
 - [MITRE ATT&CK - T1556.001 Domain Controller Authentication](https://attack.mitre.org/techniques/T1556/001/)
 - [MITRE ATT&CK - T1556.006 Multi-Factor Authentication](https://attack.mitre.org/techniques/T1556/006/)
 - [MITRE ATT&CK - T1556.007 Hybrid Identity](https://attack.mitre.org/techniques/T1556/007/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Mandiant - Golden SAML and Golden Certificates](https://www.mandiant.com/resources/blog/golden-saml-and-golden-certificates) - SAML令牌伪造与混合身份攻击
 - [CISA AA23-320A - Scattered Spider](https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-320a) - MFA配置修改案例
 - [Mandiant - Cloud Identity Attacks 2025](https://www.mandiant.com/resources/cloud-identity-attacks) - 云身份攻击趋势报告
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [mimikatz - Windows凭证提取和SSP注入](https://github.com/gentilkiwi/mimikatz)
 - [ADFSDump - AD FS配置提取工具](https://github.com/mandiant/ADFSDump)
 - [Azure AD PowerShell模块](https://learn.microsoft.com/en-us/powershell/azure/)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Microsoft - LSA保护配置](https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/configuring-additional-lsa-protection)
 - [Microsoft - Azure AD条件访问文档](https://learn.microsoft.com/en-us/azure/active-directory/conditional-access/)

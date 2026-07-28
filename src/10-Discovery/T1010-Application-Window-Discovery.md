@@ -18,11 +18,21 @@
 
 - ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 应用程序窗口发现（T1010）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 当你在电脑上打开各种程序窗口时（浏览器、Word、微信等），Windows会知道所有打开的窗口。攻击者入侵后，可以查看当前打开了哪些程序窗口，从而判断：用户是不是在浏览敏感资料、有没有打开安全控制台、或者是不是有人在用电脑。
 
 **技术原理：**
@@ -167,6 +177,10 @@ graph TD
 - 启用PowerShell ScriptBlock Logging捕获窗口枚举脚本
 - 关注计划任务或服务进程中加载WinForm组件的行为
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -300,17 +314,17 @@ $windows
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1010](https://attack.mitre.org/techniques/T1010/)
 - [Microsoft - EnumWindows API](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumwindows)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Trend Micro - TrickBot Analysis](https://www.trendmicro.com/vinfo/us/security/news/cybercrime-and-digital-threats/trickbot-trojans-new-module-steals-browser-passwords-and-credentials)
 - [CISA - Emotet Alert](https://www.cisa.gov/news-events/alerts/2020/07/20/emotet-malware)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [PowerShell Documentation](https://learn.microsoft.com/en-us/powershell/)
 - [WinSpy++](https://sourceforge.net/projects/winspypp/)

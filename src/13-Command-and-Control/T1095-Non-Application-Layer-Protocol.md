@@ -4,15 +4,36 @@
 
 就像不走正门走地道——攻击者不用HTTP等应用层协议，而是用ICMP（Ping命令）等底层网络协议传输C2数据，避开应用层防火墙的检查。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者使用 ICMP、UDP、GRE 等网络层/传输层（OSI 3-4层）协议或原始套接字承载 C2 数据，绕过只检查 HTTP/DNS 等应用层（7层）的防火墙与代理 |
+| 为什么危险？ | 很多防火墙只检查应用层流量，非应用层协议可以绕过检测 |
+| 谁需要关心？ | 网络安全团队、SOC分析师 |
+| 你的第一步防御 | 限制出站非必要协议（如ICMP），监控原始套接字使用 |
+| 如果只做一件事 | 监控异常的ICMP流量（大量echo请求/大payload） |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络协议基础（TCP/IP/DNS/HTTP）
+- [ ] C2通信模式
+- [ ] 加密通信基本原理
 
 ## 技术描述
 
 非应用层协议（Non-Application Layer Protocol）是 MITRE ATT&CK 框架中命令与控制战术下的一种技术，编号为 T1095。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为C2只是'恶意软件发心跳包'——现代C2基础设施堪比小型互联网公司。攻击者使用CDN隐藏真实服务器、用Domain Fronting伪装流量目的地、借助合法云服务（如GitHub Issues、Slack API）作为通信通道。攻击者的C2流量与正常流量混杂在一起，传统IoC检测几乎无效。
 大多数网络安全设备只检查应用层协议（HTTP、DNS、SMTP等），对底层网络协议（ICMP、TCP、UDP）的内容检查较少。攻击者就利用这个"盲区"——把C2指令藏在 ICMP Ping 请求的数据部分、TCP 包的头部字段或 UDP 包的数据段中。这些协议通常是网络正常运行所必需的，防火墙很少拦截。
 
 **技术原理：**
@@ -136,6 +157,10 @@ graph TD
 2. **原始套接字监控**
    - 异常特征：非管理员程序创建原始套接字
 
+## 避坑指南
+
+SOC常见误区：只检测已知恶意域名和IP。
+
 ## 检测建议
 
 ### 网络层检测
@@ -151,9 +176,38 @@ alert icmp any any -> $HOME_NET any (msg:"异常ICMP数据包大小"; dsize:>100
 
 **检测方法：** 监控原始套接字的创建。
 
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1095
+status: experimental
+description: Detects potential T1095 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1095
+
+
 ### Sigma规则示例
 
 **Sigma规则示例：**
+
+**用人话说：**C2检测关注通信行为特征而非IP黑名单——固定间隔心跳、非常规DNS查询、小数据包频繁发送比内容分析更有效。
+
+**用人话说：**C2检测关注通信行为特征而非IP黑名单——固定间隔心跳包、非常规DNS查询、小数据包频繁发送比内容分析更有效。
 ```yaml
 title: ICMP隧道检测（异常流量模式）
 status: experimental
@@ -214,6 +268,6 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1095](https://attack.mitre.org/techniques/T1095/)

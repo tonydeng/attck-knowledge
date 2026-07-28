@@ -4,13 +4,35 @@
 
 > **主动扫描就像小偷挨家挨户敲门，看哪扇门没锁、哪个窗户开着，直接试探目标的弱点。**
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者向目标系统发送探测数据包，识别开放端口、运行服务和已知漏洞 |
+| 为什么危险？ | 扫描结果让攻击者精准定位可利用的攻击入口和未打补丁的漏洞 |
+| 谁需要关心？ | 网络安全团队、系统管理员、IT运维人员 |
+| 你的第一步防御 | 部署IDS/IPS检测扫描行为，关闭不必要的端口和服务 |
+| 如果只做一件事 | 配置防火墙规则，只开放必要端口，对大量连接尝试自动告警 |
+
 ## 难度等级
 
 ⭐⭐ 中级 - 需要网络基础知识和扫描工具使用经验
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] TCP/IP协议基础（端口、连接、握手过程）
+- [ ] 常见网络服务及其默认端口（HTTP=80、HTTPS=443、SSH=22、RDP=3389等）
+- [ ] 网络扫描工具的基本概念（Nmap、Masscan）
+
 ## 技术描述
 
 **通俗解释：**
+
+**过渡段：** 不要误以为主动扫描只是简单的"ping一下"——现代扫描工具可以在几分钟内完成数万个IP的全端口扫描，还能自动识别服务版本和已知漏洞。攻击者拿到这些信息后，就能精准选择攻击入口。
+
 被动侦察是在远处用望远镜观察，而主动扫描是直接走到目标门口敲门试探。攻击者会向目标系统发送各种探测数据包，根据响应来判断：哪些端口是开放的、运行着什么服务、用的什么操作系统、有没有已知漏洞。这种方式信息更准确，但也更容易被发现。
 
 **技术原理：**
@@ -133,7 +155,7 @@ graph TD
 
 - **时间**: 2025-2026年
 - **目标**: 全球各行业组织
-- **攻击组织**: 多个APT组织
+- **攻击组织**: 据CrowdStrike 2026报告，多个未具名威胁行为者
 - **手法**: 根据CrowdStrike 2026报告，AI被用于自动选择和优化扫描参数，提高扫描效率。攻击者使用LLM驱动的扫描工具自动分析扫描结果，识别最可能的突破口。CrowdStrike报告指出AI增强的攻击活动增长了89%，平均突破时间缩短到29分钟
 - **影响**: 扫描和突破的速度大幅提升
 - **参考链接**: [CrowdStrike 2026 Global Threat Report](https://www.crowdstrike.com/global-threat-report/)
@@ -182,6 +204,10 @@ graph TD
 - 监控来自单一IP的大量连接尝试
 - 部署蜜罐收集攻击者的扫描行为
 
+## 避坑指南
+
+新手常犯的错误：只看端口扫描结果而忽略服务版本指纹。开放的端口只是告诉你"门在那里"，服务版本才是判断"这扇门能不能撬开"的关键——同一个80端口，Apache 2.4.49和2.4.51的漏洞风险完全不同。
+
 ## 检测建议
 
 ### 网络层检测
@@ -215,6 +241,8 @@ iptables -A INPUT -m recent --name portscan --rcheck --seconds 60 -j LOG --log-p
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：**主动扫描就是攻击者挨个敲你家的门，看哪扇门没锁、哪个窗户开着——他发一个探测包给你，根据你的回复判断你的情况。检测的关键信号是：同一个IP在短时间内尝试连接你大量不同的端口（端口扫描特征），或者一个IP段内的所有IP都被同一个来源探测过（IP块扫描特征）。正常用户不会在10秒内连你50个不同端口，但Nmap会。
 ```yaml
 title: Nmap Scan Detection
 status: experimental
@@ -343,24 +371,24 @@ sudo apt update && sudo apt install nmap
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - 主动扫描 (T1595)](https://attack.mitre.org/techniques/T1595/)
 - [MITRE ATT&CK - 扫描IP块 (T1595.001)](https://attack.mitre.org/techniques/T1595/001)
 - [MITRE ATT&CK - 漏洞扫描 (T1595.002)](https://attack.mitre.org/techniques/T1595/002)
 - [MITRE ATT&CK - 字典扫描 (T1595.003)](https://attack.mitre.org/techniques/T1595/003)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CISA: APT28 Advisory](https://www.cisa.gov/sites/default/files/2024-09/aa24-249a-russian-military-cyber-actors-target-us-and-global-critical-infrastructure.pdf)
 - [CISA: Volt Typhoon Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a)
 - [CrowdStrike 2026 Global Threat Report](https://www.crowdstrike.com/global-threat-report/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Nmap](https://nmap.org/) - 网络扫描工具
 - [Nuclei](https://github.com/projectdiscovery/nuclei) - 模板化漏洞扫描器
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [CISA: T1595 Guidance](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1595)

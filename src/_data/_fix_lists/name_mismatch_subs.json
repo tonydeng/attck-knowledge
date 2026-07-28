@@ -1,0 +1,506 @@
+[
+  {
+    "tid": "T1546.009",
+    "local_name": "AppInit DLLs",
+    "official_name": "AppCert DLLs",
+    "local_file": "T1546.009-AppInit-DLLs.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1546.010",
+    "local_name": "AppCert DLLs",
+    "official_name": "AppInit DLLs",
+    "local_file": "T1546.010-AppCert-DLLs.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1548.001",
+    "local_name": "Bypass User Account Control",
+    "official_name": "Setuid and Setgid",
+    "local_file": "T1548.001-Bypass-User-Account-Control.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1548.002",
+    "local_name": "Bypass sudo",
+    "official_name": "Bypass User Account Control",
+    "local_file": "T1548.002-Bypass-sudo.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1548.003",
+    "local_name": "Sudo Caching",
+    "official_name": "Sudo and Sudo Caching",
+    "local_file": "T1548.003-Sudo-Caching.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1548.004",
+    "local_name": "Bypass System Authorization Components",
+    "official_name": "Elevated Execution with Prompt",
+    "local_file": "T1548.004-Bypass-System-Authorization-Components.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1543.001",
+    "local_name": "Windows Service",
+    "official_name": "Launch Agent",
+    "local_file": "T1543.001-Windows-Service.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1543.002",
+    "local_name": "System Daemon",
+    "official_name": "Systemd Service",
+    "local_file": "T1543.002-System-Daemon.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1543.003",
+    "local_name": "Windows Service (Alternative)",
+    "official_name": "Windows Service",
+    "local_file": "T1543.003-Windows-Service-Alternative.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1543.004",
+    "local_name": "launchd",
+    "official_name": "Launch Daemon",
+    "local_file": "T1543.004-launchd.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1546.009",
+    "local_name": "AppCert DLL",
+    "official_name": "AppCert DLLs",
+    "local_file": "T1546.009-AppCert-DLL.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1546.010",
+    "local_name": "AppInit DLL",
+    "official_name": "AppInit DLLs",
+    "local_file": "T1546.010-AppInit-DLL.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1055.008",
+    "local_name": "VDSO Hijacking",
+    "official_name": "Ptrace System Calls",
+    "local_file": "T1055.008-VDSO-Hijacking.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1055.012",
+    "local_name": "Process Herpaderping",
+    "official_name": "Process Hollowing",
+    "local_file": "T1055.012-Process-Herpaderping.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1055.013",
+    "local_name": "ProcMem Linux",
+    "official_name": "Process Doppelgänging",
+    "local_file": "T1055.013-ProcMem-Linux.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1055.014",
+    "local_name": "VDSO Linux",
+    "official_name": "VDSO Hijacking",
+    "local_file": "T1055.014-VDSO-Linux.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1564.001",
+    "local_name": "Hide Files and Directories",
+    "official_name": "Hidden Files and Directories",
+    "local_file": "T1564.001-Hide-Files-and-Directories.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1564.002",
+    "local_name": "Hide Users",
+    "official_name": "Hidden Users",
+    "local_file": "T1564.002-Hide-Users.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1564.003",
+    "local_name": "Hide Window",
+    "official_name": "Hidden Window",
+    "local_file": "T1564.003-Hide-Window.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1564.008",
+    "local_name": "Email Hidden Rules",
+    "official_name": "Email Hiding Rules",
+    "local_file": "T1564.008-Email-Hidden-Rules.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1564.009",
+    "local_name": "Resource Fork",
+    "official_name": "Resource Forking",
+    "local_file": "T1564.009-Resource-Fork.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1564.011",
+    "local_name": "Ignore Process Interrupt",
+    "official_name": "Ignore Process Interrupts",
+    "local_file": "T1564.011-Ignore-Process-Interrupt.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1564.012",
+    "local_name": "File/Path Exclusion",
+    "official_name": "File/Path Exclusions",
+    "local_file": "T1564.012-File-Path-Exclusion.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1564.013",
+    "local_name": "Email Quarantine Bypass",
+    "official_name": "Bind Mounts",
+    "local_file": "T1564.013-Email-Quarantine-Bypass.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1564.014",
+    "local_name": "Passbook Entry",
+    "official_name": "Extended Attributes",
+    "local_file": "T1564.014-Passbook-Entry.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1070.005",
+    "local_name": "Network Connection History Clear",
+    "official_name": "Network Share Connection Removal",
+    "local_file": "T1070.005-Network-Connection-History-Clear.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1070.007",
+    "local_name": "Clear System Logs",
+    "official_name": "Clear Network Connection History and Configurations",
+    "local_file": "T1070.007-Clear-System-Logs.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1070.008",
+    "local_name": "Clear Mail Logs",
+    "official_name": "Clear Mailbox Data",
+    "local_file": "T1070.008-Clear-Mail-Logs.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1070.009",
+    "local_name": "Clear Cloud Audit Logs",
+    "official_name": "Clear Persistence",
+    "local_file": "T1070.009-Clear-Cloud-Audit-Logs.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1070.010",
+    "local_name": "Clear PowerShell History",
+    "official_name": "Relocate Malware",
+    "local_file": "T1070.010-Clear-PowerShell-History.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1027.008",
+    "local_name": "Obfuscated Payload Segmentation",
+    "official_name": "Stripped Payloads",
+    "local_file": "T1027.008-Obfuscated-Payload-Segmentation.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1027.009",
+    "local_name": "Plaintext Obfuscated Payload",
+    "official_name": "Embedded Payloads",
+    "local_file": "T1027.009-Plaintext-Obfuscated-Payload.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1027.011",
+    "local_name": "XOR",
+    "official_name": "Fileless Storage",
+    "local_file": "T1027.011-XOR.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1027.012",
+    "local_name": "LZNT1",
+    "official_name": "LNK Icon Smuggling",
+    "local_file": "T1027.012-LZNT1.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1027.013",
+    "local_name": "Encryption/Encoding",
+    "official_name": "Encrypted/Encoded File",
+    "local_file": "T1027.013-Encryption-Encoding.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1027.014",
+    "local_name": "Junk Data",
+    "official_name": "Polymorphic Code",
+    "local_file": "T1027.014-Junk-Data.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1542.003",
+    "local_name": "Master Boot Record",
+    "official_name": "Bootkit",
+    "local_file": "T1542.003-Master-Boot-Record.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1542.004",
+    "local_name": "Boot Sector",
+    "official_name": "ROMMONkit",
+    "local_file": "T1542.004-Boot-Sector.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1542.005",
+    "local_name": "Disk Area Wipe",
+    "official_name": "TFTP Boot",
+    "local_file": "T1542.005-Disk-Area-Wipe.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1055.008",
+    "local_name": "VDSO Hijacking",
+    "official_name": "Ptrace System Calls",
+    "local_file": "T1055.008-VDSO-Hijacking.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1055.011",
+    "local_name": "Process Hollowing",
+    "official_name": "Extra Window Memory Injection",
+    "local_file": "T1055.011-Process-Hollowing.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1055.012",
+    "local_name": "Process Doppelganging",
+    "official_name": "Process Hollowing",
+    "local_file": "T1055.012-Process-Doppelganging.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1218.001",
+    "local_name": "Mshta",
+    "official_name": "Compiled HTML File",
+    "local_file": "T1218.001-Mshta.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1218.002",
+    "local_name": "Rundll32",
+    "official_name": "Control Panel",
+    "local_file": "T1218.002-Rundll32.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1218.003",
+    "local_name": "Regsvr32",
+    "official_name": "CMSTP",
+    "local_file": "T1218.003-Regsvr32.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1218.005",
+    "local_name": "Msiexec",
+    "official_name": "Mshta",
+    "local_file": "T1218.005-Msiexec.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1218.008",
+    "local_name": "BITSAdmin",
+    "official_name": "Odbcconf",
+    "local_file": "T1218.008-BITSAdmin.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1218.009",
+    "local_name": "Certutil",
+    "official_name": "Regsvcs/Regasm",
+    "local_file": "T1218.009-Certutil.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1218.011",
+    "local_name": "WMIC",
+    "official_name": "Rundll32",
+    "local_file": "T1218.011-WMIC.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1071.005",
+    "local_name": "SMB",
+    "official_name": "Publish/Subscribe Protocols",
+    "local_file": "T1071.005-SMB.md",
+    "_tactic_id": "TA0011",
+    "_tactic_dir": "13-Command-and-Control"
+  },
+  {
+    "tid": "T1001.003",
+    "local_name": "Protocol Impersonation",
+    "official_name": "Protocol or Service Impersonation",
+    "local_file": "T1001.003-Protocol-Impersonation.md",
+    "_tactic_id": "TA0011",
+    "_tactic_dir": "13-Command-and-Control"
+  },
+  {
+    "tid": "T1568.002",
+    "local_name": "Domain Generation Algorithm",
+    "official_name": "Domain Generation Algorithms",
+    "local_file": "T1568.002-Domain-Generation-Algorithm.md",
+    "_tactic_id": "TA0011",
+    "_tactic_dir": "13-Command-and-Control"
+  },
+  {
+    "tid": "T1573.001",
+    "local_name": "Symmetric Encryption",
+    "official_name": "Symmetric Cryptography",
+    "local_file": "T1573.001-Symmetric-Encryption.md",
+    "_tactic_id": "TA0011",
+    "_tactic_dir": "13-Command-and-Control"
+  },
+  {
+    "tid": "T1573.002",
+    "local_name": "Asymmetric Encryption",
+    "official_name": "Asymmetric Cryptography",
+    "local_file": "T1573.002-Asymmetric-Encryption.md",
+    "_tactic_id": "TA0011",
+    "_tactic_dir": "13-Command-and-Control"
+  },
+  {
+    "tid": "T1048.002",
+    "local_name": "Symmetric Exfiltration",
+    "official_name": "Exfiltration Over Asymmetric Encrypted Non-C2 Protocol",
+    "local_file": "T1048.002-Symmetric-Exfiltration.md",
+    "_tactic_id": "TA0010",
+    "_tactic_dir": "14-Exfiltration"
+  },
+  {
+    "tid": "T1052.001",
+    "local_name": "USB",
+    "official_name": "Exfiltration over USB",
+    "local_file": "T1052.001-USB.md",
+    "_tactic_id": "TA0010",
+    "_tactic_dir": "14-Exfiltration"
+  },
+  {
+    "tid": "T1567.002",
+    "local_name": "Code Repository",
+    "official_name": "Exfiltration to Cloud Storage",
+    "local_file": "T1567.002-Code-Repository.md",
+    "_tactic_id": "TA0010",
+    "_tactic_dir": "14-Exfiltration"
+  },
+  {
+    "tid": "T1567.003",
+    "local_name": "Paste Site",
+    "official_name": "Exfiltration to Text Storage Sites",
+    "local_file": "T1567.003-Paste-Site.md",
+    "_tactic_id": "TA0010",
+    "_tactic_dir": "14-Exfiltration"
+  },
+  {
+    "tid": "T1567.004",
+    "local_name": "Webhook",
+    "official_name": "Exfiltration Over Webhook",
+    "local_file": "T1567.004-Webhook.md",
+    "_tactic_id": "TA0010",
+    "_tactic_dir": "14-Exfiltration"
+  },
+  {
+    "tid": "T1565.003",
+    "local_name": "Real-time Data Manipulation",
+    "official_name": "Runtime Data Manipulation",
+    "local_file": "T1565.003-Real-time-Data-Manipulation.md",
+    "_tactic_id": "TA0040",
+    "_tactic_dir": "15-Impact"
+  },
+  {
+    "tid": "T1499.001",
+    "local_name": "OS Resource Exhaustion",
+    "official_name": "OS Exhaustion Flood",
+    "local_file": "T1499.001-OS-Resource-Exhaustion.md",
+    "_tactic_id": "TA0040",
+    "_tactic_dir": "15-Impact"
+  },
+  {
+    "tid": "T1499.002",
+    "local_name": "Service Resource Exhaustion",
+    "official_name": "Service Exhaustion Flood",
+    "local_file": "T1499.002-Service-Resource-Exhaustion.md",
+    "_tactic_id": "TA0040",
+    "_tactic_dir": "15-Impact"
+  },
+  {
+    "tid": "T1499.003",
+    "local_name": "Application Layer Exhaustion",
+    "official_name": "Application Exhaustion Flood",
+    "local_file": "T1499.003-Application-Layer-Exhaustion.md",
+    "_tactic_id": "TA0040",
+    "_tactic_dir": "15-Impact"
+  }
+]

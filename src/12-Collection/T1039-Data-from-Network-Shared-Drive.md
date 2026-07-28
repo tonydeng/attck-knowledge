@@ -18,11 +18,21 @@
 
 ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 文件系统与存储基础
+- [ ] 数据压缩与归档基本概念
+- [ ] 邮件系统与协作平台工作原理
+
 ## 技术描述
 
 网络共享数据收集（T1039）是MITRE ATT&CK框架中收集战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要低估收集阶段的隐蔽性——攻击者收集数据时，不会一次性复制所有文件引起注意。而是像'精明的窃贼'一样：先确认最有价值的文件类型（.xlsx > .docx > 随机文件），然后用合法工具（如7zip、rar甚至是系统自带的compress-archive）打包，混在正常的网络流量中传输。
 公司内部通常会有"共享文件夹"——员工可以访问的公共存储空间，用来存放团队文档、项目资料、备份文件等。攻击者在渗透进公司内部网络后，会像员工一样访问这些共享文件夹，把里面的文档、表格、数据库备份全部复制到自己的机器上。这些共享文件夹往往包含公司最核心的数据资产。
 
 **技术原理：**
@@ -65,7 +75,7 @@ graph TD
 
 2. **枚举网络共享**
    - 通俗描述：查看内网上有哪些共享文件夹可以访问
-   - 技术细节：使用`net view \\&lt;server&gt;`查询指定服务器上的共享资源
+   - 技术细节：使用`net view \\<server>`查询指定服务器上的共享资源
    - 常用工具：`net view`、`net share`、SMB扫描器
 
 3. **映射驱动器**
@@ -108,7 +118,7 @@ graph TD
 - **时间**: 2020年-2021年
 - **目标**: 美国政府机构、IT企业、智库
 - **攻击组织**: APT29 (Cozy Bear / Nobelium，俄罗斯背景)
-- **手法**: APT29在SolarWinds供应链攻击后，使用Cobalt Strike的SMB扫描模块发现内部文件服务器的共享资源。攻击者使用PowerShell命令`Copy-Item -Path \\&lt;server&gt;\&lt;share&gt;\* -Destination C:\temp\staging -Recurse`批量将共享中的敏感文件复制到中间系统。APT29特别关注研发文档、项目管理文件和与SolarWinds相关的内部代码共享。收集的数据经过加密、分段压缩后逐步渗漏至攻击者C2基础设施。
+- **手法**: APT29在SolarWinds供应链攻击后，使用Cobalt Strike的SMB扫描模块发现内部文件服务器的共享资源。攻击者使用PowerShell命令`Copy-Item -Path \\<server>\<share>\* -Destination C:\temp\staging -Recurse`批量将共享中的敏感文件复制到中间系统。APT29特别关注研发文档、项目管理文件和与SolarWinds相关的内部代码共享。收集的数据经过加密、分段压缩后逐步渗漏至攻击者C2基础设施。
 - **影响**: 美国多家政府机构（包括财政部、商务部、能源部）的敏感数据被窃取
 - **参考链接**: [SolarWinds Supply Chain Attack - Mandiant](https://www.mandiant.com/resources/evasive-attacker-leverages-solarwinds-supply-chain-compromises)
 
@@ -166,6 +176,10 @@ graph TD
 - 配置文件服务器审计策略，监控批量文件访问事件
 - 在SIEM中建立SMB异常行为基线，标记偏离正常模式的共享访问
 - 监控`robocopy`、`xcopy`等批量复制工具的非预期使用
+
+## 避坑指南
+
+检测盲点：对合法压缩工具的滥用视而不见。
 
 ## 检测建议
 
@@ -326,17 +340,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1039](https://attack.mitre.org/techniques/T1039/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Ryuk Ransomware Analysis - CrowdStrike](https://www.crowdstrike.com/blog/ryuk-ransomware-analysis/)
 - [Maze Ransomware Analysis - MITRE ATT&CK](https://attack.mitre.org/software/S0530/)
 - [SolarWinds Supply Chain Attack - Mandiant](https://www.mandiant.com/resources/evasive-attacker-leverages-solarwinds-supply-chain-compromises)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [SMB安全配置指南 - Microsoft](https://docs.microsoft.com/en-us/windows-server/storage/file-server/file-server-smb-overview)
 - [CrackMapExec](https://github.com/byt3bl33d3r/CrackMapExec) - SMB网络枚举工具

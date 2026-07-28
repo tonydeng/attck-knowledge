@@ -9,20 +9,30 @@
 | 维度 | 你需要知道的 |
 |------|-------------|
 | 这是什么？ | 就像小偷进到你家后翻箱倒柜找值钱的东西——攻击者在你的电脑上搜索各种文件，把有用的复制带走。 |
-| 为什么危险？ | 攻击者收集本地文件可以达到多种目的：窃取企业机密用于竞争或出售、获取数据库连接字符串攻击后端系统、找到内部网络拓扑信息做 |
+| 为什么危险？ | 攻击者收集本地文件可窃取企业机密用于出售、获取数据库连接字符串攻击后端、找到网络拓扑信息做横向移动 |
 | 谁需要关心？ | 数据安全团队、SOC分析师 |
-| 你的第一步防御 | 异常的文件系统枚举行为 |
-| 如果只做一件事 | 想象一下，攻击者已经潜入你的电脑（通过病毒或远程控制），现在他要做的就是翻你的文件夹 |
+| 你的第一步防御 | 监控异常的文件系统枚举行为，关注短时间大量文件读取 |
+| 如果只做一件事 | 对敏感目录（文档库、源代码目录、配置文件目录）启用文件访问审计 |
 
 ## 难度等级
 
 ⭐ 初级（新手可学）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 文件系统与存储基础
+- [ ] 数据压缩与归档基本概念
+- [ ] 邮件系统与协作平台工作原理
 
 ## 技术描述
 
 本地系统数据收集（T1005）是MITRE ATT&CK框架中收集战术的一种基础技术。
 
 **通俗解释：**
+
+**过渡段：** 不要低估收集阶段的隐蔽性——攻击者收集数据时，不会一次性复制所有文件引起注意。而是像'精明的窃贼'一样：先确认最有价值的文件类型（.xlsx > .docx > 随机文件），然后用合法工具（如7zip、rar甚至是系统自带的compress-archive）打包，混在正常的网络流量中传输。
 想象一下，攻击者已经潜入你的电脑（通过病毒或远程控制），现在他要做的就是翻你的文件夹。你的"文档"、"桌面"、"下载"文件夹就像家里的抽屉和柜子，攻击者会挨个打开查看，找到他要的文件（合同、报表、密码文件、源代码等）后复制一份带走。
 
 **技术原理：**
@@ -170,6 +180,10 @@ graph TD
 - 开启PowerShell Module Logging和Script Block Logging，记录所有PowerShell文件操作命令
 - 在SIEM中建立关联规则：文件枚举 + 文件复制 + 压缩工具启动 = 高疑似数据收集行为
 
+## 避坑指南
+
+检测盲点：对合法压缩工具的滥用视而不见。
+
 ## 检测建议
 
 ### 网络层检测
@@ -223,10 +237,10 @@ Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-PowerShell/Operationa
 > 本地系统数据收集是最"直白"的数据窃取手段——攻击者直接在已攻陷的电脑上搜索和复制敏感文件，就像小偷进到屋里翻箱倒柜找值钱的东西。常用的PowerShell命令如Get-ChildItem -Recurse -Include *.docx,*.xlsx,*.pdf C:\Users\ 递归搜索所有用户的文档，然后用Copy-Item复制到暂存目录打包。攻击者还会用findstr搜索包含"密码"、"token"、"密钥"等关键字的文件，或者直接读取浏览器保存的密码文件（%APPDATA%\Google\Chrome\User Data\Login Data）。检测特征：某个进程在短时间内读取了多种不同类型的文件（docx+xlsx+pdf混读），然后全部复制到一个临时目录下。
 >
 > **避坑指南**：
-> - **把正常操作当攻击**：程序员编译代码（VS读几千个.cs/.h文件）、杀毒软件全盘扫描、Windows Search索引、`dir /s` 日常操作都会产生大量文件读取。只看"读了很多文件"就告警会疯的。关键看**行为模式**——正常操作通常访问特定类型文件（如VS只读源代码），而数据收集会读各种类型（docx + xlsx + pdf + sql混着来），且最终会复制到暂存目录。
-> - **只盯扩展名不看内容**：很多人只监控 `.docx`、`.xlsx`、`.pdf` 这些"明显敏感"的文件类型，但攻击者也会收集 `.eml`（邮件缓存）、`.pst`（Outlook数据文件）、`.ost`（离线邮件）、浏览器 `Cookies` 和 `Login Data` 文件。忽略了这些"看起来不起眼"的数据源，等于让攻击者从侧门把数据搬走。
-> - **只防读不防搜索**：很多检测规则只监控文件的读取操作（ReadFile API），但攻击者常常先用 `findstr` / `Select-String` 搜索内容再精准复制。搜索操作本身不产生文件读取事件，用关键词匹配找到目标后才读具体文件。如果只监控读文件，会漏掉攻击者的"踩点"阶段。
-> - **忽略隐藏数据源**：很多防御者只盯着用户的"文档"和"桌面"文件夹。实际上攻击者还会翻 `%APPDATA%`（浏览器密码、聊天记录）、`%TEMP%`（临时缓存中可能包含敏感文件的历史版本）、`$Recycle.Bin`（用户删除但未彻底清除的文件）。"我看了桌面和文档，没有文件被访问"不等于"数据没有被收集"。
+> - **把正常运维当攻击**：系统管理员日常使用 `dir /s`、`Get-ChildItem -Recurse` 排查问题、备份脚本扫描文件、EDR全盘扫描都会产生大量文件读取事件。只看"大量文件被访问"就告警会产生海量误报。关键看**进程上下文**——PowerShell或cmd.exe以非管理员账户执行递归文件搜索并配合复制操作，远比系统进程（如SearchIndexer.exe）的文件访问可疑。
+> - **只盯Windows忽略Linux**：很多检测规则只覆盖Windows平台（监控PowerShell的Get-ChildItem），但攻击者在Linux系统上同样会执行 `find /home -type f -name "*.docx"` 或 `grep -r "password" /etc/`。如果只部署了Windows侧的检测规则，攻击者从Linux跳板机收集数据时完全不会被发现。
+> - **只看文件读不看文件复制**：文件读取（ReadFile）是正常操作，几乎每个进程都在读文件。真正的告警信号是"读+复制"的组合——攻击者先用搜索定位目标文件，然后复制到暂存目录（%TEMP%或%APPDATA%）。如果只监控读取操作而不关联后续的复制/压缩行为，会错过真正的数据收集阶段。
+> - **忽略非文件型数据收集**：很多防御者只盯着文件系统，但攻击者还会从注册表（提取安装密钥、配置信息）、事件日志（提取用户活动记录）、剪贴板（提取复制的密码或地址）、浏览器存储（提取保存的密码和Cookie）收集数据。文件系统没有异常不等于数据没有被收集。
 
 **Sigma规则示例：**
 ```yaml
@@ -377,17 +391,17 @@ New-Item -Path "C:\Users\Public\Desktop" -Name "financial_report_2026.xlsx" -Ite
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1005](https://attack.mitre.org/techniques/T1005/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Salt Typhoon Telecom Hack Analysis - TechCrunch 2026](https://techcrunch.com/2026/03/09/salt-typhoon-china-who-has-been-hacked-global-telecom-giants/)
 - [ALPHV BlackCat Ransomware Advisory - CISA](https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-353a)
 - [Ransomware-driven data exfiltration techniques - Sekoia 2024](https://blog.sekoia.io/ransomware-driven-data-exfiltration-techniques-and-implications/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Sysinternals Suite](https://docs.microsoft.com/en-us/sysinternals/downloads/sysinternals-suite) - Windows系统工具集
 - [PowerShell Documentation](https://docs.microsoft.com/en-us/powershell/) - PowerShell官方文档

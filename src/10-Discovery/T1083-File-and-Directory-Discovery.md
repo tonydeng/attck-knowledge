@@ -18,11 +18,21 @@
 
 - ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 文件和目录发现（T1083）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 攻击者入侵电脑后，会像小偷一样翻看文件系统中的文件夹和文件。他们要找到：密码文件、配置文件、机密文档、数据库备份等有价值的资料。通过dir、ls等命令，攻击者可以快速浏览目录结构，定位感兴趣的文件。
 
 **技术原理：**
@@ -170,6 +180,10 @@ graph TD
 - 监控PowerShell中的递归文件搜索命令
 - 关注对敏感目录（如桌面、文档）的批量访问
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -212,6 +226,31 @@ level: medium
 tags:
     - attack.t1083
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1083
+status: experimental
+description: Detects potential T1083 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1083
+
 
 ## 缓解措施
 
@@ -279,16 +318,16 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1083](https://attack.mitre.org/techniques/T1083/)
 - [Microsoft - Dir](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/dir)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Rapid7 - MuddyWater 2026](https://www.rapid7.com/blog/post/tr-muddying-tracks-state-sponsored-shadow-behind-chaos-ransomware/)
 - [The DFIR Report - RansomHub 2025](https://thedfirreport.com/2025/06/30/hide-your-rdp-password-spray-leads-to-ransomhub-deployment/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [PowerShell Get-ChildItem](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-childitem)

@@ -1,0 +1,275 @@
+[
+  {
+    "tid": "T1053.001",
+    "local_name": "At (Windows)",
+    "local_file": "T1053.001-At-Windows.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1574.001",
+    "local_name": "DLL Search Order Hijacking",
+    "local_file": "T1574.001-DLL-Search-Order-Hijacking.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1574.002",
+    "local_name": "DLL Side-Loading",
+    "local_file": "T1574.002-DLL-Side-Loading.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1574.004",
+    "local_name": "Dylib Hijacking",
+    "local_file": "T1574.004-Dylib-Hijacking.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1574.005",
+    "local_name": "Executable Installer File Permissions Weakness",
+    "local_file": "T1574.005-Executable-Installer-File-Permissions-Weakness.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1574.006",
+    "local_name": "Dynamic Linker Hijacking",
+    "local_file": "T1574.006-Dynamic-Linker-Hijacking.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1574.007",
+    "local_name": "Path Interception by PATH Environment Variable",
+    "local_file": "T1574.007-Path-Interception-by-PATH-Environment-Variable.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1574.008",
+    "local_name": "Search Order Interception",
+    "local_file": "T1574.008-Search-Order-Interception.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1574.009",
+    "local_name": "Unquoted Path Interception",
+    "local_file": "T1574.009-Unquoted-Path-Interception.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1574.010",
+    "local_name": "Service File Permissions Weakness",
+    "local_file": "T1574.010-Service-File-Permissions-Weakness.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1574.011",
+    "local_name": "PLAT (Android)",
+    "local_file": "T1574.011-PLAT-Android.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1574.012",
+    "local_name": "COR_PROFILER",
+    "local_file": "T1574.012-COR-PROFILER.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1053.001",
+    "local_name": "At (Windows)",
+    "local_file": "T1053.001-At-Windows.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1055.007",
+    "local_name": "Ptrace System Calls",
+    "local_file": "T1055.007-Ptrace-System-Calls.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1055.010",
+    "local_name": "Process Hollowing",
+    "local_file": "T1055.010-Process-Hollowing.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1484.003",
+    "local_name": "Cloud Policy Modification",
+    "local_file": "T1484.003-Cloud-Policy-Modification.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1484.004",
+    "local_name": "Cloud Implicit Trust Modification",
+    "local_file": "T1484.004-Cloud-Implicit-Trust-Modification.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1547.011",
+    "local_name": "Print Processors",
+    "local_file": "T1547.011-Print-Processors.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1611.001",
+    "local_name": "Virtual Machine Escape",
+    "local_file": "T1611.001-Virtual-Machine-Escape.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1611.002",
+    "local_name": "Container Escape",
+    "local_file": "T1611.002-Container-Escape.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1611.003",
+    "local_name": "Application Sandbox Escape",
+    "local_file": "T1611.003-Application-Sandbox-Escape.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1611.004",
+    "local_name": "Hardware Peripheral Escape",
+    "local_file": "T1611.004-Hardware-Peripheral-Escape.md",
+    "_tactic_id": "TA0004",
+    "_tactic_dir": "06-Privilege-Escalation"
+  },
+  {
+    "tid": "T1055.006",
+    "local_name": "Ptrace System Calls",
+    "local_file": "T1055.006-Ptrace-System-Calls.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1055.007",
+    "local_name": "Proc Memory",
+    "local_file": "T1055.007-Proc-Memory.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1055.010",
+    "local_name": "Extra Window Memory Injection",
+    "local_file": "T1055.010-Extra-Window-Memory-Injection.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1070.001",
+    "local_name": "Clear Application Event Log",
+    "local_file": "T1070.001-Clear-Application-Event-Log.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1070.002",
+    "local_name": "Clear Windows Event Logs",
+    "local_file": "T1070.002-Clear-Windows-Event-Logs.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1078.005",
+    "local_name": "Application Accounts",
+    "local_file": "T1078.005-Application-Accounts.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1134.006",
+    "local_name": "Elevate Token Privileges",
+    "local_file": "T1134.006-Elevate-Token-Privileges.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1574.002",
+    "local_name": "DLL侧载",
+    "local_file": "T1574.002-DLL-Side-Loading.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1574.003",
+    "local_name": "DLL Hijacking",
+    "local_file": "T1574.003-DLL-Hijacking.md",
+    "_tactic_id": "TA0005",
+    "_tactic_dir": "07-Stealth"
+  },
+  {
+    "tid": "T1550.001",
+    "local_name": "Application-Access-Token",
+    "local_file": "T1550.001-Application-Access-Token.md",
+    "_tactic_id": "TA0006",
+    "_tactic_dir": "09-Credential-Access"
+  },
+  {
+    "tid": "T1550.002",
+    "local_name": "Pass the Hash",
+    "local_file": "T1550.002-Pass-the-Hash.md",
+    "_tactic_id": "TA0006",
+    "_tactic_dir": "09-Credential-Access"
+  },
+  {
+    "tid": "T1550.003",
+    "local_name": "Pass the Ticket",
+    "local_file": "T1550.003-Pass-the-Ticket.md",
+    "_tactic_id": "TA0006",
+    "_tactic_dir": "09-Credential-Access"
+  },
+  {
+    "tid": "T1550.004",
+    "local_name": "Web Session Cookie",
+    "local_file": "T1550.004-Web-Session-Cookie.md",
+    "_tactic_id": "TA0006",
+    "_tactic_dir": "09-Credential-Access"
+  },
+  {
+    "tid": "T1016.003",
+    "local_name": "Workstation Discovery",
+    "local_file": "T1016.003-Workstation-Discovery.md",
+    "_tactic_id": "TA0007",
+    "_tactic_dir": "10-Discovery"
+  },
+  {
+    "tid": "T1114.004",
+    "local_name": "Email Forwarding Rule",
+    "local_file": "T1114.004-Email-Forwarding-Rule.md",
+    "_tactic_id": "TA0009",
+    "_tactic_dir": "12-Collection"
+  },
+  {
+    "tid": "T1001.004",
+    "local_name": "Mirror Rebound",
+    "local_file": "T1001.004-Mirror-Rebound.md",
+    "_tactic_id": "TA0011",
+    "_tactic_dir": "13-Command-and-Control"
+  },
+  {
+    "tid": "T1052.002",
+    "local_name": "Air Gap Exfiltration",
+    "local_file": "T1052.002-Air-Gap-Exfiltration.md",
+    "_tactic_id": "TA0010",
+    "_tactic_dir": "14-Exfiltration"
+  }
+]

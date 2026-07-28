@@ -18,11 +18,21 @@
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 远程访问协议（RDP/SMB/SSH/WinRM）
+- [ ] Windows认证与Pass-the-Hash
+- [ ] AD域信任关系基础
+
 ## 技术描述
 
 使用替代认证材料（T1550）是MITRE ATT&CK框架中横向移动战术下的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为横向移动只是'远程登录其他电脑'——真正的横向移动是一系列精巧的信任链利用：从一个普通工作站窃取的凭据，可以访问文件服务器；文件服务器上的管理员哈希，可以登录域控制器。每一次跳跃都是一次权限的扩大和访问范围的延伸。
 登录电脑通常需要输入用户名和密码。但是Windows和其他系统支持多种"替代认证"方式——比如用密码的"数字指纹"（哈希）、用Kerberos通行证（票据）、或者用会话令牌。攻击者从一台被攻陷的系统中提取这些替代材料，然后直接在另一台系统上使用，完全不需要知道明文密码。最典型的例子就是Pass the Hash（传递哈希）攻击——攻击者用密码的哈希值（而非密码本身）登录远程Windows系统。
 
 **技术原理：**
@@ -167,6 +177,10 @@ graph TD
 - 监控Event ID 4776（NTLM认证）中的异常模式
 - 实施最小权限原则，减少高价值凭据的暴露
 
+## 避坑指南
+
+防御最大误区：只关注南北向流量而忽略东西向流量。
+
 ## 检测建议
 
 ### 网络层检测
@@ -278,13 +292,13 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Use Alternate Authentication Material](https://attack.mitre.org/techniques/T1550/)
 - [Pass-the-Hash攻击 - Microsoft安全](https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/pass-the-hash-attacks)
 - [Mimikatz和Pass the Hash - SANS ISC](https://isc.sans.edu/forums/diary/Mimikatz+and+Pass+the+Hash/22934/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [SolarWinds事件横向移动分析 - CrowdStrike](https://www.crowdstrike.com/blog/sunburst-indicators-of-compromise/)
 - [Token Theft and MFA Bypass - Mandiant](https://www.mandiant.com/resources/blog/token-theft-mfa-bypass)

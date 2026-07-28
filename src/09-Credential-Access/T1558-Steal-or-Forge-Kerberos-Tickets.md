@@ -18,11 +18,21 @@
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows认证体系（NTLM/Kerberos/LSASS）
+- [ ] 哈希基础（NTLM Hash/SHA）
+- [ ] 网络认证协议（SMB/LDAP/Kerberos）
+
 ## 技术描述
 
 窃取或伪造Kerberos票据（T1558）是MITRE ATT&CK框架中凭证访问战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误解凭证访问只是'窃取密码'——在现代企业中，凭证存在于内存、磁盘、网络流量和云API等多个位置。攻击者关注的不是密码本身，而是'能用它做什么'：一个服务账号的哈希就能横向移动到数十台服务器，OAuth令牌可以访问整个SaaS租户的数据。
 Kerberos是Windows域环境中的核心认证协议，它的工作原理有点像主题公园的票务系统：你进门时需要先到"售票处"（密钥分发中心，KDC）用密码换取一张"当日通票"（票据授权票据，TGT）；然后拿着通票去每个项目（服务）排队时，再换成"项目票"（服务票据，TGS）。攻击者发现了这个系统的漏洞：如果知道了"售票处"的签名密钥（KRBTGT哈希），就可以自己伪造通票，想去哪个项目就去哪个项目，而且不需要任何人的密码。
 
 **技术原理：**
@@ -184,6 +194,10 @@ graph TD
 - 定期扫描域中未启用Kerberos预认证的账户，标记为高风险
 - 将KRBTGT账户密码更改纳入紧急变更流程
 
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
+
 ## 检测建议
 
 ### 网络层检测
@@ -218,9 +232,6 @@ Get-WinEvent -FilterHashtable @{LogName='Security';ID=4769} |
     Group-Object {$_.Properties[0].Value} |
     Where-Object Count -gt 10
 ```
-
-
-
 
 **用人话说：** 这条规则在监控Kerberos票据的异常使用。Kerberos是Windows域环境的认证协议。正常情况下票据会在固定设备上使用，而且每次使用都会关联到TGT请求。如果发现票据使用异常（如从不同设备使用、没有对应TGT请求），那就是攻击者在使用伪造的Kerberos票据。
 
@@ -346,24 +357,24 @@ Reset-ADAccountPassword -Identity krbtgt
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1558 Steal or Forge Kerberos Tickets](https://attack.mitre.org/techniques/T1558/)
 - [MITRE ATT&CK - T1558.001 Golden Ticket](https://attack.mitre.org/techniques/T1558/001/)
 - [MITRE ATT&CK - T1558.003 Kerberoasting](https://attack.mitre.org/techniques/T1558/003/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Mandiant - Golden SAML and Kerberos Attacks](https://www.mandiant.com/resources/blog/golden-saml-and-golden-certificates)
 - [CISA - BlackByte Analysis](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-277a)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [mimikatz - 金票/银票工具](https://github.com/gentilkiwi/mimikatz)
 - [Rubeus - Kerberos票据操作](https://github.com/GhostPack/Rubeus)
 - [Impacket - 网络协议工具集](https://github.com/fortra/impacket)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Harmj0y - Kerberoasting深入分析](https://www.harmj0y.net/blog/redteaming/kerberoasting-without-mimikatz/)
 - [Microsoft - Kerberos安全最佳实践](https://learn.microsoft.com/en-us/windows/security/identity-protection/kerberos/)

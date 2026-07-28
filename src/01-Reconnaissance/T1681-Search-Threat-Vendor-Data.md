@@ -4,13 +4,35 @@
 
 > **搜索威胁供应商数据就像小偷去看警察的通缉令，了解警察掌握了多少自己的线索，好调整逃跑策略。**
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者反过来研究安全厂商(CrowdStrike/Mandiant/Recorded Future)发布的威胁报告、IOC列表和检测规则，了解自己的工具和基础设施是否已被曝光——这是"反侦察" |
+| 为什么危险？ | 如果攻击者发现某C2 IP已被安全厂商列为IOC，他们会立即更换基础设施；如果发现某检测规则已被公开，他们会修改TTP规避——让防御方的情报失效 |
+| 谁需要关心？ | 威胁情报团队、SOC(检测规则作者)、反情报/反归因团队 |
+| 你的第一步防御 | 不要在公开报告中暴露全部检测规则，对高价值检测逻辑做"内部保留 vs 外部共享"分级 |
+| 如果只做一件事 | 监控公开威胁情报平台(VirusTotal/GitHub/Recorded Future)是否出现了你组织的命名APT标签或基础设施指纹 |
+
 ## 难度等级
 
 ⭐⭐⭐ 高级 - 需要深入了解威胁情报生态和反侦察意识
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 威胁情报生态(厂商报告/CISA公告/ISAC共享/MISP社区)
+- [ ] IOC类型(IP/域名/Hash/YARA规则/Sigma规则)及其共享机制
+- [ ] 攻击归因(attribution)方法论和TTP聚类
+- [ ] OPSEC(操作安全)和反归因技术(基础设施轮换/TTP漂移)
+
 ## 技术描述
 
 **通俗解释：**
+
+**过渡段：** 不要误以为搜索威胁供应商数据只是'看看安全新闻'——在攻击者手中，这是系统化的反情报收集。攻击者会订阅VirusTotal查询自己的恶意样本上传量是否激增(说明被发现了)，监控GitHub上是否有人发布了针对他们C2工具的YARA规则，研读Mandiant/CrowdStrike的年度威胁报告看自己的组织被如何命名和归因。一旦发现自己的基础设施IP或C2域名出现在IOC列表里，他们会立即轮换基础设施；一旦发现某检测规则被公开，他们会修改TTP规避。这让防御方的情报快速失效。
 高级攻击者不仅关心目标的信息，还关心防御者对自己的了解程度。他们会查看安全公司发布的威胁报告、漏洞公告和IOC（入侵指标）列表，了解自己的工具和基础设施是否已经被发现。如果发现自己的IP地址或恶意软件已经被曝光，他们就会迅速更换基础设施，避免被追踪。
 
 **技术原理：**
@@ -111,7 +133,7 @@ graph TD
 
 - **时间**: 2025-2026年
 - **目标**: 全球各行业组织
-- **攻击组织**: 多个APT组织
+- **攻击组织**: 据Anthropic 2026报告，多个未具名威胁行为者
 - **手法**: 根据Anthropic 2026年LLM ATT&CK Navigator报告，攻击者使用AI代理自动化分析威胁情报供应商的数据，快速提取对自己活动的检测信息。AI驱动的分析工具能够从海量的安全报告中提取与自己相关的IOC和TTPs情报，并在数分钟内完成基础设施调整决策
 - **影响**: 攻击者对威胁情报的消化速度大幅提升，防御者的IOC窗口期缩短
 - **参考链接**: [Anthropic LLM ATT&CK Navigator](https://red.anthropic.com/2026/attack-navigator/)
@@ -159,6 +181,15 @@ graph TD
 - 使用欺骗技术检测攻击者的自我侦察
 - 参与威胁情报共享社区
 
+## 避坑指南
+
+新手常犯的错误：以为威胁情报共享总是好事。实际上，过度共享检测规则和IOC会让攻击者(尤其是APT)反向研究你的防御能力——他们订阅同样的威胁情报feed，研读你发布在GitHub的Sigma规则，然后精准修改TTP规避。正确做法是对情报做分级：**T1级(可公开)**——已失效的IOC和通用检测逻辑；**T2级(社区共享)**——ISAC/可信社区内共享的TTP和YARA规则；**T3级(内部保留)**——高价值检测逻辑和归因线索，绝不公开。同时要监控公开平台(VirusTotal/GitHub/Recorded Future)是否出现了你组织相关的APT标签或基础设施指纹，一旦泄露需评估是否轮换检测规则。
+
+**自查清单：**
+- 检查你在GitHub公开的Sigma/YARA规则，是否有高价值检测逻辑被暴露
+- 监控VirusTotal上你组织相关样本的上传来源(如果突然有陌生账号批量上传你的内部样本，可能已被攻破)
+- 评估你的威胁情报共享是否做了T1/T2/T3分级
+
 ## 检测建议
 
 ### 网络层检测
@@ -182,6 +213,8 @@ tcpdump -i eth0 -A | grep -E "virustotal|otx.alienvault"
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：** 攻击者搜索威胁供应商数据本身就是被动行为(他们只是看公开报告和订阅feed)，目标系统检测不到。但你能做的是**反制**：监控VirusTotal等平台是否有陌生账号批量上传你组织的内部文档或样本(说明有人已拿到你的样本在查杀)；监控GitHub上是否有人发布了针对你组织命名APT的检测规则(说明你被归因了)；对自己的高价值检测规则做T1/T2/T3分级，避免在公开报告中暴露全部逻辑。如果发现你组织的APT标签或C2指纹出现在公开威胁情报平台，需评估是否轮换基础设施或检测规则——因为攻击者也在看这些平台。
 ```yaml
 title: Threat Intelligence Platform Query
 status: experimental
@@ -305,22 +338,22 @@ canarytokens --type aws_key --memo "attacker access"
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - 搜索威胁供应商数据 (T1681)](https://attack.mitre.org/techniques/T1681/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [SentinelOne: Contagious Interview](https://www.sentinelone.com/labs/contagious-interview-threat-actors-scout-cyber-intel-platforms-reveal-plans-and-ops/) - 攻击者监控威胁情报平台的案例
 - [Google Cloud: UNC3886](https://cloud.google.com/blog/topics/threat-intelligence/vmware-esxi-zero-day-bypass/) - 快速更换被暴露基础设施
 - [Anthropic LLM ATT&CK Navigator](https://red.anthropic.com/2026/attack-navigator/) - AI在威胁情报分析中的应用
 - [Microsoft: AI Threat Actors](https://www.microsoft.com/en-us/security/blog/2024/02/14/staying-ahead-of-threat-actors-in-the-age-of-ai/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [VirusTotal](https://www.virustotal.com/) - 恶意软件分析平台
 - [AlienVault OTX](https://otx.alienvault.com/) - 开放威胁情报社区
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [CISA: Threat Intelligence Guidance](https://www.cisa.gov/threat-intelligence)

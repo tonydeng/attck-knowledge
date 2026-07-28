@@ -12,22 +12,32 @@
 | 为什么危险？ | 账户枚举是攻击链的基础步骤——找到管理员账户作为凭证窃取目标、发现不活跃账户作为隐蔽入口、定位服务账户了解权限范围、获取完整用户名列表用于密码喷洒 |
 | 谁需要关心？ | SOC分析师、AD管理员、蓝队威胁狩猎、任何需要检测账户枚举行为的安全人员 |
 | 你的第一步防御 | 监控 `net user /domain` 的异常执行频率；审计 LDAP 查询中针对 user 类对象的批量枚举；配置账户枚举检测规则 |
-| 如果只做一件事 | 对非 IT 管理人员执行 `net user /domain` 或短时间内对大量账户执行 `net user &lt;name&gt;` 查询立即告警——这是攻击者在"抄员工名册" |
+| 如果只做一件事 | 对非 IT 管理人员执行 `net user /domain` 或短时间内对大量账户执行 `net user <name>` 查询立即告警——这是攻击者在"抄员工名册" |
 
 ## 难度等级
 
 - ⭐ 初级（新手可学）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
 
 ## 技术描述
 
 账户发现（T1087）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 每台电脑上都有多个用户账户——管理员账户、普通用户账户、服务账户等。攻击者入侵后，会用 `net user` 命令查看系统上有哪些账户，就像小偷拿到公司员工名册一样，了解每个人的身份和权限。
 
 **技术原理：**
 1. 攻击者使用 `net user` 列出所有本地用户账户
-2. 使用 `net user &lt;username&gt;` 查看特定用户的详细信息
+2. 使用 `net user <username>` 查看特定用户的详细信息
 3. 使用 `net user /domain` 列出所有域用户
 4. 使用PowerShell `Get-LocalUser`、`Get-ADUser` 获取更丰富的用户信息
 
@@ -75,7 +85,7 @@ graph TD
 
 2. **查看账户详情**
    - 通俗描述：查看特定用户的详细信息
-   - 技术细节：`net user `&lt;username&gt;`` 获取账户属性
+   - 技术细节：`net user <username>` 获取账户属性
    - 常用工具：net.exe
 
 3. **枚举域账户**
@@ -95,7 +105,7 @@ graph TD
 - **时间**: 2025年
 - **目标**: 全球企业
 - **攻击组织**: The Gentlemen
-- **手法**: The Gentlemen攻击者使用batch脚本（1.bat）批量查询60多个域用户账户。脚本执行 `net user &lt;username&gt; /domain` 逐一检查每个账户的状态和属性。通过批量枚举，攻击者快速了解了域中所有用户账户的详细信息和组关系。
+- **手法**: The Gentlemen攻击者使用batch脚本（1.bat）批量查询60多个域用户账户。脚本执行 `net user <username> /domain` 逐一检查每个账户的状态和属性。通过批量枚举，攻击者快速了解了域中所有用户账户的详细信息和组关系。
 - **影响**: 多行业遭受勒索和数据泄露
 - **参考链接**: [Trend Micro - The Gentlemen 2025](https://www.trendmicro.com/en/research/25/i/unmasking-the-gentlemen-ransomware.html)
 
@@ -104,7 +114,7 @@ graph TD
 - **时间**: 2026年初
 - **目标**: 美国建筑公司
 - **攻击组织**: MuddyWater
-- **手法**: MuddyWater通过Teams获得系统访问后，使用 `net user` 枚举本地和域用户账户。通过 `net user `&lt;username&gt;` /domain` 查看当前域用户的详细信息，确认其域成员身份和组归属。根据账户信息判断当前用户的权限级别。
+- **手法**: MuddyWater通过Teams获得系统访问后，使用 `net user` 枚举本地和域用户账户。通过 `net user <username> /domain` 查看当前域用户的详细信息，确认其域成员身份和组归属。根据账户信息判断当前用户的权限级别。
 - **影响**: 凭证被用于横向移动
 - **参考链接**: [Rapid7 - MuddyWater 2026](https://www.rapid7.com/blog/post/tr-muddying-tracks-state-sponsored-shadow-behind-chaos-ransomware/)
 
@@ -139,7 +149,7 @@ graph TD
    检查账户描述字段是否包含明文密码，使用 `Get-ADUser -Filter * -Properties Description | Where-Object {$_.Description -ne $null}`
 
 3. **查找不活跃账户**
-   `net user `&lt;name&gt;`` 输出中包含"上次登录时间"，不活跃账户可作为隐蔽入口。
+   `net user <name>` 输出中包含"上次登录时间"，不活跃账户可作为隐蔽入口。
 
 ### 常用工具
 
@@ -176,6 +186,10 @@ graph TD
 - 启用对LDAP查询的审计
 - 配置账户枚举检测规则
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -196,7 +210,7 @@ graph TD
 - 事件ID 4104：PowerShell脚本（AD模块调用）
 - 事件ID 1644：LDAP查询
 
-**用人话说：** 这条规则在监控有人用 `net user /domain` 列举域用户账户。攻击者为什么要查你的域里有哪些人？因为下一步就是密码喷洒——用弱密码（如 Company@2024）批量尝试所有账户登录。同时，攻击者还会关注不活跃账户（密码很少改）和服务账户（通常权限更高）。`net user `&lt;username&gt;` /domain` 还能查看单个账户的详细信息，包括描述字段——很多管理员会在描述里写密码提示（如 "backup account, pwd: Backup@123"）。正常情况下，只有 HR 做人员盘点或 AD 管理员做账户审计时才会批量查询。
+**用人话说：** 这条规则在监控有人用 `net user /domain` 列举域用户账户。攻击者为什么要查你的域里有哪些人？因为下一步就是密码喷洒——用弱密码（如 Company@2024）批量尝试所有账户登录。同时，攻击者还会关注不活跃账户（密码很少改）和服务账户（通常权限更高）。`net user <username> /domain` 还能查看单个账户的详细信息，包括描述字段——很多管理员会在描述里写密码提示（如 "backup account, pwd: Backup@123"）。正常情况下，只有 HR 做人员盘点或 AD 管理员做账户审计时才会批量查询。
 
 **Sigma规则示例：**
 ```yaml
@@ -214,6 +228,31 @@ level: medium
 tags:
     - attack.t1087
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1087
+status: experimental
+description: Detects potential T1087 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1087
+
 
 ## 缓解措施
 
@@ -265,7 +304,7 @@ tags:
 1. 执行 `net user` 查看所有本地用户
 2. 执行 `net user Administrator` 查看管理员账户详情
 3. 在域环境中执行 `net user /domain` 查看所有域用户
-4. 执行 `net user `&lt;username&gt;` /domain` 查看特定域用户
+4. 执行 `net user <username> /domain` 查看特定域用户
 5. 使用PowerShell `Get-LocalUser` 获取结构化的用户信息
 
 **预期结果：** 看到所有用户账户及其属性。
@@ -284,17 +323,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1087](https://attack.mitre.org/techniques/T1087/)
 - [Microsoft - Net User](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/net-user)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Trend Micro - The Gentlemen 2025](https://www.trendmicro.com/en/research/25/i/unmasking-the-gentlemen-ransomware.html)
 - [Rapid7 - MuddyWater 2026](https://www.rapid7.com/blog/post/tr-muddying-tracks-state-sponsored-shadow-behind-chaos-ransomware/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [PowerShell Get-ADUser](https://learn.microsoft.com/en-us/powershell/module/activedirectory/get-aduser)
 - [PowerView](https://github.com/PowerShellMafia/PowerSploit)

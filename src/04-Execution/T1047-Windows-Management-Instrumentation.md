@@ -20,11 +20,21 @@
 
 需要了解WMI的架构和使用方法，但命令行操作相对简单。
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 操作系统进程模型
+- [ ] 常见脚本语言基础（PowerShell/bash/Python）
+- [ ] 代码执行基本概念
+
 ## 技术描述
 
 Windows管理规范（WMI）是Windows操作系统内置的管理框架，它允许管理员通过脚本或命令行来查询和控制系统。WMI可以做很多事情：查看进程列表、查询系统信息、执行命令、创建服务等。正因为功能如此强大，攻击者也非常喜欢用它。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为执行只是'运行恶意程序'这么简单——攻击者真正高明的地方在于'就地取材'（Living off the Land）。他们利用系统自带的PowerShell、cmd、wmic等合法工具执行恶意操作，因为它们本身就是操作系统的一部分，安全软件很难完全禁止。
 WMI就像你家的智能家居控制中心——你可以用它开灯、关空调、锁门、查看监控。如果你的"遥控器"被别人拿到了，他就可以远程操控你家里的一切。WMI就是Windows的"智能家居控制中心"，而攻击者就是那个偷到遥控器的人。
 
 **技术原理：**
@@ -188,6 +198,10 @@ graph TD
 - 配置Sysmon监控进程创建（Event ID 1）和网络连接（Event ID 3）
 - 定期检查WMI事件订阅：`Get-WmiObject -Namespace root\subscription -Class __EventFilter`
 - 使用WMI审计策略：启用"Audit Detailed Process Tracking"和"Audit WMI Event"
+
+## 避坑指南
+
+防御者常见误区：只监控恶意文件而忽略脚本执行。
 
 ## 检测建议
 
@@ -400,26 +414,40 @@ Install-Module -Name powershell-yaml -Force
 | WQL | WMI Query Language | WMI的"查询语言"，类似SQL，用于查询管理信息 |
 | 命名空间 | Namespace | WMI的"分类目录"，像图书馆的不同书架区域 |
 
+## 认知偏误分析
+
+### 锚定效应（Anchoring）
+
+分析师在检测 WMI 滥用时，容易将检测锚定在 `wmic.exe` 这个命令行工具上，认为只要监控 `wmic.exe` 的执行就能捕获所有 WMI 攻击。然而，攻击者已广泛使用 PowerShell 的 `Get-WmiObject`/`Invoke-WmiMethod` cmdlet、CIM 会话（`New-CimSession`）、WMI COM API 的直接调用（通过 C/C++ 或 .NET），甚至通过 WMI 事件订阅实现无文件持久化——这些方式完全不涉及 `wmic.exe`。锚定在单一工具上会导致大量 WMI 滥用攻击被漏检。
+
+### 可得性启发（Availability Heuristic）
+
+由于 Black Basta 勒索软件和 Volt Typhoon 等知名攻击组织大量使用 WMI 进行横向移动，分析师容易高估 WMI 在所有横向移动技术中的占比。实际上，许多 APT 组织仍然偏好使用 SMB/PsExec、WinRM 或 RDP 进行横向移动。过度关注 WMI 检测可能导致对其他横向移动技术的监控投入不足。
+
+### 确认偏误（Confirmation Bias）
+
+当分析师看到 `wmiprvse.exe` 生成了 `powershell.exe` 或 `cmd.exe` 子进程时，容易立即判定为 WMI 滥用攻击，并选择性忽略合法的 WMI 管理活动。实际上，企业的 IT 管理工具（如 SCCM、Landesk）也大量使用 WMI 进行远程管理和软件分发，这些合法活动同样会产生 `wmiprvse.exe` 创建子进程的行为。确认偏误会导致大量误报，削弱 SOC 对真实 WMI 滥用事件的检测能力。
+
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK T1047官方页面](https://attack.mitre.org/techniques/T1047/)
 - [Microsoft WMI文档](https://learn.microsoft.com/en-us/windows/win32/wmisdk/wmi-start-page)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CISA Black Basta勒索软件公告](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-131a)
 - [Volt Typhoon攻击分析](https://www.microsoft.com/en-us/security/blog/2023/05/24/volt-typhoon-targets-us-critical-infrastructure-with-living-off-the-land-techniques/)
 - [Mandiant APT41分析](https://www.mandiant.com/resources/blog/apt41-dual-espionage-and-cyber-crime-operation)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [WMI滥用检测指南](https://redcanary.com/threat-detection-report/techniques/windows-management-instrumentation/)
 - [WMI安全最佳实践](https://learn.microsoft.com/en-us/windows/win32/wmisdk/wmi-start-page)
 - [Atomic Red Team T1047测试](https://www.atomicredteam.io/atomics/T1047/)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [WMI基础教程](https://docs.microsoft.com/en-us/powershell/scripting/learn/ps101/07-wmi-cim)
 - [Sysmon WMI监控配置](https://github.com/SwiftOnSecurity/sysmon-config)

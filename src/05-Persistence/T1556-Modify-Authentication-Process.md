@@ -1,275 +1,413 @@
-# 修改认证流程 (T1556)
+# T1556 - 修改认证流程
 
 ## 一句话通俗理解
 
-> 就像小偷偷偷修改了你家的门禁系统——现在不仅他的假钥匙能开门，你换了多少次锁都没用，因为门禁系统本身已经被"内鬼"控制了。
+门卫每天靠看工牌认人——攻击者不偷工牌，而是直接把门卫换成自己人，或者给门卫戴副"特殊眼镜"，让某些假工牌也能通过，从此想进谁进谁。
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 篡改认证组件（DLL/SSP/密码过滤器）让攻击者用任意凭证通过认证 |
+| 为什么危险？ | 攻持者控制认证本身，比偷密码更彻底——所有密码都可能被记录或绕过 |
+| 谁需要关心？ | 域管理员、安全架构师、身份认证系统运维 |
+| 你的第一步防御 | 监控 LSA 保护模式、SSP 列表变更、认证 DLL 签名验证 |
+| 如果只做一件事 | 启用 Windows LSA Protection（RunAsPPL）防止未签名 SSP 加载 |
 
 ## 难度等级
 
-⭐⭐⭐⭐ 高（需要深入的系统知识和高权限）
+⭐⭐⭐⭐ 高级：需要深入理解 Windows 认证架构（LSA/Kerberos/NTLM）和 DLL 机制，需系统编程或逆向基础
+
+## 前置知识检查
+
+读这个文件前，你需要知道：
+- **LSA（Local Security Authority）**：Windows 本地安全机构，负责认证的子系统，运行在 lsass.exe 进程
+- **SSP（Security Support Provider）**：安全支持提供者，LSA 加载的认证 DLL（如 NTLM/Kerberos）
+- **密码过滤器**：用于密码复杂度验证的 DLL，可被植入用于窃取明文密码
+- **PAM（Pluggable Authentication Modules）**：Linux 的可插拔认证模块，类似 Windows SSP
 
 ## 技术描述
 
-攻击者可能修改操作系统、网络设备和云服务的认证流程，以维持对受害者环境的持久访问。通过篡改认证凭据的存储、验证或确认方式，攻击者可以绕过正常的认证机制、捕获凭据以供以后重用，或创建无需有效凭据即可访问的后门。
+### 场景引入
 
-认证修改在多个层面运作。在操作系统层面，攻击者可以替换或钩住认证库（如Windows的winlogon.exe、lsass.exe或Linux PAM模块）、修改密码验证逻辑或安装恶意凭据提供程序。在网络层面，攻击者可以操纵RADIUS、LDAP或Kerberos认证服务以接受伪造的凭据。在云环境中，攻击者可以修改联合信任、添加流氓身份提供者或更改SAML断言验证。
+想象一栋大楼的门禁系统由"门卫"（认证系统）把守。门卫的工作是检查每个人的工牌（凭证），确认无误后放行。
 
-该技术特别隐蔽，因为认证失败很常见且经常被忽略，而成功的认证（即使是通过后门）看起来像合法访问。
+攻击者有两种思路：
+- **偷工牌**（窃取凭证）—— 拿一张工牌混进去
+- **换门卫**（修改认证流程）—— 把真门卫换成自己人，或者给门卫戴副"特殊眼镜"让假工牌也能过
+
+后者显然更彻底——不仅想进就进，还能记录所有合法用户的工牌信息。这就是修改认证流程攻击的精髓：**不偷密码，直接控制"验证密码"的系统。**
+
+### 通俗比喻
+
+| 认证组件 | 比喻 | 攻击者怎么篡改 |
+|---------|------|---------------|
+| SSP（安全支持提供者） | "门卫的眼镜" | 替换为恶意 DLL，让任意密码通过 |
+| 密码过滤器 | "工牌检查器" | 植入恶意 DLL，记录所有改密时的明文密码 |
+| Authentication Package | "门卫的认证手册" | 修改认证逻辑，植入后门口令 |
+| PAM 模块（Linux） | "Linux 的门卫" | 替换 pam_unix.so，记录所有登录密码 |
+| MFA 配置 | "第二道验证" | 篡改 MFA 配置，让攻击者设备注册为可信 |
+| OAuth/SAML | "云门卫的信任名单" | 修改 SAML 令牌签名证书，伪造任意身份 |
+
+### 进阶理解
+
+Windows 认证流程的核心是 LSA（Local Security Authority），它运行在 `lsass.exe` 进程中。LSA 加载多个 SSP（Security Support Provider）DLL 来处理不同协议：
+- **Msv1_0.dll** —— NTLM 认证
+- **Kerberos.dll** —— Kerberos 认证
+- **Schannel.dll** —— TLS/SSL 认证
+- **Wdigest.dll** —— 摘要认证（旧版）
+
+攻击者篡改认证流程的关键手法：
+- **添加恶意 SSP**：向 LSA 注册自定义 SSP DLL，所有认证请求都会经过它——可以记录所有明文凭证
+- **替换密码过滤器**：修改注册表 `HKLM\SYSTEM\...\Notification Packages`，植入恶意 DLL。每当用户改密码，DLL 会收到明文密码
+- **修改 Authentication Package**：替换合法认证包，植入后门口令（如"magic password"始终通过）
+- **PAM 模块篡改**：Linux 上替换 `pam_unix.so`，记录所有登录密码
+- **MFA 配置篡改**：在 Azure AD 中注册攻击者控制的设备为可信设备，绕过 MFA
+- **SAML 证书窃取**：窃取 SAML 令牌签名证书，伪造任意用户的身份令牌（Golden SAML）
+
+**与 T1003（凭证转储）的区别：**
+T1003 是"读取密码数据库"——一次性窃取；T1556 是"篡改认证系统"——长期持续收集，且可主动绕过认证。
 
 ## 子技术列表
 
-| 子技术ID | 名称 | 说明 | 难度 |
-|----------|------|------|------|
-| T1556.001 | 域控制器认证 | 修改DC认证机制（Skeleton Key） | ⭐⭐⭐⭐ 高 |
-| T1556.002 | 密码过滤器 | 安装恶意密码过滤器DLL | ⭐⭐⭐ 较高 |
-| T1556.003 | PAM | 修改Linux/macOS认证模块 | ⭐⭐⭐ 较高 |
-| T1556.004 | 网络设备认证 | 修改路由器/交换机认证 | ⭐⭐⭐⭐ 高 |
-| T1556.005 | 多因素认证 | 绕过或操纵MFA | ⭐⭐ 中等 |
-| T1556.006 | 混合身份 | 修改AD FS联合认证 | ⭐⭐⭐⭐ 高 |
-| T1556.007 | 混合身份同步 | 修改Azure AD Connect | ⭐⭐⭐⭐ 高 |
-| T1556.008 | 网络提供程序DLL | 注册恶意网络认证DLL | ⭐⭐⭐ 较高 |
-| T1556.009 | 条件访问策略 | 修改云环境条件访问策略 | ⭐⭐⭐ 较高 |
+T1556 有 9 个子技术：
+
+| 子技术 ID | 名称 | 简述 |
+|----------|------|------|
+| T1556.001 | Domain Controller Authentication | 篡改域控认证（如 DCSync、Skeleton Key） |
+| T1556.002 | Password Filter DLL | 植入密码过滤器 DLL 窃取明文密码 |
+| T1556.003 | Pluggable Authentication Modules | 篡改 Linux PAM 模块 |
+| T1556.004 | Network Device Authentication | 篡改网络设备认证 |
+| T1556.005 | Reversible Encryption | 启用可逆加密存储密码 |
+| T1556.006 | Multi-Factor Authentication | 篡改 MFA 配置 |
+| T1556.007 | Hybrid Identity | 篡改混合身份同步 |
+| T1556.008 | Network Provider DLL | 植入网络提供者 DLL |
+| T1556.009 | Conditional Access Policies | 篡改条件访问策略 |
+
+**详写 2 个最常用的子技术：**
+
+**T1556.002 Password Filter DLL**：攻击者修改注册表 `HKLM\SYSTEM\CurrentControlSet\Control\Lsa\Notification Packages`，添加恶意 DLL。每当任何用户修改密码，LSA 会调用该 DLL 的 `PasswordChangeNotify` 函数，传入**明文新密码**。攻击者借此持续收集所有密码变更。需要管理员权限和系统重启生效。
+
+**T1556.006 Multi-Factor Authentication**：攻击者篡改 Azure AD / Okta 的 MFA 配置，注册自己控制的设备为"可信设备"，或修改条件访问策略排除 MFA 要求。这样攻击者即使只有密码也能登录，且合法用户的 MFA 不会告警。
 
 ## 攻击流程
 
 ```mermaid
 flowchart TD
-    A[获取高权限访问] --> B[选择认证修改方式]
-    B --> C{Skeleton Key / 密码过滤器 / PAM后门 / MFA绕过}
-    C --> D[修改认证组件]
-    D --> E[测试后门功能]
-    E --> F[清理操作痕迹]
-    F --> G[使用后门维持持久访问]
-```
-
-```
-1. 获取高权限访问（域管理员、root等）
-    ↓
-2. 选择认证修改方式：
-   - Skeleton Key（域控制器）
-   - 密码过滤器（捕获密码）
-   - PAM后门（Linux）
-   - MFA绕过
-    ↓
-3. 修改认证组件
-    ↓
-4. 测试后门功能
-    ↓
-5. 清理操作痕迹
-    ↓
-6. 使用后门维持持久访问
+    A[获取管理员/SYSTEM权限] --> B{选择篡改目标}
+    B --> C[植入密码过滤器DLL]
+    B --> D[添加恶意SSP]
+    B --> E[篡改PAM模块]
+    B --> F[篡改MFA配置]
+    B --> G[窃取SAML证书]
+    C --> H[修改注册表Notification Packages]
+    D --> I[添加到LSA安全包列表]
+    E --> J[替换pam_unix.so]
+    F --> K[注册攻击者设备为可信]
+    G --> L[伪造任意SAML令牌]
+    H --> M[重启系统生效]
+    I --> M
+    J --> N[立即生效]
+    K --> N
+    L --> N
+    M --> O[持续收集凭证/绕过认证]
+    N --> O
 ```
 
 ## 真实案例
 
-### 案例1：APT29利用Skeleton Key攻击域控制器
-- **时间**: 2015年
-- **目标**: 政府机构和金融机构
-- **手法**: APT29使用Skeleton Key恶意软件修改域控制器的LSASS进程，使得一个主密码（skeleton key）可以用于任何域账户的认证。Skeleton Key在内存中运行，不写入磁盘。
-- **链接**: https://attack.mitre.org/techniques/T1556/001/
+### 案例1：Skeleton Key 攻击——APT29 篡改域控认证
+- **时间**：2015-2017 年
+- **目标**：多个国际组织和政府机构
+- **攻击组织**：APT29（俄罗斯 SVR 背景）
+- **手法**：获取域控 SYSTEM 权限后，用 mimikatz 的 misc::skeleton 命令向 lsass.exe 注入 Skeleton Key。注入后，所有账户都可以用密码 `mimikatz` 登录（原密码仍有效）。攻击者用这个"万能密码"登录任意域账户，实现持久化
+- **数据来源**：CrowdStrike + Dell SecureWorks 报告（一手厂商报告）
 
-### 案例2：LAPSUS$利用MFA Fatigue攻击
-- **时间**: 2022年
-- **目标**: Microsoft、CrowdStrike、NVIDIA、Okta
-- **手法**: LAPSUS$使用MFA Fatigue攻击（T1556.005）绕过多因素认证。攻击者触发大量Microsoft Authenticator推送通知，目标用户在频繁通知骚扰下错误批准请求。
-- **链接**: https://attack.mitre.org/techniques/T1556/005/
+### 案例2：Mimikatz 密码过滤器 DLL 持久化
+- **时间**：2017-2020 年（工具技术持续在野利用）
+- **目标**：多起 APT 攻击中的域环境
+- **攻击组织**：多个 APT 组织（包括 FIN6、APT29 等）
+- **手法**：部署 mimikatz 的 `kfilt.dll` 作为密码过滤器，修改注册表 `Notification Packages` 添加 `kfilt`。此后每次用户改密码，明文密码被记录到 `%SystemRoot%\kfilt.log`。攻击者持续收集企业所有密码变更
+- **数据来源**：Microsoft / CISA 警报（一手官方文档）
 
-### 案例3：APT29利用AD FS伪造SAML Token
-- **时间**: 2020年
-- **目标**: 美国联邦政府机构（SolarWinds攻击）
-- **手法**: APT29获取了目标组织的AD FS签名证书，利用该证书伪造SAML令牌，可以冒充任何用户访问任何依赖Azure AD进行认证的云应用。
-- **链接**: https://attack.mitre.org/techniques/T1556/006/
-
-### 案例4：Volt Typhoon利用认证后门
-- **时间**: 2023-2024年
-- **目标**: 美国关键基础设施
-- **手法**: Volt Typhoon在受感染系统上修改认证流程，包括安装密码过滤器和修改PAM模块，以维持对Linux和Windows系统的持久访问。
-- **链接**: https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a
+### 案例3：SolarWinds Golden SAML 攻击
+- **时间**：2020 年
+- **目标**：美国多个政府机构和企业
+- **攻击组织**：APT29（Nobelium）
+- **手法**：窃取 SAML 令牌签名证书后，伪造任意 Azure AD 用户的 SAML 令牌。伪造的令牌可访问所有信任该 IdP 的 SaaS 应用，无需密码和 MFA。这是"修改认证流程"在云时代的典型变体——篡改信任根而非认证组件
+- **数据来源**：CISA Alert AA21-008A + Microsoft MSTIC 报告（一手官方文档）
 
 ## 红队视角
 
-> ⚠️ **免责声明**：以下内容仅用于合法的安全测试、渗透测试和教育目的。未经授权对他人系统进行测试是违法行为。
+### 可持续利用性分析
 
-**攻击优势**：
-- 后门深度集成到认证系统中
-- 可以捕获所有用户的凭据
-- 即使密码被更改，后门仍然有效
+| 维度 | 评估 | 说明 |
+|------|------|------|
+| 隐蔽性 | 极高 | 篡改在内核/系统层，用户层无感知 |
+| 持久性 | 极高 | 密码过滤器重启后仍有效，SSP 持续收集 |
+| 可移植性 | 高 | Windows/Linux/云平台均有对应手法 |
+| 检测难度 | 高 | 需要系统级监控和基线对比 |
 
-**常用工具**：
-```powershell
-# Skeleton Key（Mimikatz）
-mimikatz # misc::skeleton
+### 红队可复制性
 
-# 密码过滤器安装
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "Notification Packages" /t REG_MULTI_SZ /d "scecli\0malicious_filter" /f
-
-# PAM后门
-# 修改/etc/pam.d/common-auth
-```
-
-**实战技巧**：
-- 优先使用内存技术（如Skeleton Key）减少磁盘痕迹
-- 配合T1078（有效账户）使用，捕获的凭据可用于横向移动
-- 修改MFA策略而非完全禁用，减少被注意的可能
-
-## 蓝队视角
-
-**防御重点**：
-- 监控LSASS进程的异常模块加载
-- 审计PAM配置文件的完整性
-- 监控MFA策略的变更
-
-**常见盲点**：
-- 只关注密码更改，忽略认证流程的修改
-- 未监控域控制器上的SSP安装
-- 缺乏对AD FS证书使用的审计
-
-## 检测建议
-
-### 网络层检测
-
-**检测方法：** 监控域控制器和AD FS服务器的异常网络认证流量，检测Skeleton Key等后门认证模式。
-
-**具体规则/命令示例：**
 ```bash
-# Suricata规则检测异常Kerberos认证
-alert tcp $HOME_NET any -> $HOME_NET 88 (msg:"Suspicious Kerberos Authentication"; flow:to_server,established; content:"|a2 82|"; depth:2; detection_filter:track by_dst, count 50, seconds 60; sid:1000218; rev:1;)
-```
+# Windows：植入密码过滤器 DLL
+# 1. 编译恶意 kfilt.dll（mimikatz 提供）
+# 2. 复制到 C:\Windows\System32\
+# 3. 修改注册表
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "Notification Packages" /t REG_MULTI_SZ /d " rassfm\0scecli\0kfilt" /f
+# 4. 重启系统生效
 
-### 主机层检测
+# Windows：添加恶意 SSP
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa\OSConfig" /v "Security Packages" /t REG_MULTI_SZ /d "kerberos\0msv1_0\0schannel\0wdigest\0tspkg\0pku2u\0evilssp" /f
 
-**检测方法：** 监控LSASS进程的异常模块加载、PAM配置文件修改和密码过滤器DLL注册。
-
-**Windows事件ID：**
-- Sysmon事件ID 7：DLL加载（监控LSASS.exe加载的异常模块）
-- 事件ID 4657：注册表值修改（监控Notification Packages等认证相关键值）
-- 事件ID 4688：进程创建（监控认证相关进程的异常子进程）
-- 事件ID 4776：域控制器认证尝试
-
-**Linux日志：**
-- 日志文件：`/var/log/auth.log`
-- 关键字段：PAM配置文件（/etc/pam.d/）的修改事件
-- 关键字段：/etc/security/目录下文件的变更
-- 关键字段：sshd的PAM认证日志
-
-**具体命令示例：**
-```bash
-# 检查LSASS加载的SSP
-reg query "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "Security Packages"
-
-# 检查密码过滤器
-reg query "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "Notification Packages"
-
-# Linux检查PAM配置
-cat /etc/pam.d/common-auth
-ls -la /etc/pam.d/
-
-# 检查认证模块完整性
-rpm -V pam
-```
-
-### 应用层检测
-
-**Sigma规则示例：**
-```yaml
-title: 密码过滤器DLL注册检测
-status: experimental
-description: 检测Windows密码过滤器DLL的注册表写入
-logsource:
-    category: registry_event
-    product: windows
-detection:
-    selection:
-        TargetObject|contains: '\Control\Lsa\Notification Packages'
-    condition: selection
-level: critical
-tags:
-    - attack.t1556.002
-```
-
-## 缓解措施
-
-### 优先级1：关键措施
-
-**措施名称：** 认证基础设施加固
-
-**具体实施步骤：**
-1. 对域控制器启用Credential Guard和LSA保护（RunAsPPL），防止LSASS凭据提取
-2. 保护AD FS和域控制器的物理及逻辑安全，严格限制管理访问
-3. 使用硬件安全模块（HSM）保护AD FS签名证书
-4. 限制条件访问策略的管理权限，监控Azure AD中条件访问策略的创建和修改
-
-### 优先级2：重要措施
-
-**措施名称：** 认证组件完整性监控
-
-**具体实施步骤：**
-1. 监控LSASS进程的异常DLL加载事件，使用Sysmon监控lsass.exe加载的可疑模块
-2. 在Linux系统上监控PAM配置文件（/etc/pam.d/）的修改，使用auditd或AIDE
-3. 审计域控制器上安装的Security Support Providers（SSP）和密码过滤器DLL
-4. 实施MFA防疲劳策略，设置MFA提示次数限制和要求额外的地理位置验证
-
-**配置示例：**
-```bash
-# 启用LSA保护（RunAsPPL）
-reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "RunAsPPL" /t REG_DWORD /d 1 /f
-
-# 配置Credential Guard
-# 通过组策略：计算机配置 -> 管理模板 -> 系统 -> Device Guard -> 打开基于虚拟化的安全
-
-# Linux监控PAM配置变更
-auditctl -w /etc/pam.d/ -p wa -k pam_changes
-```
-
-## 动手实验
-
-> ⚠️ **重要提示**：所有实验必须在隔离的实验室环境中进行，禁止对未授权的真实系统进行测试。
-
-### 实验1：Mimikatz Skeleton Key
-```powershell
-# 需要域管理员权限
+# Windows：Skeleton Key（需域控 SYSTEM）
 mimikatz # privilege::debug
 mimikatz # misc::skeleton
 
-# 测试：使用"skeleton"作为密码登录任何域账户
+# Linux：替换 PAM 模块
+# 编译恶意 pam_unix.so 替换 /lib/security/pam_unix.so
+# 记录所有登录密码到 /tmp/.pamlog
 ```
 
-### 实验2：密码过滤器（概念验证）
-```cpp
-// malicious_filter.dll
-BOOL WINAPI InitializeChangeNotify(void) { return TRUE; }
-DWORD WINAPI PasswordFilter(PUNICODE_STRING Password, ULONG Type, ULONG Operation) { 
-    // 记录密码
-    return TRUE; 
-}
-BOOL WINAPI PasswordChangeNotify(PUNICODE_STRING UserName, ULONG RelativeId, PUNICODE_STRING Password) {
-    // 将密码发送到C2
-    return TRUE;
-}
+## 蓝队视角
+
+### 用人话说检测
+
+认证流程篡改检测的核心是**盯住"认证组件的变更"**——SSP 列表、密码过滤器注册表、PAM 模块文件、MFA 配置。这些组件在正常运行中几乎不变，任何变更都是高危信号。重点关注 `Notification Packages` 和 `Security Packages` 注册表值的修改。
+
+### Sigma 规则
+
+```yaml
+title: 检测密码过滤器和 SSP 注册表变更
+id: b4c8e7f3-2a1d-4e9c-8f5a-3d7b4c2a1e8f
+status: stable
+description: 监控 Lsa Notification Packages 和 Security Packages 的可疑修改
+logsource:
+    product: windows
+    category: registry_event
+detection:
+    selection_key:
+        TargetObject|endswith:
+            - '\Lsa\Notification Packages'
+            - '\Lsa\OSConfig\Security Packages'
+            - '\Lsa\Security Packages'
+    filter_baseline:
+        Details|contains:
+            - 'rassfm'
+            - 'scecli'
+            - 'kerberos'
+            - 'msv1_0'
+            - 'schannel'
+            - 'wdigest'
+            - 'tspkg'
+            - 'pku2u'
+    condition: selection_key and not filter_baseline
+falsepositives:
+    - 合法的安全软件安装新 SSP（需审批）
+level: critical
 ```
 
-### 实验3：使用Atomic Red Team测试
+### Sysmon 配置
+
+```xml
+<RuleGroup name="Authentication Tampering" groupRelation="or">
+  <RegistryEvent onmatch="include">
+    <TargetObject name="technique_id=T1556,technique_name=Modify Authentication Process" condition="end with">\Lsa\Notification Packages</TargetObject>
+  </RegistryEvent>
+  <RegistryEvent onmatch="include">
+    <TargetObject condition="end with">\Lsa\Security Packages</TargetObject>
+  </RegistryEvent>
+  <RegistryEvent onmatch="include">
+    <TargetObject condition="end with">\Lsa\OSConfig\Security Packages</TargetObject>
+  </RegistryEvent>
+  <FileCreate onmatch="include">
+    <TargetFilename condition="contains">\System32\</TargetFilename>
+    <TargetFilename condition="end with">.dll</TargetFilename>
+  </FileCreate>
+</RuleGroup>
+```
+
+### 命令行检测
+
 ```powershell
-# 执行T1556测试
-Invoke-AtomicTest T1556
+# 检查密码过滤器注册表
+reg query "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "Notification Packages"
+
+# 检查 SSP 安全包
+reg query "HKLM\SYSTEM\CurrentControlSet\Control\Lsa\OSConfig" /v "Security Packages"
+reg query "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "Security Packages"
+
+# 检查加载的 SSP（需工具或 lsass 进程分析）
+# 工具：Get-LSASecPackage.ps1
+Get-LSASecPackage
+
+# 检查 LSA 保护模式
+reg query "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "RunAsPPL"
+# 1 = 已启用保护，0 = 未启用
+
+# 检查认证 DLL 签名
+Get-AuthenticodeSignature C:\Windows\System32\*.dll | Where-Object {$_.Status -ne "Valid"}
 ```
+
+```bash
+# Linux：检查 PAM 模块完整性
+md5sum /lib/security/pam_*.so
+# 对比发行版官方包的校验值
+
+rpm -V pam  # RPM 系统
+debsums libpam-modules  # DEB 系统
+
+# 检查 PAM 配置变更
+find /etc/pam.d/ -newer /etc/pam.d/other -type f
+```
+
+### 关键检测维度
+
+| 维度 | 关注点 |
+|------|--------|
+| Notification Packages | 出现非 `rassfm`/`scecli` 的项 |
+| Security Packages | 出现非系统自带的 SSP |
+| LSA 保护模式 | RunAsPPL 被设为 0 |
+| 认证 DLL 签名 | 系统目录出现未签名 DLL |
+| PAM 模块校验值 | 与官方包不一致 |
+| MFA 配置 | 非授权设备被注册为可信 |
+| SAML 证书 | 令牌签名证书异常更新 |
+
+### 网络层检测
+- 异常的 Kerberos 票据请求模式（Skeleton Key 特征）
+- SAML 令牌从异常 IP 被使用
+- DCSync 攻击的 LDAP 复制流量
+
+## 避坑指南
+
+| 坑 | 说明 | 正确做法 |
+|----|------|---------|
+| 不启用 LSA 保护 | RunAsPPL=0 时 SSP 可被随意添加 | 域控强制启用 RunAsPPL=1 |
+| 只监控新 DLL | 攻击者可能替换已有合法 SSP | 对认证 DLL 做签名和哈希基线 |
+| 忽略密码过滤器 | Notification Packages 很少被审计 | 重点监控该注册表值 |
+| 忽略 PAM 篡改 | Linux PAM 同样可被植入后门 | 定期校验 PAM 模块哈希 |
+| 忽略云 MFA 篡改 | MFA 配置变更常被忽视 | 审计条件访问策略和可信设备列表 |
+| Skeleton Key 后忘记改密码 | 注入后改密码无效，攻击者仍可用万能密码 | 需先清除 lsass 注入再重置 krbtgt 两次 |
+
+## 检测建议
+
+### 主机层
+- **Sysmon**：监控 LSA 相关注册表变更和 System32 DLL 创建
+- **LSA 审计**：启用 LSA 审计策略，记录 SSP 加载
+- **文件完整性监控**：认证 DLL 基线对比
+- **Linux**：AIDE/Tripwire 监控 PAM 模块
+
+### 应用层
+- **AD 审计**：监控域控的认证组件变更
+- **云平台**：Azure AD 条件访问策略变更告警
+- **MFA 审计**：可信设备注册和 MFA 排除规则变更
+
+### 网络层
+- DCSync 攻击的 LDAP 复制流量（EventID 4662）
+- 异常 Kerberos 票据请求
+- SAML 令牌异常使用
+
+## 缓解措施
+
+| 措施 | 实施方式 | 效果 |
+|------|---------|------|
+| LSA Protection | 启用 RunAsPPL=1（组策略） | 阻止未签名 SSP 加载 |
+| Credential Guard | 启用 Windows Credential Guard | 隔离 lsass 凭证存储 |
+| SSP 白名单 | 仅允许签名 SSP 加载 | 阻断恶意 SSP |
+| 密码过滤器审计 | 定期检查 Notification Packages | 发现异常 DLL |
+| PAM 模块保护 | 用 AIDE 监控 PAM 模块完整性 | 检测 Linux 篡改 |
+| MFA 配置保护 | 限制条件访问策略修改权限 | 防止 MFA 绕过 |
+| krbtgt 定期重置 | 每 180 天重置 krbtgt 密码两次 | 失效 Golden Ticket 和 Skeleton Key |
+| SAML 证书保护 | 用 HSM 存储签名密钥 | 防止证书窃取 |
+
+## 动手实验
+
+### 实验1：观察密码过滤器注册表（仅查看，不植入）
+
+```powershell
+# 1. 查看当前密码过滤器
+reg query "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "Notification Packages"
+# 预期：rassfm 和 scecli（系统默认）
+
+# 2. 查看当前 SSP
+reg query "HKLM\SYSTEM\CurrentControlSet\Control\Lsa\OSConfig" /v "Security Packages"
+# 预期：kerberos, msv1_0, schannel, wdigest, tspkg, pku2u
+
+# 3. 检查 LSA 保护状态
+reg query "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "RunAsPPL"
+# 如果返回 1，说明 LSA 保护已启用
+
+# 4. 用 PowerShell 查看 LSA 加载的安全包
+# 需要运行 Get-LSASecPackage 脚本（来自 PowerSploit）
+```
+
+**预期输出**：了解系统默认的密码过滤器和 SSP 列表，作为审计基线。
+
+### 实验2：检测 Skeleton Key 攻击特征（只读检测）
+
+```powershell
+# 1. 检查 lsass.exe 的异常线程注入
+# 用 Process Explorer 查看 lsass.exe 的 DLL 列表
+# 关注非系统 DLL
+
+# 2. 检查事件 4662（目录服务访问）
+Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4662} -MaxEvents 100 |
+  Where-Object {$_.Properties[11].Value -match '1131f6aa-9c07-11d1-f79f-00c04fc2dcd2'} |
+  # DS-Replication-Get-Changes-All 权限（DCSync 特征）
+  Select-Object TimeCreated, @{N='Subject';E={$_.Properties[5].Value}}
+
+# 3. 检测异常 Kerberos 登录
+# Skeleton Key 登录使用 RC4-HMAC 且来自异常来源
+Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4768} -MaxEvents 100 |
+  Where-Object {$_.Properties[9].Value -eq '0x17'}  # RC4-HMAC
+```
+
+**预期输出**：识别 DCSync 攻击特征和 RC4 降级登录，这些是认证流程篡改的关联信号。
+
+### 专用工具
+
+| 工具 | 用途 | 特点 |
+|------|------|------|
+| mimikatz | 认证攻击测试 | Skeleton Key/DCSync 等功能 |
+| Get-LSASecPackage | LSA 安全包查询 | PowerShell 脚本 |
+| AIDE | Linux 文件完整性监控 | 检测 PAM 模块篡改 |
+| Azure AD Identity Protection | 云 MFA 异常检测 | 条件访问策略监控 |
+| SEMPERPS | PowerShell 检测脚本 | AD 持久化检测 |
 
 ## 术语解释
 
-| 术语 | 英文原名 | 通俗解释 |
-|------|----------|----------|
-| Skeleton Key | Skeleton Key | 域控制器内存补丁，允许使用主密码认证任何账户 |
-| LSASS | Local Security Authority Subsystem Service | 本地安全机构子系统服务，Windows中处理登录认证的核心进程 |
-| PAM | Pluggable Authentication Modules | 可插拔认证模块，Linux/Unix系统中灵活的认证机制 |
-| AD FS | Active Directory Federation Services | 微软的联合认证服务，实现单点登录 |
-| SAML | Security Assertion Markup Language | 安全断言标记语言，用于交换认证和授权数据 |
-| MFA | Multi-Factor Authentication | 多因素认证，需要两种以上验证方式的认证方法 |
-| SSP | Security Support Provider | 安全支持提供者，提供不同认证协议的Windows模块 |
+| 术语 | 通俗解释 |
+|------|---------|
+| LSA | Local Security Authority，Windows 本地安全机构 |
+| SSP | Security Support Provider，安全支持提供者 DLL |
+| 密码过滤器 | 验证密码复杂度的 DLL，可被植入窃取明文 |
+| Skeleton Key | 向 lsass 注入万能密码的攻击 |
+| DCSync | 模拟域控同步窃取密码哈希 |
+| PAM | Pluggable Authentication Modules，Linux 可插拔认证 |
+| Golden SAML | 用窃取的证书伪造 SAML 令牌 |
+| RunAsPPL | LSA 保护模式，阻止未签名 SSP |
 
 ## 参考资料
 
-- [MITRE ATT&CK T1556 修改认证流程](https://attack.mitre.org/techniques/T1556/)
-- [Skeleton Key分析 - Mandiant](https://www.mandiant.com/resources/skeleton-key-malware-analysis)
-- [LAPSUS$活动分析 - CrowdStrike](https://www.crowdstrike.com/blog/who-is-lapsus/)
-- [Volt Typhoon Advisory - CISA](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a)
-- [Atomic Red Team - T1556](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics/T1556)
+### 深入了解
+- 📚 [MITRE ATT&CK T1556](https://attack.mitre.org/techniques/T1556/) —— 官方技术页面
+- 📚 [MITRE ATT&CK T1556.002 Password Filter DLL](https://attack.mitre.org/techniques/T1556/002/)
+- 📚 [MITRE ATT&CK T1556.006 Multi-Factor Authentication](https://attack.mitre.org/techniques/T1556/006/)
+- 📚 [Microsoft LSA Protection 文档](https://learn.microsoft.com/windows-server/security/credentials-protection-and-management/configuring-additional-lsa-protection) —— LSA 保护配置
+
+### 动手试试
+- 🔧 [mimikatz](https://github.com/gentilkiwi/mimikatz) —— 认证攻击测试工具
+- 🔧 [AIDE](https://aide.github.io/) —— Linux 文件完整性监控
+
+### 真实攻击
+- 🎯 CrowdStrike APT29 Skeleton Key 报告 —— 域控认证篡改
+- 🎯 CISA Alert AA21-008A —— SolarWinds Golden SAML
+- 🎯 Microsoft 密码过滤器警报 —— 持续凭证收集
+
+## 版本历史
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| v3.1 | 2026-07-10 | 重写为持久化战术正确内容，修复跨战术污染 |
+| v3.0 | 2026-06-15 | 初版 v3.0 风格 |

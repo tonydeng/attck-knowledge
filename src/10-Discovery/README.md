@@ -15,7 +15,7 @@
 发现战术是整个攻击链条中的"侦察兵"阶段，发生在初始访问之后、横向移动之前。没有充分的发现，攻击者就像蒙着眼睛在大楼里乱撞——既找不到目标，也容易被发现。几乎所有攻击活动（包括勒索软件、APT间谍行动、数据窃取）都包含发现战术。事实上，安全团队检测到的早期入侵迹象往往就是发现命令的执行，如 `whoami`、`ipconfig`、`net view` 等异常调用。
 
 **包含的技术类型：**
-发现战术涵盖35种技术，可归为以下几大类：系统信息发现（操作系统版本、硬件配置）、网络信息发现（IP配置、连接状态、共享资源）、用户和权限发现（账户枚举、组成员身份）、应用和服务发现（运行进程、已安装软件、系统服务）、安全产品发现（EDR/AV检测、沙箱规避）、存储发现（本地和云存储）、以及容器和虚拟化环境发现。
+发现战术涵盖34种技术，可归为以下几大类：系统信息发现（操作系统版本、硬件配置）、网络信息发现（IP配置、连接状态、共享资源）、用户和权限发现（账户枚举、组成员身份）、应用和服务发现（运行进程、已安装软件、系统服务）、安全产品发现（EDR/AV检测、沙箱规避）、存储发现（本地和云存储）、以及容器和虚拟化环境发现。
 
 ## 战术在攻击链中的位置
 
@@ -102,16 +102,16 @@ graph LR
 
 | 子技术ID | 名称 | 难度 | 一句话理解 | 文档状态 |
 |----------|------|:----:|-----------|:--------:|
-| [T1016.001](./T1016/T1016.001-Internet-Connection-Discovery-Internet-Connection-Discovery.md) | Internet Connection Discovery | ⭐ | 测试系统能不能连上互联网 | ✅ 已完成 |
-| [T1016.002](./T1016/T1016.002-Wi-Fi-Discovery-Wi-Fi-Discovery.md) | Wi-Fi Discovery | ⭐ | 查看WiFi网络配置和已保存的WiFi密码 | ✅ 已完成 |
-| [T1016.003](./T1016/T1016.003-Workstation-Discovery-Workstation-Discovery.md) | Workstation Discovery | ⭐ | 发现网络中的工作站和其他计算设备 | ✅ 已完成 |
-| [T1069.001](./T1069/T1069.001-Local-Groups-Local-Groups.md) | Local Groups | ⭐⭐ | 查看本机上的用户组和成员 | ✅ 已完成 |
-| [T1069.002](./T1069/T1069.002-Domain-Groups-Domain-Groups.md) | Domain Groups | ⭐⭐ | 查看域中的安全组和成员 | ✅ 已完成 |
-| [T1069.003](./T1069/T1069.003-Cloud-Groups-Cloud-Groups.md) | Cloud Groups | ⭐⭐ | 查看云平台中的组和权限 | ✅ 已完成 |
-| [T1087.001](./T1087/T1087.001-Local-Account-Local-Account.md) | Local Account | ⭐ | 查看本机上的用户账户 | ✅ 已完成 |
-| [T1087.002](./T1087/T1087.002-Domain-Account-Domain-Account.md) | Domain Account | ⭐ | 查看域中的所有用户账户 | ✅ 已完成 |
-| [T1087.003](./T1087/T1087.003-Email-Account-Email-Account.md) | Email Account | ⭐ | 查看邮件系统中的账户 | ✅ 已完成 |
-| [T1087.004](./T1087/T1087.004-Cloud-Account-Cloud-Account.md) | Cloud Account | ⭐ | 查看云平台中的用户账户 | ✅ 已完成 |
+| [T1016.001](./T1016/T1016.001-Internet-Connection-Discovery.md) | Internet Connection Discovery | ⭐ | 测试系统能不能连上互联网 | ✅ 已完成 |
+| [T1016.002](./T1016/T1016.002-Wi-Fi-Discovery.md) | Wi-Fi Discovery | ⭐ | 查看WiFi网络配置和已保存的WiFi密码 | ✅ 已完成 |
+| [T1016.003](./T1016/T1016.003-Workstation-Discovery.md) | Workstation Discovery | ⭐ | 发现网络中的工作站和其他计算设备 | ✅ 已完成 |
+| [T1069.001](./T1069/T1069.001-Local-Groups.md) | Local Groups | ⭐⭐ | 查看本机上的用户组和成员 | ✅ 已完成 |
+| [T1069.002](./T1069/T1069.002-Domain-Groups.md) | Domain Groups | ⭐⭐ | 查看域中的安全组和成员 | ✅ 已完成 |
+| [T1069.003](./T1069/T1069.003-Cloud-Groups.md) | Cloud Groups | ⭐⭐ | 查看云平台中的组和权限 | ✅ 已完成 |
+| [T1087.001](./T1087/T1087.001-Local-Account.md) | Local Account | ⭐ | 查看本机上的用户账户 | ✅ 已完成 |
+| [T1087.002](./T1087/T1087.002-Domain-Account.md) | Domain Account | ⭐ | 查看域中的所有用户账户 | ✅ 已完成 |
+| [T1087.003](./T1087/T1087.003-Email-Account.md) | Email Account | ⭐ | 查看邮件系统中的账户 | ✅ 已完成 |
+| [T1087.004](./T1087/T1087.004-Cloud-Account.md) | Cloud Account | ⭐ | 查看云平台中的用户账户 | ✅ 已完成 |
 | [T1497.001](./T1497/T1497.001-System-Checks.md) | 系统检查 | ⭐⭐⭐ | 检查CPU、BIOS、MAC地址等硬件特征判断是否在虚拟机中 | ✅ 已完成 |
 | [T1497.002](./T1497/T1497.002-User-Activity-Checks.md) | 基于用户活动的检查 | ⭐⭐⭐ | 检查鼠标移动、键盘输入等用户行为判断是否在沙箱中 | ✅ 已完成 |
 | [T1497.003](./T1497/T1497.003-Time-based-Evasion.md) | 基于时间的规避 | ⭐⭐⭐ | 通过Sleep调用和计时器检测时间是否被沙箱加速 | ✅ 已完成 |
@@ -122,8 +122,8 @@ graph LR
 ### 统计信息
 
 - **技术总数**：34 个
-- **子技术总数**：16 个
-- **已完成文档**：16 个
+- **子技术总数**：15 个
+- **已完成文档**：49 个（34 父技术 + 15 子技术）
 - **进行中文档**：0 个
 - **待编写文档**：0 个
 
@@ -206,3 +206,5 @@ graph LR
 - [PowerView](https://github.com/PowerShellMafia/PowerSploit/tree/master/Recon) - PowerShell域环境发现脚本
 - [Nmap](https://nmap.org/) - 网络端口扫描工具
 - [Advanced IP Scanner](https://www.advanced-ip-scanner.com/) - 网络扫描工具
+
+> **版本**: v19.1 | **更新**: 2026-07-28 | **模板**: 战术README v3.1

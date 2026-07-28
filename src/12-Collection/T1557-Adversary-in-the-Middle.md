@@ -2,132 +2,144 @@
 
 ## 一句话通俗理解
 
-攻击者站在你和网站之间，假装是网站骗你输入密码，同时又假装是你从网站获取信息——你在中间看到的全是假的。
+**攻击者偷偷坐在你和服务器之间，你们之间的所有通信他都能看到甚至修改——就像邮递员拆开你的信件看完再封好送出去。**
 
 ## 30秒速查卡
 
 | 维度 | 你需要知道的 |
 |------|-------------|
-| 这是什么？ | 攻击者站在你和网站之间，假装是网站骗你输入密码，同时又假装是你从网站获取信息——你在中间看到的全是假的。 |
-| 为什么危险？ | 中间人攻击用于窃取登录凭据和会话Cookie、监听和修改通信内容、注入恶意内容（如恶意脚本或广告）、绕过加密保护、绕过M |
-| 谁需要关心？ | 数据安全团队、SOC分析师 |
-| 你的第一步防御 | ARP缓存不一致 |
-| 如果只做一件事 | 想象你去银行办理业务，一个穿着假制服的人在大门口拦住你说"把身份证给我，我帮你代办"——你信以为真就 |
+| 这是什么？ | 夹在你和服务器之间偷看通信内容 |
+| 为什么危险？ | 中间人攻击可以截获所有通信数据，包括密码、令牌等敏感信息 |
+| 谁需要关心？ | 网络管理员、SOC分析师 |
+| 你的第一步防御 | 部署加密通信，使用证书固定（Certificate Pinning） |
+| 如果只做一件事 | 监控网络中是否有ARP投毒、LLMNR投毒等中间人攻击活动 |
 
 ## 难度等级
 
-⭐⭐⭐ 高级（需要一定经验）
+- ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows认证体系（NTLM/Kerberos/LSASS）
+- [ ] 哈希基础（NTLM Hash/SHA）
+- [ ] 网络认证协议（SMB/LDAP/Kerberos）
 
 ## 技术描述
 
-中间人攻击（T1557）是MITRE ATT&CK框架中收集战术的一种技术。
+中间人攻击（T1557，简称AitM/MITM）是MITRE ATT&CK框架中凭证访问战术的一种技术。
 
 **通俗解释：**
-想象你去银行办理业务，一个穿着假制服的人在大门口拦住你说"把身份证给我，我帮你代办"——你信以为真就把证件给了他。他拿着你的证件进入银行处理完业务后出来说"办好了，这是你的回执"。从头到尾你以为他是银行的人，银行以为他是你，他则从中截获了你的全部信息。这就是中间人攻击（AiTM）：攻击者插入在你和你要访问的网站之间，你的所有流量都被他过目一遍，他可以读取、修改甚至拦截你的登录凭据。
+
+**过渡段：** 不要误解凭证访问只是'窃取密码'——在现代企业中，凭证存在于内存、磁盘、网络流量和云API等多个位置。攻击者关注的不是密码本身，而是'能用它做什么'：一个服务账号的哈希就能横向移动到数十台服务器，OAuth令牌可以访问整个SaaS租户的数据。
+正常情况下你的电脑和服务器之间是"直连"的——你发消息给对方，对方直接收到。中间人攻击就是攻击者把自己"插"到你和服务器之间：你的消息先发到攻击者那里，攻击者看完（甚至修改后）再转发给服务器。服务器的回应也先经过攻击者。由于网络协议的一些设计缺陷，攻击者可以在你不察觉的情况下做到这一点。通过中间人位置，攻击者可以捕获你的登录密码、会话令牌甚至修改传输的内容。
 
 **技术原理：**
-
-1. **ARP欺骗**：在本地网络中发送伪造的ARP响应，将自己伪装成网关，使受害者的流量经过攻击者的机器
-2. **DNS欺骗**：篡改DNS解析结果，将合法域名指向攻击者控制的服务器
-3. **WiFi中间人**：设置恶意WiFi热点（Evil Twin），诱使用户连接后劫持所有流量
-4. **代理中间人**：部署反向代理服务器，在认证流程中捕获凭据和会话令牌
-5. **SSL/TLS剥离**：将受害者的HTTPS连接降级为HTTP，即使证书验证通过也能捕获明文流量
+1. **LLMNR/NBT-NS投毒**：当Windows电脑找不到某个主机名时，会广播询问"谁是这个地址？"。攻击者抢先回答"是我！"，骗你的电脑把流量发给他
+2. **ARP欺骗**：在局域网内，攻击者发送伪造的"地址对应关系"，告诉其他电脑"路由器的IP对应的是我的MAC地址"。之后所有本来要发给路由器的流量都发给了攻击者
+3. **DHCP欺骗**：攻击者伪装成DHCP服务器（网络中的"地址分配员"），给受害者的电脑分配一个假的网关地址，骗受害者把流量发给攻击者
+4. **证书欺骗**：当访问HTTPS网站时，攻击者用自己的假证书冒充网站，浏览器如果信任了这个假证书，攻击者就能解密加密流量
 
 **用途与影响：**
-中间人攻击用于窃取登录凭据和会话Cookie、监听和修改通信内容、注入恶意内容（如恶意脚本或广告）、绕过加密保护、绕过MFA认证。2024-2025年间，AiTM钓鱼工具包（如EvilGinx2）的使用量增长了近5倍，成为企业数据窃取的主要威胁之一。
+中间人攻击是横向移动和凭证捕获的核心技术之一。攻击者不需要直接入侵目标服务器，只需要在同一个网络中就能拦截通信。根据2025年CrowdStrike报告，LLMNR/NBT-NS投毒是在Windows域环境中第二常用的横向移动技术。
 
 ## 子技术列表
 
-**该技术共有 3 个子技术：**
+**该技术共有 4 个子技术：**
 
 | 子技术ID | 中文名称 | 通俗解释 |
 |----------|----------|----------|
-| T1557.001 | LLMNR/NBT-NS中毒和SMB中继 | 利用Windows网络协议漏洞，将自己伪装成目标服务器，捕获凭据 |
-| T1557.002 | ARP缓存中毒 | 在局域网内发送伪造ARP包，让受害者的网络流量经过攻击者 |
-| T1557.003 | DHCP欺骗 | 篡改DHCP响应，让受害者使用攻击者控制的DNS服务器 |
+| T1557.001 | LLMNR/NBT-NS Poisoning and SMB Relay | 毒化名称解析，骗你的电脑把密码发给攻击者的机器 |
+| T1557.002 | ARP Cache Poisoning | 伪造IP和MAC地址的对应关系，让流量走攻击者的机器 |
+| T1557.003 | DHCP Spoofing | 用假的DHCP服务器分配恶意网络配置 |
+| T1557.004 | Mutual Authentication Impairment | 破坏双向证书验证，让攻击者能解密加密流量 |
 
 <details>
 <summary><strong>展开查看各子技术详细说明</strong></summary>
 
 各子技术详细说明请参阅独立文档：
 
-- [T1557.001 - LLMNR/NBT-NS中毒和SMB中继](./T1557/T1557.001-LLMNR-NBT-NS Poisoning and SMB Relay-LLMNR-NBT-NS中毒和SMB中继.md) — 当受害者输错文件名时，攻击者在局域网里假装说"我知道这个文件在哪"，然后捕获受害者的登录密码。
-- [T1557.002 - ARP缓存中毒](./T1557/T1557.002-ARP Cache Poisoning-ARP缓存中毒.md) — 攻击者在局域网中喊"我是网关"，受害者的网络流量就被改道到了攻击者那里。
-- [T1557.003 - DHCP欺骗](./T1557/T1557.003-DHCP Spoofing-DHCP欺骗.md) — 攻击者假装成网络的"地址分配员"，给受害者分配一个"特殊的"网络配置，让所有网络流量都经过攻击者。
+- [T1557.001 - LLMNR/NBT-NS中毒和SMB中继](./T1557/T1557.001-LLMNR-NBT-NS-Poisoning-and-SMB-Relay-LLMNR-NBT-NS-Poisoning-and-SMB-Relay.md) — 当你的电脑找不到某台机器时，会大喊"谁是XXX？"，攻击者抢先回答"是我！"骗你把密码发过来。
+- [T1557.002 - ARP缓存中毒](./T1557/T1557.002-ARP-Cache-Poisoning-ARP-Cache-Poisoning.md) — 在网络中散播假的地图，让所有人把寄给别人的信都送到你这里来。
+- [T1557.003 - DHCP欺骗](./T1557/T1557.003-DHCP-Spoofing-DHCP-Spoofing.md) — 攻击者冒充公司的网络管理员，给新接入的设备分配错误的网络设置。
+- [T1557.004 - 相互认证损害](./T1557/T1557.004-Mutual-Authentication-Impairment-Mutual-Authentication-Impairment.md) — 破坏服务器和客户端之间的相互身份验证，让攻击者可以冒充服务器。
 
 </details>
 
 ## 攻击流程
 
-### 典型攻击流程（以ARP缓存中毒为例）
-
-```
-扫描本地网络 --> 发送伪造ARP包 --> 流量经过攻击者 --> 捕获明文数据 --> 转发流量到目标
-```
-
 ```mermaid
 graph TD
-    A["扫描本地网络"] --> B["发送伪造ARP包"]
-    B --> C["流量经过攻击者"]
-    C --> D["捕获明文数据"]
-    D --> E["转发流量到目标"]
+    A["获得目标网络访问"] --> B{"选择投毒方式"}
+    B -->|LLMNR/NBT-NS| C["启动Responder<br/>监听广播请求"]
+    B -->|ARP| D["发送伪造ARP应答<br/>毒化ARP缓存"]
+    B -->|DHCP| E["部署恶意DHCP<br/>分配假网关"]
+    C --> F["等待受害者<br/>发起认证请求"]
+    D --> F
+    E --> F
+    F --> G["捕获NTLM哈希<br/>或中继认证"]
+    G --> H{"选择利用方式"}
+    H -->|离线破解| I["使用Hashcat<br/>破解NTLMv2哈希"]
+    H -->|中继认证| J["中继到DC<br/>获取域权限"]
+    I --> K["获得有效凭证"]
+    J --> K
 ```
 
 **步骤详解：**
 
-1. **扫描本地网络**
-   - 通俗描述：攻击者查看当前局域网中有哪些设备
-   - 技术细节：使用ARP扫描发现内网活跃主机
-   - 常用工具：`arp-scan`、`nmap`、`Bettercap`
+1. **选择投毒位置和工具**
+   - 通俗描述：在目标网络中确定可以执行中间人攻击的位置
+   - 技术细节：攻击者需要在目标子网中有一台已控主机，或连接到目标网络（如Wi-Fi）
+   - 常用工具：Responder、Inveigh、Ettercap
 
-2. **发送伪造ARP包**
-   - 通俗描述：发送伪造的ARP响应，告诉受害者"我才是网关"
-   - 技术细节：周期性地发送伪造ARP响应，将网关IP映射到攻击者的MAC地址
-   - 常用工具：`arpspoof`、Bettercap、`ettercap`
+2. **执行名称解析投毒**
+   - 通俗描述：启动工具监听网络上的名称解析请求，伪造响应
+   - 技术细节：运行 `Responder -I eth0 -wrf` 启用LLMNR、NBT-NS和WPAD投毒
+   - 常用工具：Responder（Python）、Inveigh（PowerShell）
 
-3. **流量经过攻击者**
-   - 通俗描述：受害者发往互联网的所有数据先经过攻击者的电脑
-   - 技术细节：攻击者机器启用IP转发（`sysctl net.ipv4.ip_forward=1`）
-   - 常用工具：Linux IP转发、`iptables`
-
-4. **捕获明文数据**
-   - 通俗描述：攻击者读取和记录流过其电脑的所有数据
-   - 技术细节：使用抓包工具捕获HTTP、FTP、SMTP等明文协议的数据
-   - 常用工具：Wireshark、`tcpdump`、`Bettercap`、`mitmproxy`
-
-5. **转发流量到目标**
-   - 通俗描述：攻击者将数据转发给真正的目标，不中断受害者的网络使用
-   - 技术细节：修改`iptables`规则实现透明转发
-   - 常用工具：`iptables` NAT规则
+3. **捕获并利用凭证**
+   - 通俗描述：受害者尝试连接资源时，认证凭证被攻击者截获
+   - 技术细节：捕获的Net-NTLMv2哈希用Hashcat离线破解，或使用Impacket的ntlmrelayx.py中继到目标服务器
+   - 常用工具：Hashcat、Impacket ntlmrelayx
 
 ## 真实案例
 
-### 案例1：EvilGinx AiTM钓鱼工具包 – 绕过MFA的大规模钓鱼攻击（2024-2025）
+### 案例1：Black Basta - Responder投毒与SMB Relay（2024）
 
-- **时间**: 2024年-2025年
-- **目标**: Microsoft 365用户全球企业客户
-- **攻击组织**: 多个威胁团伙（包括Scattered Spider、APT29等）
-- **手法**: EvilGinx2（以及后续变种）是开源的AiTM钓鱼框架，部署在攻击者的服务器上作为反向代理。攻击者向目标发送伪装成登录页更新的钓鱼链接。受害者点击链接后访问了攻击者控制的服务器（如`login.microsoftonline.com.evilsite.com`）。EvilGinx2将受害者的请求反向代理到真实的Microsoft登录页面，同时记录了全部流量。当受害者输入用户名、密码和MFA验证码后，EvilGinx2捕获了认证后的会话Cookie（`session` Cookie）。攻击者立即使用捕获的Cookie登录受害者的Microsoft 365账户。2025年报告显示，AiTM钓鱼工具包的攻击量比上一年增长了488%。
-- **影响**: 数千家企业用户的Microsoft 365账户被入侵，邮件和Teams数据被窃取
-- **参考链接**: [EvilGinx2 AiTM Phishing Growth - Zscaler 2025](https://www.zscaler.com/blogs/research/evilginx-aitm-phishing-kits-growth-2025)
+- **时间**: 2024年
+- **目标**: 多个行业组织（制造业、医疗保健）
+- **攻击组织**: Black Basta勒索软件附属组织
+- **手法**: Black Basta附属组织在获得对目标网络的初始访问后，使用Responder进行LLMNR/NBT-NS投毒。他们在内部网络的工作站上部署Responder，监听网络上的名称解析广播。当域成员尝试访问不存在的网络资源时（如网络打印机失效、管理员输入错误的主机名），Responder捕获发送的NTLMv2哈希。攻击者使用Impacket的ntlmrelayx.py将捕获的哈希中继到域控制器，以受害者身份完成认证。通过SMB Relay，他们逐步获得域管理员权限，最终部署勒索软件。2024年CISA的Black Basta分析指出，SMB Relay是其横向移动的核心技术。
+- **影响**: 多个组织被勒索，攻击者通过SMB Relay获得域控制权
+- **参考链接**: [CISA - Black Basta Analysis 2024](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-277a)
 
-### 案例2：Evil Twin WiFi攻击 – 酒店和机场公共WiFi劫持（2023-2025）
+### 案例2：DarkHotel - 酒店Wi-Fi中间人攻击（2014-2020）
 
-- **时间**: 2023年-2025年
-- **目标**: 商务旅客和政府官员
-- **攻击组织**: 多个犯罪团伙
-- **手法**: 攻击者在酒店大厅、机场候机区和咖啡厅部署名为"Free_WiFi"、"Hotel-Guest"等名字的恶意WiFi热点（Evil Twin Attack）。当受害者的设备自动连接或主动选择此热点后，攻击者使用ARP中毒（T1557.002）和DNS欺骗（T1557.003）劫持了受害者的所有网络流量。受害者访问银行网站时，攻击者使用SSL剥离技术将HTTPS连接降级为HTTP，捕获了受害者的银行登录凭据。2025年欧洲刑警组织（Europol）警告，酒店WiFi已成为商务间谍活动的主要目标，攻击者专门针对参加展会和论坛的企业高管部署Evil Twin。
-- **影响**: 大量商务旅客的敏感信息被窃取，包括企业VPN凭据和银行账户
-- **参考链接**: [Europol Hotel WiFi Warning 2025](https://www.europol.europa.eu/media-press/newsroom/news/hotel-wi-fi-cyber-threats)
+- **时间**: 2014-2020年（持续活跃）
+- **目标**: 亚洲高端酒店中的企业高管和外交人员
+- **攻击组织**: DarkHotel（APT-TOCS）
+- **手法**: DarkHotel组织通过在高端酒店中部署恶意Wi-Fi接入点或入侵酒店的Wi-Fi基础设施，建立中间人攻击位置。他们使用购买了合法签名的SSL证书，在酒店网络中执行TLS中间人攻击——当受害者访问安全网站时，DarkHotel的网关使用合法签发的证书替换原网站证书，浏览器不显示警告。通过这种方式，DarkHotel能够解密所有HTTPS加密流量，捕获VPN登录凭证、电子邮件密码和企业云服务的访问令牌。受害者的设备上也通过社会工程安装了攻击者控制的根证书，确保长期拦截能力。
+- **影响**: 多国政府官员和企业高管的敏感信息被窃取，包括国防合同相关通信
+- **参考链接**: [Kaspersky - DarkHotel Analysis](https://securelist.com/darkhotel-more-tales/)
 
-### 案例3：CrystalRAT - 集成中间人功能的跨平台RAT（2026年2月）
+### 案例3：NotPetya - 投毒组件加速传播（2017）
 
-- **时间**: 2026年2月（发现时间）
-- **目标**: 特定区域的政府机构和金融企业
-- **攻击组织**: CrystalRAT运营者
-- **手法**: CrystalRAT木马集成了中间人攻击功能，可以对受感染系统进行本地网络层面的AiTM拦截。CrystalRAT在受感染主机上部署了本地代理服务器，自动配置浏览器的代理设置（通过修改注册表或PAC文件）。所有HTTP/HTTPS流量经过本地代理时，CrystalRAT使用自签名证书进行SSL拦截（使用mitmproxy库），读取和修改HTTPS传输中的数据。该木马特别针对银行交易页面，可以实时修改页面内容（如修改转账金额和收款人账户）。
-- **影响**: 受感染企业员工的银行交易被篡改，大量资金被盗
-- **参考链接**: [CrystalRAT Analysis - Kaspersky 2026](https://securelist.com/crystalrat-analysis/)
+- **时间**: 2017年6月
+- **目标**: 全球企业（乌克兰为首要目标）
+- **攻击组织**: NotPetya（沙虫组织关联）
+- **手法**: NotPetya勒索软件利用EternalBlue漏洞在网络上快速传播，同时在受影响的主机上部署了LLMNR/NBT-NS投毒组件。投毒组件捕获网络中的NTLM认证请求，并使用捕获的凭证通过PsExec和WMI将恶意软件复制到其他机器。NotPetya的传播结合了漏洞利用和中间人攻击，使其在数小时内感染了全球数千个组织。虽然NotPetya实际是数据破坏型攻击（伪装为勒索软件），但其传播速度创下了记录，部分归功于AitM技术的加持。
+- **影响**: 全球超过2000个组织被感染，总损失超过100亿美元
+- **参考链接**: [MITRE ATT&CK - NotPetya](https://attack.mitre.org/software/S0368/)
+
+### 案例4：Salt Typhoon - ARP欺骗与VoIP拦截（2024）
+
+- **时间**: 2024年
+- **目标**: 美国电信运营商
+- **攻击组织**: Salt Typhoon
+- **手法**: Salt Typhoon在入侵电信运营商的内部网络后，使用ARP缓存投毒技术在核心网络设备之间建立中间人位置。他们将运营商的交换机和路由器之间的流量重定向到攻击者控制的主机，拦截并记录了大量的VoIP信令流量。通过分析这些流量中的SIP认证信息（包含明文或哈希凭证），Salt Typhoon提取了管理员的SIP账户凭证，进一步扩大了对运营商网络设备的控制。Mandiant的报告指出，ARP欺骗是该组织在运营商网络中进行横向移动和凭证捕获的关键技术。
+- **影响**: 美国多家电信运营商遭受入，数百万人通话记录被窃取
+- **参考链接**: [Mandiant - Salt Typhoon Telecom Operations](https://www.mandiant.com/resources/blog/salt-typhoon-telecom-analysis)
 
 ## 红队视角
 
@@ -135,187 +147,172 @@ graph TD
 
 ### 实战技巧
 
-1. **使用Bettercap进行本地AiTM**
-   Bettercap是全功能的网络攻击框架，支持ARP欺骗、DNS欺骗和HTTPS拦截：
-   ```bash
-   # 启动ARP欺骗
-   bettercap -eval "set arp.spoof.targets 192.168.1.100; arp.spoof on"
-   # 启动HTTP/HTTPS拦截
-   bettercap -eval "set https.proxy.script /path/to/hook.js; https.proxy on"
-   ```
+1. **Responder的高效使用**：
+   在目标子网中运行 `Responder -I eth0 -wrf` 启用所有的投毒功能（LLMNR、NBT-NS、WPAD、DHCP）。将抓取的Net-NTLMv2哈希用Hashcat的`-m 5600`模式配合`rockyou.txt`字典进行离线破解。破解速度可达到100GH/s（搭配8x RTX 4090）。
 
-2. **使用EvilGinx2进行远程AiTM钓鱼测试**
-   EvilGinx2使用Nginx反向代理配置实现钓鱼页面的部署，包含预配置的钓鱼模板（Microsoft 365、Google等）。
+2. **SMB Relay绕过NTLMv1限制**：
+   如果环境中NTLMv2签名强制启用（通过组策略），直接中继会失败。使用Impacket的 `ntlmrelayx.py -socks` 模式建立SOCKS代理，通过已认证的会话访问资源。还可以使用`SMB Signing Disabled`扫描工具找到未启用SMB签名的目标。
 
-3. **使用mitmproxy进行HTTPS流量分析**
-   mitmproxy支持交互式分析HTTP/HTTPS流量，可以实时查看和修改请求和响应。
+3. **绕过HSTS/TLS拦截检测**：
+   对于启用了HSTS（HTTP严格传输安全）的网站，直接证书替换会触发浏览器警告。使用`mitmproxy`或`BetterCAP`配合浏览器扩展，或利用协议降级攻击（降级到HTTP）绕过HSTS保护。
 
 ### 常用工具
 
 | 工具名称 | 用途 | 平台 | 链接 |
 |----------|------|------|------|
-| EvilGinx2 | AiTM反向代理钓鱼框架 | Linux | https://github.com/kgretzky/evilginx2 |
-| Bettercap | 全功能网络攻击框架 | 跨平台 | https://www.bettercap.org/ |
-| mitmproxy | 交互式HTTPS中间人代理 | 跨平台 | https://mitmproxy.org/ |
-| Responder | LLMNR/NBT-NS中毒工具 | 跨平台 | https://github.com/lgandx/Responder |
-| Wireshark | 网络协议分析器 | 跨平台 | https://www.wireshark.org/ |
+| Responder | LLMNR/NBT-NS/WPAD投毒 | Linux | https://github.com/SpiderLabs/Responder |
+| Inveigh | Windows环境下的投毒工具 | Windows | https://github.com/Kevin-Robertson/Inveigh |
+| Impacket | SMB Relay和协议操作 | 跨平台 | https://github.com/fortra/impacket |
+| Ettercap | ARP欺骗和流量拦截 | Linux | https://www.ettercap-project.org/ |
+| mitmproxy | TLS拦截和流量修改 | 跨平台 | https://mitmproxy.org/ |
 
 ### 注意事项
 
-- ARP欺骗只能在局域网中有效，跨网络无法实施
-- 现代操作系统（Windows 10+、macOS 11+）的WiFi选择算法更智能，Evil Twin攻击难度增加
-- 部署EvilGinx2需要有效的SSL证书才能实现HTTPS下的完全欺骗
-- LLMNR/NBT-NS中毒需要受害者的网络协议没有被组策略禁用
+- SMB Relay需要目标服务器未启用SMB签名，否则认证中继会失败
+- ARP欺骗在交换网络中有效，但被VLAN隔离、端口安全和动态ARP检测（DAI）防御
+- 不要在客户生产环境中长时间运行投毒工具，可能导致网络中断
+- 现代Windows系统默认启用LLMNR，但很多安全加固指南建议关闭
 
 ## 蓝队视角
 
 ### 检测要点
 
-1. **ARP缓存不一致**
-   - 日志来源：网络设备ARP表、端点ARP缓存
-   - 关注字段：MAC地址与IP地址的映射关系
-   - 异常特征：网关IP对应了多个MAC地址，或MAC地址与已知的厂商OUI不一致
+1. **异常名称解析响应**
+   - 日志来源：网络流量日志、Windows Defender for Identity
+   - 关注字段：来自非域控制器的LLMNR/NBT-NS响应、短时间内大量名称解析应答
+   - 异常特征：单一主机对大量名称解析请求进行应答
 
-2. **异常DNS响应**
-   - 日志来源：DNS服务器日志
-   - 关注字段：域名解析结果的变化
-   - 异常特征：同一个域名的DNS解析结果突然变化，或被解析到不常见的IP地址
+2. **ARP异常**
+   - 日志来源：交换机日志、ARP监控工具
+   - 关注字段：ARP缓存表中IP-MAC映射的异常变化
+   - 异常特征：一个IP地址对应多个MAC地址（ARP欺骗标志）
 
-3. **LLMNR/NBT-NS异常流量**
-   - 日志来源：网络流量日志
-   - 关注字段：LLMNR（UDP 5355）、NBT-NS（UDP 137）的响应
-   - 异常特征：同一查询在短时间内收到多个响应，或来自非预期主机的响应
-
-4. **重复的DHCP服务器**
-   - 日志来源：DHCP审计日志
-   - 关注字段：DHCP Offer的来源MAC地址
-   - 异常特征：局域网中出现多个非预期的DHCP服务器响应
+3. **非授权DHCP服务器**
+   - 日志来源：DHCP服务器日志、网络监控
+   - 关注字段：DHCP Offer的来源IP（不应来自没有授权的主机）
+   - 异常特征：客户端从非授权的DHCP服务器获取配置
 
 ### 监控建议
 
-- 监控ARP表的异常变化，配置交换机端口安全（Port Security）
-- 实施DNS流量分析，检测域名劫持行为
-- 在组策略中禁用LLMNR和NetBIOS协议
-- 配置DHCP监听（DHCP Snooping）防止伪造DHCP服务器
+- 在交换机上启用DHCP Snooping（DHCP监听）和Dynamic ARP Inspection（动态ARP检测，DAI）
+- 使用NetFlow或Zeek（Bro）监控网络中的异常LLMNR（UDP 5355）和NBT-NS（UDP 137）流量
+- 部署Windows Defender for Identity监控NTLM认证中的异常中继行为
+- 配置组策略禁用LLMNR和NetBIOS over TCP/IP（减少投毒攻击面）
+- 启用Windows Firewall阻止LLMNR和NetBIOS跨子网流量
+
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
 
 ## 检测建议
 
 ### 网络层检测
 
-**网络流量特征：**
-- 检测ARP欺骗：同一IP地址对应多个MAC地址（arpwatch或端口安全监测）
-- 检测LLMNR/mDNS/NBT-NS投毒响应：网络中短时间内大量重复的名称解析响应
-- 检测DHCP Rogue Server：同一子网中出现多个DHCP服务器提供IP租约
-- 检测TLS拦截流量：通过JA3/S证书指纹识别已知的中间人代理工具（mitmproxy、Burp Suite、BetterCAP）
-- 监控DNS响应中的异常TTL值或NXDOMAIN重定向行为
+**检测方法：** 监控网络中的异常广播和ARP行为。
 
-**具体命令示例：**
-```bash
-# 检测ARP欺骗（将网关MAC与已知正确值对比）
-arp -a | findstr "192.168.1.1"
+**具体规则/命令示例：**
 
-# 使用PowerShell检查邻居缓存异常
-Get-NetNeighbor -IPAddress 192.168.1.1 | Select-Object IPAddress, LinkLayerAddress, State
-
-# 检测网络中LLMNR投毒流量
-# tshark -Y "llmnr" -T fields -e ip.src -e dns.qry.name
-
-# 检测DHCP Rogue Server
-Get-DhcpServerInDC | Format-Table DnsName, IPAddress
+**Snort/Suricata规则 - 检测Responder特征：**
+```
+alert udp any any -> $HOME_NET 5355 (msg:"LLMNR投毒检测 - 来自非DC的响应"; 
+  content:"|00 00 00 00|"; offset:4; depth:4; 
+  reference:url,attack.mitre.org/techniques/T1557/; classtype:attempted-recon; sid:1000001; rev:1;)
 ```
 
-**示例（Suricata/IDS规则）：**
+**Zeek脚本 - 检测ARP欺骗：**
 ```
-# 检测ARP欺骗 - 同一IP多MAC地址
-alert arp any any -> any any (
-    msg:"T1557 - 中间人攻击 - ARP欺骗检测";
-    arp$opcode == 2;
-    # 需要关联分析：同一IP对应不同MAC地址
-    threshold:type both, track by_dst, count 5, seconds 60;
-    sid:1015571; rev:1;
-)
+# 检测ARP缓存中IP-MAC映射的异常变化
+event arp_reply(c: connection, src_mac: string, src_ip: addr, tgt_mac: string, tgt_ip: addr) {
+    if ([src_ip] in arp_cache && arp_cache[src_ip] != src_mac) {
+        NOTICE([$note=ARP::Spoofing, $msg=fmt("ARP欺骗检测: %s 的MAC从 %s 变为 %s", src_ip, arp_cache[src_ip], src_mac)]);
+    }
+    arp_cache[src_ip] = src_mac;
+}
 ```
 
 ### 主机层检测
 
-**Windows事件ID：**
-- Event ID 4688：进程创建
-- Event ID 5156：网络连接
-- PowerShell Event ID 4104：Script Block Logging
+**检测方法：** 监控主机上的ARP缓存异常和投毒工具的执行。
 
-**具体命令示例：**
-```bash
-# 检查ARP表确认网关MAC地址
-arp -a | findstr "192.168.1.1"
+**Windows命令示例：**
+```powershell
+# 检查ARP缓存中是否存在多个IP对应同一个MAC
+arp -a | Group-Object -Property {($_ -split '\s+')[2]} | Where-Object Count -gt 1
 
-# 检查DHCP服务器授权
-Get-DhcpServerInDC | Format-Table DnsName, IPAddress
+# 检测进程中运行Responder或Inveigh
+Get-Process | Where-Object { $_.ProcessName -match "Responder|Inveigh|Python" }
 ```
+
+**用人话说：** 这条规则在监控网络中是否有中间人攻击活动。中间人攻击是攻击者插入到通信双方之间，截获和篡改所有数据。正常情况下网络流量会直接到达目标服务器。如果发现流量异常地经过未知设备，或者ARP表出现异常，那就是攻击者在进行中间人攻击。
 
 ### 应用层检测
 
-**用人话说：**
-
-> 中间人攻击（AiTM）是攻击者在通信双方之间"偷听"的技术——攻击者把自己插入到受害者和目标服务器之间的网络路径上，受害者的所有数据先经过攻击者再到服务器。ARP缓存中毒通过伪造ARP包让受害者的IP流量经过攻击者的机器；LLMNR/NBT-NS投毒利用Windows名称解析缺陷劫持认证请求；DHCP欺骗篡改网络配置让受害者的流量走攻击者控制的DNS服务器。通过这些手法，攻击者可以捕获登录凭据、会话Cookie、以及所有未加密的通信内容。检测方法：监控ARP表的异常变化、网络中出现的重复IP地址、以及DNS响应中的异常NS记录。
->
-> **避坑指南**：忽略SMB管理共享异常访问；未启用PowerShell脚本块日志；未监控异常会话令牌使用。
-
 **Sigma规则示例：**
 ```yaml
-title: ARP欺骗检测 - 网关IP的多MAC映射
+title: 检测LLMNR/NBT-NS投毒工具运行
 status: experimental
-description: 检测ARP表中网关IP对应多个MAC地址的情况（ARP欺骗迹象）
+description: 检测Responder或Inveigh等投毒工具的运行
 logsource:
     category: process_creation
     product: windows
 detection:
-    selection:
-        CommandLine|contains|all:
-            - 'arp'
-            - '-a'
-    condition: selection
-level: medium
+    responder:
+        Image|endswith: '\python.exe'
+        CommandLine|contains: 'Responder.py'
+    inveigh:
+        Image|endswith: '\powershell.exe'
+        CommandLine|contains: 'Inveigh'
+    condition: responder or inveigh
+level: high
 tags:
     - attack.t1557
-    - attack.t1557.002
 ```
 
 ## 缓解措施
 
 ### 优先级1：关键措施
 
-**措施名称：** 网络协议安全配置
+**措施名称：** 禁用LLMNR和NetBIOS over TCP/IP
 
 **具体实施步骤：**
-1. 通过组策略禁用LLMNR和NetBIOS协议
-2. 配置交换机端口安全（Port Security），限制每个端口允许的MAC地址数量
-3. 启用DHCP Snooping防止Rogue DHCP服务器
+1. 通过组策略禁用LLMNR：计算机配置 → 管理模板 → 网络 → DNS客户端 → 关闭多播名称解析 → 启用
+2. 通过组策略禁用NetBIOS over TCP/IP：网络连接设置
+3. 验证禁用效果：使用`nbtstat -n`和`ipconfig /displaydns`检查
+
+**配置示例：**
+```powershell
+# 通过注册表禁用LLMNR
+New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" `
+    -Name "EnableMulticast" -Value 0 -PropertyType DWord -Force
+```
 
 ### 优先级2：重要措施
 
-**措施名称：** 网络分段和隔离
+**措施名称：** 启用SMB签名
 
 **具体实施步骤：**
-1. 实施网络VLAN划分，限制广播域的范围
-2. 对敏感区域（财务、管理层）实施单独的物理网络或VLAN
-3. 配置802.1X网络访问控制
+1. 通过组策略启用SMB签名：计算机配置 → Windows设置 → 安全设置 → 本地策略 → 安全选项
+2. 设置 `Microsoft网络服务器：对通信进行数字签名（始终）` → 启用
+3. 设置 `Microsoft网络客户端：对通信进行数字签名（始终）` → 启用
 
 ### 优先级3：建议措施
 
-**措施名称：** 加密和端到端安全
+**措施名称：** 网络基础设施安全
 
 **具体实施步骤：**
-1. 强制所有内部应用使用HTTPS，禁用明文HTTP
-2. 实施HSTS（HTTP Strict Transport Security）防止SSL剥离
-3. 部署VPN或零信任网络架构，减少局域网层面的暴露
+1. 在受管交换机上启用DHCP Snooping和Dynamic ARP Inspection
+2. 部署802.1X网络访问控制（NAC），防止未授权设备接入
+3. 实施网络分段（VLAN）和最小访问权限策略
 
 ### MITRE ATT&CK 缓解措施映射
 
 | 缓解措施ID | 缓解措施名称 | 适用性 | 说明 |
 |------------|-------------|--------|------|
-| M0937 | 网络分段 | 适用 | 减少ARP欺骗的影响范围 |
-| M0931 | 网络协议加固 | 适用 | 禁用LLMNR/NBT-NS |
-| M0926 | 通信加密 | 适用 | 强制HTTPS和HSTS |
+| M1037 | 过滤网络流量 | 适用 | 阻止LLMNR和NetBIOS流量跨子网 |
+| M1042 | 禁用或移除功能 | 适用 | 禁用LLMNR和NetBIOS |
+| M1032 | 多因素认证 | 部分适用 | 启用MFA降低凭证泄露风险 |
+| M1041 | 加密敏感信息 | 适用 | 使用Kerberos替代NTLM认证 |
+| M1029 | 网络访问控制 | 适用 | 启用802.1X和网络准入 |
 
 ## 动手实验
 
@@ -327,67 +324,81 @@ tags:
 
 | 平台名称 | 类型 | 难度 | 链接 |
 |----------|------|------|------|
-| TryHackMe | 网络安全学习平台 | 中级 | https://tryhackme.com/ |
-| Hack The Box | 渗透测试训练平台 | 高级 | https://www.hackthebox.com/ |
+| TryHackMe - Active Directory Basics | 虚拟靶场 | 中级 | https://tryhackme.com/ |
+| HackTheBox - Responder | 虚拟靶场 | 中级 | https://www.hackthebox.com/ |
 
 **所需工具：**
-- Kali Linux虚拟机
-- 两台虚拟机（攻击机和靶机）
-- Bettercap或Ettercap
+- Responder：LLMNR/NBT-NS投毒
+- Hashcat：密码哈希破解
+- Wireshark：抓包分析
+- 实验环境：Windows VM（大内网）+ Kali Linux（攻击机）
 
-### 实验1：使用Bettercap模拟ARP欺骗（高级）
+### 实验1：Responder投毒抓取NTLM哈希（中级）
 
-**实验目标：** 通过ARP欺骗劫持靶机的网络流量
+**实验目标：** 在隔离的局域网环境中使用Responder捕获Windows NTLMv2哈希。
 
 **实验步骤：**
-1. 在Kali虚拟机中启动Bettercap，连接到局域网接口
-2. 扫描本地网络发现目标IP：
-   ```
-   net.probe on
-   net.show
-   ```
-3. 选择目标IP，实施ARP欺骗：
-   ```
-   set arp.spoof.targets 192.168.x.x
-   arp.spoof on
-   ```
-4. 启动HTTP流量嗅探：
-   ```
-   net.sniff on
-   ```
+1. 在Kali VM上启动Responder：`sudo responder -I eth0 -wrf`
+2. 在Windows VM上访问一个不存在的主机名（假设备名称，如`\\FAKESERVER`）
+3. 观察Kali VM上的Responder输出，看到捕获的NTLMv2哈希
+4. 将哈希保存到文件，使用Hashcat尝试破解：`hashcat -m 5600 hash.txt rockyou.txt`
+5. 如果破解成功，看到明文密码
 
-**预期结果：** 靶机的HTTP流量出现在Bettercap的监控界面中
+**预期结果：** Windows VM向攻击机发送NTLM认证请求，捕获到Net-NTLMv2哈希，并可能破解出明文密码。
 
-**学习要点：** 理解ARP欺骗的原理和实施方法
+**学习要点：** 理解LLMNR/NBT-NS投毒的原理和在企业网络中的风险。
+
+### 实验2：Wireshark抓包分析ARP欺骗（初级）
+
+**实验目标：** 学习识别网络中的ARP欺骗攻击。
+
+**实验步骤：**
+1. 在Kali VM上使用Ettercap进行ARP欺骗：`sudo ettercap -T -M arp:remote /目标IP// /网关IP//`
+2. 在Windows VM上使用Wireshark抓包
+3. 在Wireshark中设置过滤条件：`arp`
+4. 观察ARP应答的数量和来源——正常网络ARP应答很少
+5. 留意ARP应答中IP-MAC映射的重复和矛盾
+
+**预期结果：** Wireshark中观察到大量非正常的ARP应答包，且网关IP的MAC地址被篡改。
+
+**学习要点：** 熟悉ARP欺骗的网络特征，理解为什么需要DAI（动态ARP检测）。
 
 ## 术语解释
 
 | 术语 | 英文原名 | 通俗解释 |
 |------|----------|----------|
-| ARP | Address Resolution Protocol | 地址解析协议，将IP地址转换为网卡的MAC地址 |
-| 反向代理 | Reverse Proxy | 一台中转服务器，将外部请求转发到内部服务器 |
-| SSL剥离 | SSL Stripping | 将HTTPS连接降级为HTTP，让加密失效 |
-| LLMNR | Link-Local Multicast Name Resolution | Windows的本地链路多播名称解析协议 |
-| HSTS | HTTP Strict Transport Security | 告诉浏览器只能通过HTTPS连接本网站，强制加密 |
+| LLMNR | Link-Local Multicast Name Resolution | Windows的名称解析协议，当DNS找不到某个主机名时，用它在局域网内广播询问。就像在小区的广播里喊"谁知道XXX住在哪栋楼？" |
+| NBT-NS | NetBIOS Name Service | 老版本的Windows名称解析协议，与LLMNR类似，通过广播询问主机名对应的IP地址 |
+| ARP | Address Resolution Protocol | 把IP地址转换成MAC地址的协议。就像问"谁住在XX号房间？"——得到回答后就知道该把信送到哪个具体的信箱 |
+| SMB | Server Message Block | Windows文件共享协议，用于访问共享文件夹、打印机等。认证过程中会传输NTLM哈希 |
+| DHCP | Dynamic Host Configuration Protocol | 自动给设备分配IP地址、网关等网络配置的协议。就像酒店前台给新入住的客人分配房间钥匙 |
+| Relay | Relay Attack | 中继攻击，将截获的认证请求直接转发到目标服务器，在不破解密码的情况下完成认证。就像捡到别人的门禁卡，直接用这张卡开门而不是复制 |
+| Net-NTLMv2 | NTLMv2 Hash | Windows NTLM认证中使用的加密密码形式，可被离线破解。比NTLMv1更安全但仍然可破解 |
+| HSTS | HTTP Strict Transport Security | 网站强制浏览器使用HTTPS连接的安全机制，防止HTTPS降级攻击。就像一个标志牌写着"请从正门进，不要走后门" |
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
-- [MITRE ATT&CK - T1557](https://attack.mitre.org/techniques/T1557/)
-- [MITRE ATT&CK - T1557.001](https://attack.mitre.org/techniques/T1557/001/)
-- [MITRE ATT&CK - T1557.002](https://attack.mitre.org/techniques/T1557/002/)
-- [MITRE ATT&CK - T1557.003](https://attack.mitre.org/techniques/T1557/003/)
+- [MITRE ATT&CK - T1557 Adversary-in-the-Middle](https://attack.mitre.org/techniques/T1557/)
+- [MITRE ATT&CK - T1557.001 LLMNR/NBT-NS Poisoning](https://attack.mitre.org/techniques/T1557/001/)
+- [MITRE ATT&CK - T1557.002 ARP Cache Poisoning](https://attack.mitre.org/techniques/T1557/002/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
-- [EvilGinx AiTM Phishing 2025 - Zscaler](https://www.zscaler.com/blogs/research/evilginx-aitm-phishing-kits-growth-2025)
-- [Europol Hotel WiFi Warning 2025](https://www.europol.europa.eu/media-press/newsroom/news/hotel-wi-fi-cyber-threats)
-- [CrystalRAT Analysis - Kaspersky 2026](https://securelist.com/crystalrat-analysis/)
+- [CISA - Black Basta Analysis 2024](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-277a) - SMB Relay在勒索攻击中的应用
+- [Mandiant - Salt Typhoon Telecom Analysis](https://www.mandiant.com/resources/blog/salt-typhoon-telecom-analysis) - ARP欺骗在电信攻击中的应用
+- [Kaspersky - DarkHotel](https://securelist.com/darkhotel-more-tales/) - 酒店Wi-Fi中间人攻击案例
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
-- [EvilGinx2](https://github.com/kgretzky/evilginx2) - AiTM钓鱼框架
-- [Bettercap](https://www.bettercap.org/) - 网络攻击和监控框架
-- [mitmproxy](https://mitmproxy.org/) - HTTPS中间人代理
-- [Responder](https://github.com/lgandx/Responder) - LLMNR/NBT-NS中毒
+- [Responder - LLMNR/NBT-NS投毒工具](https://github.com/SpiderLabs/Responder)
+- [Impacket - 网络协议工具集](https://github.com/fortra/impacket)
+- [Ettercap - ARP欺骗工具](https://www.ettercap-project.org/)
+- [mitmproxy - TLS拦截代理](https://mitmproxy.org/)
+
+### 📚 学习资料（深入了解）
+
+- [Microsoft - 禁用LLMNR指南](https://learn.microsoft.com/en-us/windows-server/security/group-policy/)
+- [Cisco - DHCP Snooping配置](https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst3750x/software/15-2E/ip_services/configuration/guide/)
+- [PortSwigger - TLS中间人攻击详解](https://portswigger.net/web-security/ssl-tls/mitm)

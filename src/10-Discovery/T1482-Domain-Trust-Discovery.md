@@ -18,11 +18,21 @@
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 域信任发现（T1482）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 在一个大公司里，不同的部门（如财务部、人事部、研发部）可能有各自的"域"（相当于独立的小王国）。为了让员工方便地在部门之间访问资源，域与域之间会建立"信任关系"（相当于互通的桥）。攻击者入侵一个域后，会查看这个域还信任哪些其他域——通过这些信任关系，他们可以像拿着通行证一样，从一个域直接跳到另一个域。
 
 **技术原理：**
@@ -173,6 +183,10 @@ graph TD
 - 监控域控日志中LDAP查询 `trustedDomain` 对象的行为
 - 关联域信任发现与后续跨域Kerberos请求（Event ID 4769）
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -214,6 +228,31 @@ level: high
 tags:
     - attack.t1482
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1482
+status: experimental
+description: Detects potential T1482 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1482
+
 
 ## 缓解措施
 
@@ -294,18 +333,18 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1482](https://attack.mitre.org/techniques/T1482/)
 - [Microsoft - Nltest](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/nltest)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CrowdStrike - Ryuk Domain Trust Abuse](https://www.crowdstrike.com/blog/ryuk-ransomware-domain-trust-abuse/)
 - [Mandiant - APT28 Cross-Forest Attack Paths](https://www.mandiant.com/resources/apt28-cross-forest-attack-paths)
 - [FireEye - SolarWinds Domain Trust Discovery](https://www.fireeye.com/blog/threat-research/2020/12/sunburst-additional-technical-details.html)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [BloodHound](https://github.com/BloodHoundAD/BloodHound)
 - [PowerShell ActiveDirectory Module](https://learn.microsoft.com/en-us/powershell/module/activedirectory/)

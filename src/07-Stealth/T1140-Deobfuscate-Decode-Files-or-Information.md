@@ -4,15 +4,36 @@
 
 攻击者把经过加密或混淆的恶意代码还原成可执行的原始形式——就像把一封密信翻译成明文，让埋伏在系统里的恶意软件"活"过来。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 把经过编码/加密/混淆的恶意代码还原成可执行的原始形式 |
+| 为什么危险？ | 安全软件只能看到乱码，无法识别其中的恶意内容 |
+| 谁需要关心？ | 恶意软件分析师、EDR研发人员、邮件安全工程师 |
+| 你的第一步防御 | 启用AMSI捕获脚本解密后的明文内容，监控IEX、Invoke-Expression等执行命令 |
+| 如果只做一件事 | 监控Office应用子进程执行Base64解码或反射式PE加载的行为 |
+
 ## 难度等级
 
 ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 安全软件工作原理（EDR/AV/SIEM基础）
+- [ ] 进程注入与API Hook基本概念
+- [ ] 编码/加密/混淆基础知识
 
 ## 技术描述
 
 去混淆/解码文件或信息（T1140）是MITRE ATT&CK框架中隐蔽战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为隐蔽只是'把恶意软件藏起来'——真正的隐蔽是让恶意识别看起来像正常的系统行为。攻击者不是消失，而是伪装。他们会使用合法的管理工具、模仿正常的流量模式、在管理员的工作时间之外活动，把自己融入'噪音'之中。
 恶意软件的开发者知道安全软件会检测已知的恶意代码特征，所以他们把恶意代码进行混淆（加密、编码、压缩），让安全软件认不出来。当恶意软件到达目标系统后，它自己再执行"去混淆"操作——把混淆后的代码还原成原始恶意代码并执行。这就像间谍把情报藏在密码本里通过海关检查，到了目的地再翻出密码本解密。
 
 **技术原理：**
@@ -96,7 +117,7 @@ graph TD
 - **时间**: 2018年至今
 - **目标**: 全球Windows用户
 - **攻击组织**: 未知攻击组织（疑似APT相关）
-- **手法**: 大量恶意软件使用PowerShell执行Base64编码的命令行。攻击者将恶意PowerShell代码进行Base64编码后，通过`powershell -enc &lt;Base64&gt;`或`IEX ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("...")))`执行解码后的代码。这种技术完全无文件，仅驻留在内存中。
+- **手法**: 大量恶意软件使用PowerShell执行Base64编码的命令行。攻击者将恶意PowerShell代码进行Base64编码后，通过`powershell -enc <Base64>`或`IEX ([System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("...")))`执行解码后的代码。这种技术完全无文件，仅驻留在内存中。
 - **影响**: 无文件攻击成为主流，传统的文件扫描失效
 - **参考链接**: [PowerShell Exploit - MITRE](https://attack.mitre.org/techniques/T1059/001/)
 
@@ -161,6 +182,10 @@ graph TD
 - 启用PowerShell Script Block Logging（Event ID 4104）捕获解码命令
 - 监控进程的异常内存操作（VirtualAlloc + VirtualProtect + CreateRemoteThread序列）
 - 使用AMSI（反恶意软件扫描接口）拦截解码后的恶意脚本
+
+## 避坑指南
+
+常见混淆误区：认为Base64编码就能绕过检测。
 
 ## 检测建议
 
@@ -246,6 +271,10 @@ Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-PowerShell/Operationa
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：**隐蔽检测的难点在于攻击者会尽力让自己的行为看起来正常。关注那些『不太对』的信号——不正常的父进程链、被编码的命令行参数、频繁的进程注入尝试。检测隐蔽模块少依赖文件名和签名，多关注行为特征。
+
+**用人话说：**隐蔽检测少依赖文件名签名，多关注行为特征——异常的父进程链、编码的命令行、进程注入尝试。
 ```yaml
 title: PowerShell Base64解码执行检测
 status: experimental
@@ -392,16 +421,16 @@ print(f"解码后的Payload: {result.decode()}")
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1140 Deobfuscate/Decode Files or Information](https://attack.mitre.org/techniques/T1140/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Reflective DLL Injection - Harmj0y](https://www.harmj0y.net/blog/redteaming/reflective-dll-injection/)
 - [PowerShell Attack Detection - Microsoft](https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/manage/component-updates/powershell-logging)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Donut - Shellcode生成器](https://github.com/TheWover/donut)
 - [sRDI - 反射式DLL注入](https://github.com/monoxgas/sRDI)

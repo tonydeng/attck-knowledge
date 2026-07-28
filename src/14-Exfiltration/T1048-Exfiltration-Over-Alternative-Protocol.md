@@ -8,7 +8,7 @@
 
 | 维度 | 你需要知道的 |
 |------|-------------|
-| 这是什么？ | 攻击者不用常规的HTTP/HTTPS通道，而是通过DNS查询、ICMP(Ping)包、电子邮件等"非主流"协议把偷到的数据运出去 |
+| 这是什么？ | 攻击者使用非预期的网络协议（DNS、ICMP、SMTP等）来传输窃取的数据，而不是常规的HTTP/HTTPS通道，以此绕过防火墙和DLP检测 |
 | 为什么危险？ | DNS、ICMP、SMTP等协议通常是防火墙放行的白名单流量，安全设备很少深度检查其内容，攻击者可以神不知鬼不觉地把数据传出网络 |
 | 谁需要关心？ | 网络安全工程师、SOC分析师、威胁狩猎团队 |
 | 你的第一步防御 | 对DNS查询做异常检测（如超过正常长度的查询名、极高频率的DNS请求），限制ICMP数据包大小 |
@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络流量分析与数据传输
+- [ ] 数据编码与压缩基础知识
+- [ ] 云服务API（S3/Blob Storage等）
+
 ## 技术描述
 
 通过替代协议渗漏（T1048）是MITRE ATT&CK框架中渗漏战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为数据渗出就是'把文件发到外部邮箱'——现代攻击者会用DNS隧道逐字节地拆分流式地传输文件，或将数据编码后隐藏在HTTP请求的Cookie中，甚至利用合法的云存储API与正常业务流量混合。渗出的流量看起来可能只是正常的API调用。
 攻击者使用非预期的网络协议来传输窃取的数据。比如，把数据藏在DNS域名查询请求里、藏在ICMP（Ping）的数据包中、或者通过SMTP（电子邮件）发送加密附件。正常的网络防火墙通常允许这些协议通过（因为它们是网络运行必需的），但不会深度检查这些协议的内容。
 
 **技术原理：**
@@ -214,6 +224,10 @@ graph TD
 - 对非标准端口的协议使用实施告警
 - 检查SMTP出站邮件中异常的加密附件
 
+## 避坑指南
+
+检测最大盲点：出站流量不等于恶意流量。
+
 ## 检测建议
 
 ### 网络层检测
@@ -384,19 +398,19 @@ deny outbound any any
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1048](https://attack.mitre.org/techniques/T1048/)
 - [MITRE ATT&CK - T1048.001](https://attack.mitre.org/techniques/T1048/001/)
 - [MITRE ATT&CK - T1048.002](https://attack.mitre.org/techniques/T1048/002/)
 - [MITRE ATT&CK - T1048.003](https://attack.mitre.org/techniques/T1048/003/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [ReliaQuest - Data Exfiltration Attack Analysis](https://reliaquest.com/blog/data-exfiltration-attack-analysis-manufacturing-sector-breach/) - 2024年制造业数据渗漏事件分析
 - [MITRE ATT&CK - APT28](https://attack.mitre.org/groups/G0007/) - APT28 DNS隧道渗漏
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [dnscat2](https://github.com/iagox86/dnscat2) - DNS隧道工具
 - [icmptunnel](https://github.com/DhavalKapil/icmptunnel) - ICMP隧道工具
