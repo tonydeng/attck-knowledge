@@ -16,14 +16,25 @@ Rootkit就像给恶意软件穿上了"隐身衣"——它能让病毒文件、�
 
 ## 难度等级
 
-⭐⭐⭐ 高级（需要深入技术知识）
+⭐⭐⭐ 高级（需要内核编程、操作系统原理、驱动开发基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 安全软件工作原理（EDR/AV/SIEM基础）
+- [ ] 进程注入与API Hook基本概念
+- [ ] 编码/加密/混淆基础知识
 
 ## 技术描述
 
 Rootkit（T1014）是MITRE ATT&CK框架中隐蔽战术的一种高级技术。
 
 **通俗解释：**
+
 想象一下，你家里进了小偷，但这个小偷有一套"隐身装备"——监控摄像头拍不到他，你回家也看不到他，甚至连警犬都闻不到他的气味。Rootkit就像这个隐身装备，它躲在操作系统的最底层，拦截所有的"查看"请求。当你用任务管理器看进程时，Rootkit把恶意进程从列表中"抹掉"了；当你搜索病毒文件时，Rootkit把文件"藏起来"了。本质上，Rootkit就是操作系统级别的"信息过滤器"。
+
+**过渡段：** 简单来说，Rootkit之所以能"隐身"，是因为它运行在比杀毒软件更高的权限层——内核态。普通程序问操作系统"有哪些文件？"，操作系统回答前会先经过Rootkit的"审查"，Rootkit把恶意文件从答案里删掉再返回。要做到这一点，Rootkit必须以驱动程序的形式加载进内核，并Hook（钩住）关键的系统调用函数，比如 `NtQueryDirectoryFile`、`NtCreateFile` 等。下面我们来看看具体的技术原理。
 
 **技术原理：**
 Rootkit通过修改操作系统内核或关键系统调用来实现隐藏。具体步骤如下：
@@ -185,6 +196,10 @@ graph TD
 - 启用Windows Defender System Guard运行时监控
 - 定期使用Microsoft Defender Offline进行离线扫描
 - 使用基于虚拟化的安全技术（VBS）保护内核完整性
+
+## 避坑指南
+
+常见混淆误区：认为安装了杀毒软件就能检测出Rootkit。实际上Rootkit运行在内核态，比杀毒软件权限更高，可以拦截杀毒软件的读取请求，让恶意文件"隐身"。检测Rootkit需要交叉验证法——从用户态和内核态两个角度读取同一信息，结果不一致就说明有Rootkit在作祟。
 
 ## 检测建议
 
@@ -369,24 +384,24 @@ Confirm-SecureBootUEFI
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1014 Rootkit](https://attack.mitre.org/techniques/T1014/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Turla VBoxDrv Rootkit - ESET](https://www.welivesecurity.com/2020/05/21/new-turla-light-neuron-project/)
 - [Lazarus Bootkit Analysis - ESET](https://www.welivesecurity.com/2017/04/04/lazarus-uses-bootkit-to-hide-malware/)
 - [ESPecter UEFI Bootkit - ESET](https://www.welivesecurity.com/2021/10/05/uespecter-bootkit-uefi-especter/)
 - [MosaicRegressor UEFI Malware - Kaspersky](https://securelist.com/mosaicregressor/98849/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [GMER - Rootkit检测工具](http://www.gmer.net/)
 - [Microsoft - Secure Boot Overview](https://docs.microsoft.com/en-us/windows/security/information-protection/secure-boot/secure-boot-overview)
 - [Kernel Rootkit Detection - CrowdStrike](https://www.crowdstrike.com/blog/kernel-rootkit-detection-techniques/)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Windows Internals 7th Edition - 深入了解Windows内核](https://docs.microsoft.com/en-us/sysinternals/learn/windows-internals)
 - [Rootkit Arsenal: Escape and Evasion - 书籍](https://www.amazon.com/Rootkit-Arsenal-Escape-Evasion-Corners/dp/144962636X)

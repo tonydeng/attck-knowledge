@@ -18,16 +18,26 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 网络共享发现（T1135）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 公司在内网上经常设置共享文件夹，让员工方便地访问公共文件（如共享文档、项目资料、备份文件）。攻击者入侵后，会扫描内网上所有开放的共享资源——不仅查找敏感文件（如财务数据、客户信息），更重要的是寻找可供横向移动的入口。就像盗贼潜入大楼后，不会只偷一个房间，而是查看哪些办公室的门没锁、哪些柜子有值钱的东西。
 
 **技术原理：**
 1. 在Windows中使用 `net view` 查看网络上的所有计算机和共享资源
-2. 使用 `net view \\\\&lt;computername&gt;` 查看指定电脑上的共享文件夹
+2. 使用 `net view \\\\<computername>` 查看指定电脑上的共享文件夹
 3. 使用 `net share` 查看本机的共享资源
 4. 使用PowerShell的 `Get-SmbShare` 获取SMB共享信息
 5. 使用WMI查询 `SELECT * FROM Win32_Share` 枚举网络共享
@@ -77,7 +87,7 @@ graph TD
 
 3. **访问目标共享**
    - 通俗描述：查看特定计算机上的共享文件夹内容
-   - 技术细节：`net view \\\\&lt;computername&gt;` 或 `dir \\\\&lt;computername&gt;\\`&lt;share&gt;``
+   - 技术细节：`net view \\\\<computername>` 或 `dir \\\\<computername>\\<share>`
    - 常用工具：net.exe, dir.exe
 
 4. **提取有价值信息**
@@ -101,7 +111,7 @@ graph TD
 - **时间**: 2019年-2020年
 - **目标**: 全球科技、制药和游戏公司
 - **攻击组织**: APT41（Winnti）
-- **手法**: APT41使用自定义后门和Cobalt Strike进行网络共享发现。他们执行 `net view /all` 和 `net share` 命令枚举共享资源，特别针对文件服务器和备份服务器的共享资源，使用 `dir \\\\&lt;fileserver&gt;\\`&lt;share&gt;`` 浏览共享目录内容，寻找包含数据库备份、源代码仓库、财务数据和生产环境配置的共享路径。发现的共享信息被加密回传至C2，用于后续的分阶段数据提取。
+- **手法**: APT41使用自定义后门和Cobalt Strike进行网络共享发现。他们执行 `net view /all` 和 `net share` 命令枚举共享资源，特别针对文件服务器和备份服务器的共享资源，使用 `dir \\\\<fileserver>\\<share>` 浏览共享目录内容，寻找包含数据库备份、源代码仓库、财务数据和生产环境配置的共享路径。发现的共享信息被加密回传至C2，用于后续的分阶段数据提取。
 - **影响**: 多家高科技公司敏感数据被窃取
 - **参考链接**: [Mandiant - APT41](https://www.mandiant.com/resources/apt41-global-cyber-espionage)
 
@@ -136,7 +146,7 @@ graph TD
    `Find-DomainShare -CheckShareAccess` 可以在Active Directory环境中自动搜索所有可访问的共享。
 
 3. **快速探测共享是否可访问**
-   使用 `dir \\\\`&lt;target&gt;`\\`&lt;share&gt;`` 测试对特定共享的访问权限，返回"访问被拒绝"表示共享存在但无权限。
+   使用 `dir \\\\<target>\\<share>` 测试对特定共享的访问权限，返回"访问被拒绝"表示共享存在但无权限。
 
 ### 常用工具
 
@@ -174,6 +184,10 @@ graph TD
 - 审计PowerShell `Get-SmbShare` 和 `Get-WmiObject Win32_Share` 的调用
 - 关注短时间内对大量IP发起的SMB连接请求
 - 使用Sysmon Event ID 3监控大量SMB出站连接（445端口）
+
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
 
 ## 检测建议
 
@@ -215,6 +229,31 @@ level: medium
 tags:
     - attack.t1135
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1135
+status: experimental
+description: Detects potential T1135 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1135
+
 
 ## 缓解措施
 
@@ -279,7 +318,7 @@ tags:
 **实验步骤：**
 1. 执行 `Get-SmbShare` 查看SMB共享
 2. 执行 `Get-WmiObject Win32_Share` 通过WMI获取共享信息
-3. 使用 `gwmi Win32_Share -ComputerName `&lt;target&gt;`` 远程查询
+3. 使用 `gwmi Win32_Share -ComputerName <target>` 远程查询
 
 **预期结果：** 通过多种方法获取共享信息，理解各自的优劣。
 
@@ -296,18 +335,18 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1135](https://attack.mitre.org/techniques/T1135/)
 - [Microsoft - Net Share](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/net-share)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Mandiant - APT41 Network Share Discovery](https://www.mandiant.com/resources/apt41-global-cyber-espionage)
 - [Securelist - Lazarus MATA](https://securelist.com/mata-multi-platform-cyber-framework/102140/)
 - [FireEye - FIN7 Carbanak](https://www.fireeye.com/blog/threat-research/2017/04/fin7-carbanak.html)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [PowerShell Get-SmbShare](https://learn.microsoft.com/en-us/powershell/module/smbshare/get-smbshare)
 - [PowerView](https://github.com/PowerShellMafia/PowerSploit/tree/master/Recon)

@@ -4,9 +4,28 @@
 
 > 攻击者不在你家门口动手，而是在你网购的商品到达你手上之前偷偷做了手脚——通过污染你信任的软件、硬件或服务来入侵你。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者通过各种手段打开目标网络入口的技术 |
+| 为什么危险？ | 初始访问是所有攻击的入口，一旦突破就打开了后续攻击的大门 |
+| 谁需要关心？ | 所有人（员工可能会收到钓鱼邮件） |
+| 你的第一步防御 | 部署多因素认证（MFA），让单一密码泄露无法导致系统失陷 |
+| 如果只做一件事 | 对员工进行钓鱼安全意识培训，这是投入产出比最高的防御 |
+
 ## 难度等级
 
 - ⭐⭐⭐ **高级**（需要深入技术知识）——需要了解软件开发、供应链安全、社会工程学等多领域知识
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 漏洞利用基本概念（CVE/缓解措施）
+- [ ] 社会工程学基础（钓鱼/诱饵）
+- [ ] 网络攻击面概念
 
 ## 技术描述
 
@@ -24,6 +43,8 @@
 1. **软件供应链**：在软件仓库、构建系统或库中注入恶意代码
 2. **硬件供应链**：在制造过程中引入被破坏或假冒的硬件组件
 3. **更新机制妥协**：劫持合法的软件更新渠道分发恶意软件
+
+**过渡段：** 不要误以为初始访问就是'找一个漏洞打进去'这么简单——攻击者会同时尝试多种入口。
 4. **服务提供商妥协**：入侵MSP或云服务提供商访问多个下游客户
 
 ## 子技术列表
@@ -166,6 +187,10 @@ graph TD
 - 使用SCA工具持续扫描依赖中的已知漏洞
 - 监控新的开源库版本发布后的异常行为
 
+## 避坑指南
+
+防御者最常见盲区：过度关注漏洞修复而忽略社会工程学攻击。
+
 ## 检测建议
 
 ### 网络层检测
@@ -205,6 +230,10 @@ grep " install " /var/log/dpkg.log
 **检测方法：** 监控软件构建和部署过程中的异常。
 
 **Sigma规则示例：**
+
+**用人话说：**初始访问检测的关键是识别异常入口。钓鱼邮件一般会有一些痕迹，比如发件人域名近似但不完全匹配、邮件中包含不常见的附件类型。但这些很容易被绕过，所以更靠谱的检测是看用户点击后的行为——如果Word文档启动了PowerShell，那基本可以认定是被钓鱼了。
+
+**用人话说：**初始访问检测的关键不是只看邮件，而是看用户点击后的行为——如果Word文档启动了PowerShell，基本可以认定被钓鱼了。
 ```yaml
 title: 软件更新后出现异常网络连接
 status: experimental
@@ -346,25 +375,25 @@ syft nginx:latest -o spdx-json > nginx-sbom.json
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Supply Chain Compromise (T1195)](https://attack.mitre.org/techniques/T1195/)
 - [CISA - Supply Chain Compromise (T1195)](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1195)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CVE-2024-3094 - NVD](https://nvd.nist.gov/vuln/detail/CVE-2024-3094) - XZ Utils后门事件漏洞详情
 - [Polyfill.io Attack Analysis - Sansec](https://sansec.io/research/polyfill-supply-chain-attack) - 2024年影响10万网站的供应链攻击分析
 - [SecurityWeek: Polyfill Attack Linked to North Korea](https://www.securityweek.com/polyfill-supply-chain-attack-impacting-100k-sites-linked-to-north-korea/) - 2026年揭示的Polyfill攻击与朝鲜关联
 - [XZ Utils Social Engineering Analysis - Securelist](https://securelist.com/xz-backdoor-story-part-2-social-engineering/112476/) - XZ后门的社会工程学分析
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [OWASP Dependency Check](https://owasp.org/www-project-dependency-check/) - SCA工具
 - [Syft](https://github.com/anchore/syft) - SBOM生成工具
 - [Grype](https://github.com/anchore/grype) - 漏洞扫描器
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [SolarWinds Compromise - CISA](https://www.cisa.gov/eviction-strategies-tool/dialog-content/TMPL0002) - SolarWinds供应链攻击详细分析
 - [Supply Chain Attack Examples - Oligo Security](https://www.oligo.security/academy/supply-chain-attack-how-it-works-and-5-recent-examples) - 供应链攻击案例汇总

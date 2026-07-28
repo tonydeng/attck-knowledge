@@ -3,7 +3,7 @@
  * 
  * Patches elasticlunr.js tokenizer to handle Chinese/Japanese/Korean text.
  * CJK characters are split individually so each character becomes its own token.
- * Combined with the expanded search index (from cjk-search.py post-processing),
+ * Combined with the expanded search index (from scripts/cjk-search.js post-processing),
  * this enables character-level CJK full-text search.
  * 
  * Works with: mdBook 0.4.x / 0.5.x (elasticlunr-based search)
@@ -19,10 +19,9 @@
             return;
         }
 
-        // CJK character ranges:
+        // CJK character ranges (see regex below for actually covered ranges):
         //   U+2E80-U+2EFF  CJK Radicals Supplement
         //   U+2F00-U+2FDF  Kangxi Radicals
-        //   U+3000-U+303F  CJK Symbols and Punctuation
         //   U+3040-U+309F  Hiragana (Japanese)
         //   U+30A0-U+30FF  Katakana (Japanese)
         //   U+3100-U+312F  Bopomofo (Chinese phonetic)
@@ -31,6 +30,8 @@
         //   U+4E00-U+9FFF  CJK Unified Ideographs (most common)
         //   U+F900-U+FAFF  CJK Compatibility Ideographs
         //   U+FF00-U+FFEF  Fullwidth forms
+        // Note: U+3000-U+303F (CJK Symbols and Punctuation) intentionally excluded
+        //       to avoid splitting on fullwidth punctuation (e.g. 。，、)
 
         // Override the default separator to insert zero-width boundary before
         // each CJK character, so elasticlunr treats them as individual tokens.

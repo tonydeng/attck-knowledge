@@ -4,7 +4,26 @@
 
 > 攻击者通过感染的U盘传播恶意软件——就像把带病毒的U盘扔在目标公司的停车场，等着有人捡起来插到电脑上。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者通过各种手段打开目标网络入口的技术 |
+| 为什么危险？ | 初始访问是所有攻击的入口，一旦突破就打开了后续攻击的大门 |
+| 谁需要关心？ | 所有人（员工可能会收到钓鱼邮件） |
+| 你的第一步防御 | 部署多因素认证（MFA），让单一密码泄露无法导致系统失陷 |
+| 如果只做一件事 | 对员工进行钓鱼安全意识培训，这是投入产出比最高的防御 |
+
 ## 难度等级
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 漏洞利用基本概念（CVE/缓解措施）
+- [ ] 社会工程学基础（钓鱼/诱饵）
+- [ ] 网络攻击面概念（暴露面/攻击向量）
 
 - ⭐⭐ **中级**（需要一定基础）——需要了解USB协议、AutoRun机制和社会工程学
 
@@ -31,6 +50,8 @@
 - 许多组织对USB设备使用有宽松政策
 - 用户倾向于在未考虑安全风险的情况下插入未知USB设备
 - 可以绕过网络层面的安全控制
+
+**过渡段：** 不要误以为初始访问就是'找一个漏洞打进去'这么简单——攻击者会同时尝试多种入口。
 - 对气隙网络（不连接互联网的网络）特别有效
 
 ## 子技术列表
@@ -158,6 +179,10 @@ graph TD
 - 配置Sysmon记录所有USB设备的连接事件（Event ID 11）
 - 实施USB设备白名单策略
 
+## 避坑指南
+
+防御者最常见盲区：过度关注漏洞修复而忽略社会工程学攻击。
+
 ## 检测建议
 
 ### 网络层检测
@@ -198,6 +223,10 @@ lsblk | grep -i "sd[b-z]"
 **检测方法：** 监控AutoRun配置的更改和LNK文件的创建。
 
 **Sigma规则示例：**
+
+**用人话说：**初始访问检测的关键是识别异常入口。钓鱼邮件一般会有一些痕迹，比如发件人域名近似但不完全匹配、邮件中包含不常见的附件类型。但这些很容易被绕过，所以更靠谱的检测是看用户点击后的行为——如果Word文档启动了PowerShell，那基本可以认定是被钓鱼了。
+
+**用人话说：**初始访问检测的关键不是只看邮件，而是看用户点击后的行为——如果Word文档启动了PowerShell，基本可以认定被钓鱼了。
 ```yaml
 title: 通过可移动介质执行的恶意LNK文件
 status: experimental
@@ -346,22 +375,22 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Replication Through Removable Media (T1091)](https://attack.mitre.org/techniques/T1091/)
 - [CISA - Replication Through Removable Media (T1091)](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1091)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Raspberry Robin Worm Analysis - Blackpoint Cyber](https://blackpointcyber.com/blog/mitre-attck-t1091-replication-through-removable-media-threat-digest-blackpoint-apg) - Raspberry Robin蠕虫通过USB传播的技术分析
 - [Stuxnet Analysis - SecurityScientist](https://www.securityscientist.net/blog/12-questions-and-answers-about-replication-through-removable-media-t1091/) - Stuxnet蠕虫详细技术分析
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Hak5 USB Rubber Ducky](https://shop.hak5.org/products/usb-rubber-ducky) - USB键盘注入攻击工具
 - [O.MG Cable](https://o.mg.lol/) - 恶意USB线缆
 - [Sysinternals](https://docs.microsoft.com/en-us/sysinternals/) - Windows系统工具集
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Agent.btz/ComRAT Analysis](https://www.securityscientist.net/blog/12-questions-and-answers-about-replication-through-removable-media-t1091/) - 通过USB传播的恶意软件分析

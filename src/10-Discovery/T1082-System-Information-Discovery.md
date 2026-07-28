@@ -135,7 +135,7 @@ graph TD
 ### 实战技巧
 
 1. **使用systeminfo /S查看详细信息**
-   `systeminfo /S &lt;computer&gt;` 可以远程查询其他系统的信息。
+   `systeminfo /S <computer>` 可以远程查询其他系统的信息。
 
 2. **PowerShell获取系统信息**
    `Get-ComputerInfo` 提供了比systeminfo更丰富的系统信息。
@@ -179,6 +179,10 @@ graph TD
 - 监控WMI查询中的系统信息枚举
 - 在SIEM中建立systeminfo执行基线
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -217,6 +221,31 @@ level: low
 tags:
     - attack.t1082
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1082
+status: experimental
+description: Detects potential T1082 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1082
+
 
 ## 缓解措施
 

@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 云服务仪表盘（T1538）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 云服务商（如AWS、Azure、GCP）都提供了一个Web管理控制台——一个图形化的界面，可以看到云上所有资源的状态和使用情况。攻击者如果窃取到云平台的管理员账号（或者通过会话劫持获得已登录的会话），就可以直接打开这个控制台，像合法的管理员一样查看所有信息。这就像小偷拿到大楼管理员的钥匙卡后，直接走进中央监控室，所有楼层的情况尽收眼底。
 
 **技术原理：**
@@ -166,6 +176,10 @@ graph TD
 - 启用云平台的异常登录检测功能
 - 关注控制台登录后的IAM用户创建和权限修改活动
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -290,19 +304,19 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1538](https://attack.mitre.org/techniques/T1538/)
 - [AWS Management Console](https://aws.amazon.com/console/)
 - [Azure Portal](https://portal.azure.com/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CrowdStrike - Scattered Spider](https://www.crowdstrike.com/blog/scattered-spider-cloud-dashboard-access/)
 - [Microsoft - Nobelium Cloud Compromise](https://www.microsoft.com/security/blog/2021/05/28/breaking-down-nobeliums-cloud-account-compromise/)
 - [Unit42 - Cloud Console Abuse](https://unit42.paloaltonetworks.com/cloud-ransomware-attacks/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [AWS CloudTrail](https://aws.amazon.com/cloudtrail/)
 - [Azure AD Identity Protection](https://learn.microsoft.com/en-us/azure/active-directory/identity-protection/)

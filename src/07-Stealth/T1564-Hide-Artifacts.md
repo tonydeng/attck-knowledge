@@ -4,15 +4,36 @@
 
 攻击者把恶意文件、进程或网络活动藏起来，让用户和安全软件看不见，就像把赃物藏在墙里——不拆墙就永远找不到。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 使用隐藏文件属性、备用数据流、隐藏文件系统等机制隐藏恶意文件、进程或网络活动 |
+| 为什么危险？ | 被隐藏的对象对用户和常规安全工具不可见，攻击者可长期潜伏 |
+| 谁需要关心？ | 系统管理员、终端安全工程师、取证分析师 |
+| 你的第一步防御 | 启用"显示隐藏文件和系统文件"选项，监控ADS（备用数据流）的创建 |
+| 如果只做一件事 | 检测NTFS备用数据流、隐藏文件系统区域、进程DKOM操作 |
+
 ## 难度等级
 
 ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 安全软件工作原理（EDR/AV/SIEM基础）
+- [ ] 进程注入与API Hook基本概念
+- [ ] 编码/加密/混淆基础知识
 
 ## 技术描述
 
 隐藏痕迹（T1564）是MITRE ATT&CK框架中隐蔽战术的一种核心技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为隐蔽只是'把恶意软件藏起来'——真正的隐蔽是让恶意识别看起来像正常的系统行为。攻击者不是消失，而是伪装。他们会使用合法的管理工具、模仿正常的流量模式、在管理员的工作时间之外活动，把自己融入'噪音'之中。
 如果你想把一样东西藏起来，你会怎么做？藏在床底下（隐藏文件属性）、放在壁柜里（在系统目录中）、或者伪装成其他东西（修改文件扩展名）。攻击者也是这么做的：他们隐藏文件（设置隐藏+系统属性）、隐藏进程（Rootkit技术）、隐藏网络连接（使用非标准端口）、甚至把数据藏在硬盘的隐藏区域里。几乎所有操作系统都提供隐藏文件或系统对象的机制——这些功能本来是为了保护重要系统文件不被用户误删，但攻击者却利用这些功能来隐藏自己的恶意活动。
 
 **技术原理：**
@@ -216,6 +237,10 @@ graph TD
 - 使用安全基线配置，禁用文件夹选项中的"隐藏受保护的操作系统文件"的默认隐藏行为
 - 审计防病毒软件的排除路径配置，确保没有不必要的排除目录
 
+## 避坑指南
+
+常见混淆误区：认为Base64编码就能绕过检测。
+
 ## 检测建议
 
 ### 主机层检测
@@ -271,6 +296,10 @@ alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (msg:"T1564 - 隐藏进程�
 **检测方法：** 通过Sigma规则和YARA规则检测隐藏工件的创建和使用模式。
 
 **Sigma规则示例：**
+
+**用人话说：**隐蔽检测的难点在于攻击者会尽力让自己的行为看起来正常。关注那些『不太对』的信号——不正常的父进程链、被编码的命令行参数、频繁的进程注入尝试。检测隐蔽模块少依赖文件名和签名，多关注行为特征。
+
+**用人话说：**隐蔽检测少依赖文件名签名，多关注行为特征——异常的父进程链、编码的命令行、进程注入尝试。
 ```yaml
 title: Detect Hidden File Creation via Attrib
 status: experimental
@@ -463,14 +492,14 @@ Remove-MpPreference -ExclusionPath "C:\Temp"
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1564 Hide Artifacts](https://attack.mitre.org/techniques/T1564/)
 - [MITRE ATT&CK - T1564.001 Hidden Files and Directories](https://attack.mitre.org/techniques/T1564/001/)
 - [MITRE ATT&CK - T1564.012 File/Path Exclusions](https://attack.mitre.org/techniques/T1564/012/)
 - [Atomic Red Team - T1564](https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1564/T1564.md)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Infosecurity Magazine - Lazarus Group Uses Extended Attributes for Code Smuggling in macOS (2024)](https://www.infosecurity-magazine.com/news/lazarus-extended-attributes-macos/) - Lazarus使用macOS扩展属性隐藏恶意代码
 - [Tripwire - BlackLock Ransomware: What You Need To Know (2025)](https://www.tripwire.com/state-of-security/blacklock-ransomware-what-you-need-know) - BlackLock勒索软件分析
@@ -478,14 +507,14 @@ Remove-MpPreference -ExclusionPath "C:\Temp"
 - [DarkAtlas - Inside the World's Fastest Rising Ransomware Operator - BlackLock (2025)](https://darkatlas.io/blog/blacklock-ransomware-a-growing-threat-across-industries) - BlackLock勒索软件深度分析
 - [Group-IB - Lazarus RustyAttr Malware Analysis (2024)](https://www.group-ib.com/) - Lazarus "RustyAttr"恶意软件分析报告
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Sysinternals Streams](https://docs.microsoft.com/en-us/sysinternals/downloads/streams) - 查看和管理NTFS备用数据流
 - [Sysinternals Autoruns](https://docs.microsoft.com/en-us/sysinternals/downloads/autoruns) - 检查隐藏的启动项和持久化机制
 - [Atomic Red Team](https://atomicredteam.io/) - 可执行的MITRE ATT&CK检测测试库
 - [Sigma Rules Repository](https://github.com/SigmaHQ/sigma) - 通用检测规则库
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Microsoft - Contextual file and folder exclusions in Defender (2024)](https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/configure-contextual-file-folder-exclusions-microsoft-defender-antivirus) - 配置和审计Microsoft Defender排除路径
 - [Malwarebytes - Introduction to Alternate Data Streams](https://blog.malwarebytes.com/101/2015/07/introduction-to-alternate-data-streams/) - NTFS备用数据流入门

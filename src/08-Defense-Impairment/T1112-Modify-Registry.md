@@ -1,247 +1,344 @@
 # 修改注册表 (T1112)
 
-## 一句话通俗理解
+> 想象一下：你公司的安全策略写在一张纸上，放在办公室的抽屉里。有一天，有人偷偷打开抽屉，把"禁止外人进入"改成了"禁止外人进入（除非穿红衣服）"。看起来差不多，但其实开了一个大口子。攻击者也是这么干的——Windows的注册表就像系统的"配置文件中心"，攻击者偷偷修改其中的安全配置，把防御措施削弱或关闭，而你可能完全没察觉。
 
-> **修改注册表就是改系统配置文件** -- 改了Windows的"开关面板"（注册表），让杀毒软件自动关闭、让防火墙放行恶意软件、让系统每次开机都自动运行你的后门。
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|--------------|
+| 这是什么？ | 修改Windows注册表中的安全配置键值，削弱或关闭系统防御机制 |
+| 为什么危险？ | 注册表控制着Windows几乎所有安全设置，修改一个键值就能禁用防火墙、关闭Defender、降低UAC级别 |
+| 谁需要关心？ | Windows系统管理员、终端安全团队、安全运维 |
+| 你的第一步防御 | 监控关键安全注册表键的变更，部署Sysmon的注册表监控 |
+| 如果只做一件事 | 监控`HKLM\SOFTWARE\Microsoft\Windows Defender`下所有键值的修改 |
 
 ## 难度等级
 
-- ⭐ 初级（零基础可理解）
+⭐⭐ 中级：需要理解Windows注册表结构和常见安全配置键
 
-注册表操作使用`reg`命令或PowerShell即可完成，是刚入门的红队成员最先上手的技能之一。
+**前置知识要求**：
+- Windows注册表基本结构（HKEY根键、子键、值）
+- reg.exe命令行工具的使用
+- 常见安全配置键的位置和作用
+
+## 前置知识检查
+
+读这个文件之前，你需要知道：
+- **什么是注册表**：Windows的层次化配置数据库，存储系统和应用配置
+- **什么是键和值**：键是目录，值是键下的具体配置项（名称+数据类型+数据）
+- **什么是HKLM和HKCU**：HKEY_LOCAL_MACHINE（系统级）和HKEY_CURRENT_USER（用户级）
+- **什么是reg.exe**：Windows自带的注册表命令行工具
 
 ## 技术描述
 
-修改注册表（Modify Registry，T1112）是MITRE ATT&CK框架中防御削弱战术的技术。
+### 通俗解释
 
-**通俗解释：**
-Windows注册表就像一栋大楼的控制中心，上面有无数个开关：防火门的开关（防火墙）、监控系统的开关（安全软件）、门禁系统的开关（UAC）。攻击者入侵后，第一件事就是跑到控制中心，把对自己不利的开关全关了。
+注册表是Windows的"控制中心"——系统启动方式、安全策略、软件配置、用户偏好全都存在里面。正常情况下管理员通过组策略或控制面板修改这些配置，但攻击者直接用reg.exe或PowerShell修改注册表键值，绕过正常的管理界面。他们可以禁用防火墙、关闭杀毒软件、降低UAC级别、修改启动项、篡改日志配置——所有这些只需要改几个注册表值。
 
-**技术原理：**
-Windows注册表是一个分层数据库，存储操作系统和应用程序的配置。攻击者通过修改注册表中的特定键值实现：
+### 过渡段
 
-1. **禁用安全功能**：修改`DisableRealtimeMonitoring`等键值关闭安全产品
-2. **持久化**：在`Run`键下添加后门启动项
-3. **修改系统行为**：修改UAC设置、点击运行设置等
-4. **隐藏痕迹**：修改注册表隐藏文件、文件夹或进程
+简单来说，注册表就像Windows的"大脑"，所有配置都在里面。攻击者直接"改大脑"——把"开启防火墙"改成"关闭防火墙"，把"启用Defender"改成"禁用Defender"。修改注册表是防御削弱战术中最基础也最常用的技术，几乎所有削弱防御的操作最终都会落到修改注册表上。下面看看具体是怎么操作的。
 
-**用途与影响：**
-注册表修改在众多技术中被使用。对于防御削弱而言，攻击者最常修改安全产品相关的注册表键值（如关闭Windows Defender实时保护、禁用Firewall）。
+### 技术原理
+
+修改注册表削弱防御的工作流程：
+
+1. **识别目标键值**：攻击者确定要修改的安全配置注册表键
+2. **获取权限**：部分键需要管理员权限（HKLM下的大部分），部分只需用户权限（HKCU）
+3. **修改键值**：使用reg.exe、regedit.exe、PowerShell或直接调用Win32 API修改
+4. **验证修改**：确认修改生效，防御机制被削弱
+
+### 常见被修改的安全配置键
+
+| 注册表路径 | 作用 | 攻击者修改 |
+|------------|------|------------|
+| `HKLM\SOFTWARE\Microsoft\Windows Defender\DisableAntiSpyware` | Defender启用状态 | 设为1禁用Defender |
+| `HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\DisableAntiSpyware` | 组策略控制Defender | 设为1禁用 |
+| `HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile\EnableFirewall` | 防火墙启用状态 | 设为0禁用防火墙 |
+| `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\ConsentPromptBehaviorAdmin` | UAC提示行为 | 设为0降低UAC级别 |
+| `HKLM\SYSTEM\CurrentControlSet\Control\Lsa\restrictanonymoussam` | SAM枚举限制 | 设为0允许匿名枚举 |
+| `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Reliability\UserModeDumpEnabled` | 用户模式转储 | 修改以控制崩溃行为 |
+
+### 用途和影响
+
+- **防御规避**：禁用或削弱安全软件、防火墙、UAC
+- **持久化**：修改启动项、服务配置
+- **权限提升**：降低UAC级别、修改LSA配置
+- **信息收集**：修改审计配置减少日志记录
+- **执行**：通过注册表触发程序执行（如IFEO）
+
+## 子技术列表
+
+T1112是父技术，目前无子技术。但与以下技术密切相关：
+- T1562 削弱防御（常通过修改注册表实现）
+- T1547 注册表运行键/文件夹（持久化）
+- T1546 事件触发执行（注册表触发器）
+- T1574 劫持执行流（注册表DLL搜索路径）
 
 ## 攻击流程
 
 ```mermaid
-graph TD
-    A["获得管理员权限"] --> B["确定需要修改的<br/>注册表键值"]
-    B --> C{"修改类型"}
-    C -->|"安全产品"| D["关闭Defender等"]
-    C -->|"系统安全"| E["修改UAC/防火墙"]
-    C -->|"用户配置"| F["Run键持久化"]
-    D --> G["执行恶意操作"]
-    E --> G
+flowchart TD
+    A[识别目标安全配置] --> B{需要什么权限?}
+    B -->|HKLM下| C[需要管理员权限]
+    B -->|HKCU下| D[用户权限即可]
+    C --> E[提权或利用已有admin权限]
+    D --> F[直接修改]
+    E --> G[修改注册表键值]
     F --> G
+    G --> H{选择修改方式}
+    H -->|命令行| I[reg add/delete]
+    H -->|PowerShell| J[Set-ItemProperty]
+    H -->|API| K[RegSetValueEx]
+    H -->|regedit| L[图形界面修改]
+    I --> M[防御被削弱]
+    J --> M
+    K --> M
+    L --> M
 ```
+
+### 步骤详解
+
+1. **侦察**：识别目标系统当前的安全配置状态
+2. **选择**：确定要修改的注册表键和目标值
+3. **获取权限**：确保有足够权限修改目标键
+4. **修改**：使用reg.exe、PowerShell或API修改注册表
+5. **验证**：确认修改生效
+6. **后续**：利用被削弱的防御进行进一步攻击
 
 ## 真实案例
 
-### 案例1：Conti勒索软件修改注册表禁用Defender（2021-2024年）
-- **时间**: 2021-2024年
-- **目标**: 全球医疗、金融、政府机构
-- **攻击组织**: Conti
-- **手法**: Conti的自动化脚本修改大量安全产品相关注册表键值，包括`HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\DisableRealtimeMonitoring`设置为`1`，禁用Windows Defender实时保护，同时修改防火墙相关键值允许恶意流量。
+### 案例1：BlackCat/ALPHV勒索软件通过注册表禁用Defender
 
-- **参考**: [FBI - Conti Indicators](https://www.ic3.gov/Media/News/2022/220202.pdf)
+- **时间**：2022-2024年
+- **目标**：全球医疗、制造、政府机构
+- **攻击组织**：BlackCat/ALPHV（RaaS勒索软件，疑似俄罗斯背景）
+- **手法**：BlackCat在加密文件前会系统性地通过修改注册表禁用Windows Defender。攻击者使用批处理脚本执行多条reg.exe命令：`reg add "HKLM\SOFTWARE\Microsoft\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f`禁用Defender的反间谍软件功能；`reg add "HKLM\SOFTWARE\Microsoft\Windows Defender\Real-Time Protection" /v DisableRealtimeMonitoring /t REG_DWORD /d 1 /f`禁用实时保护；`reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f`通过组策略路径再次禁用（即使管理员手动启用，组策略会覆盖）。此外，BlackCat还会修改`HKLM\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\DomainProfile\EnableFirewall`为0禁用域防火墙，修改`HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\ConsentPromptBehaviorAdmin`为0降低UAC级别。这些注册表修改为后续的勒索软件加密扫清了障碍，让Defender无法检测和拦截加密行为。
+- **影响**：感染数百家组织，赎金总额超过3亿美元
+- **参考**：https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-061a
 
-### 案例2：LockBit修改注册表禁用UAC（2022-2024年）
-- **时间**: 2022-2024年
-- **目标**: 全球企业
-- **攻击组织**: LockBit
-- **手法**: LockBit修改`HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\EnableLUA`为`0`，禁用用户账户控制（UAC），便于后续以更高权限执行命令。
+### 案例2：APT29通过注册表禁用Windows事件日志
 
-- **参考**: [CISA - LockBit Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-131a)
+- **时间**：2020-2021年（SolarWinds供应链攻击）
+- **目标**：美国政府机构、科技公司
+- **攻击组织**：APT29（Cozy Bear，俄罗斯SVR背景）
+- **手法**：在SolarWinds供应链攻击中，APT29通过修改注册表禁用Windows安全事件日志，以隐藏其横向移动和凭据窃取行为。攻击者修改`HKLM\SYSTEM\CurrentControlSet\Services\EventLog\Security`下的配置，将EventLog服务的启动类型改为禁用。更隐蔽的是，攻击者还修改了`HKLM\SOFTWARE\Policies\Microsoft\Windows\EventLog\EventLog-Security`下的最大日志大小和保留策略，将安全日志的最大大小从默认的20MB改为1MB，这样当攻击者产生大量日志事件时（如暴力破解、横向移动），日志会快速填满并自动覆盖旧记录，清除攻击痕迹。此外，APT29还修改了审计策略注册表`HKLM\SYSTEM\CurrentControlSet\Control\Lsa\Audit`下的配置，禁用关键审计类别（如登录审计、对象访问审计），让系统不再记录这些关键安全事件。这些注册表修改让APT29在被感染环境中的活动几乎不留痕迹。
+- **影响**：在被感染环境中潜伏数月未被发现
+- **参考**：https://www.cisa.gov/news-events/cybersecurity-advisories/aa21-148a
 
-### 案例3：RealBlindingEDF攻击屏蔽EDR API监控（2024年）
-- **时间**: 2024年
-- **目标**: 全球使用主流EDR产品的企业
-- **攻击组织**: 多个勒索软件组织
-- **手法**: 攻击者通过修改注册表HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options (IFEO)下的Debugger 键值，将CrowdStrike、SentinelOne等EDR进程的调试器设置为cmd.exe，导致EDR主进程无法正常启动。此外还修改ETW（Event Tracing for Windows）相关注册表禁用内核级事件跟踪。
+### 案例3：Conti勒索软件通过注册表启用WDigest明文存储
 
-- **影响**: EDR服务无法正常启动，系统失去防御能力
-- **参考链接**: [The Hacker News - RealBlindingEDF](https://thehackernews.com/2024/01/researchers-uncover-new-attack-against.html)
+- **时间**：2020-2022年
+- **目标**：全球各类组织
+- **攻击组织**：Conti（RaaS勒索软件，疑似俄罗斯背景）
+- **手法**：Conti勒索软件团伙在攻击中通过修改注册表启用WDigest明文密码存储，以便获取用户的明文密码进行横向移动。默认情况下，Windows 8.1及以上版本禁用了WDigest的明文密码存储（`UseLogonCredential`设为0），但Conti通过`reg add "HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\Wdigest" /v UseLogonCredential /t REG_DWORD /d 1 /f`重新启用它。修改后，当用户下次登录时，LSASS会以明文形式在内存中存储密码，攻击者随后使用Mimikatz的`sekurlsa::wdigest`命令从LSASS内存中提取明文密码。除了WDigest，Conti还修改了其他注册表键来辅助凭据窃取：修改`HKLM\SYSTEM\CurrentControlSet\Control\Lsa\RunAsPPL`为0禁用LSASS保护进程（PPL），让Mimikatz可以读取LSASS内存；修改`HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Kerberos\Parameters`下的配置以辅助Kerberoasting攻击。这些注册表修改让Conti能够高效地获取凭据并进行横向移动。
+- **影响**：攻破上百家组织，造成数十亿美元损失
+- **参考**：https://www.cisa.gov/news-events/cybersecurity-advisories/aa21-265a
 
 ## 红队视角
 
-> ⚠️ **免责声明**：以下内容仅用于合法的安全测试、渗透测试和教育目的。未经授权对他人系统进行测试是违法行为。
+### 实战技巧
 
-**实战技巧：**
-1. 注册表修改是最直接的防御削弱手段，操作简单高效
-2. 使用`reg add`命令或`Set-ItemProperty -Path`修改键值
-3. 修改后需要重启或手动启动服务才能生效
+1. **组策略路径优先**：`HKLM\SOFTWARE\Policies\`下的键优先级高于普通配置，即使管理员手动恢复也会被覆盖
+2. **HKCU不需要提权**：修改当前用户的HKCU键值不需要管理员权限
+3. **reg.exe比regedit更隐蔽**：命令行工具不弹窗，可嵌入脚本
+4. **组合修改**：同时禁用Defender、防火墙、UAC，效果最佳
+5. **修改后验证**：用`reg query`确认修改生效
 
 ### 常用工具
 
-| 工具名称 | 用途 | 平台 | 链接 |
-|----------|------|------|------|
-| reg | Windows注册表管理工具 | Windows | 系统自带 |
-| regedit | 注册表编辑器 | Windows | 系统自带 |
-| PowerSploit | PowerShell渗透框架 | Windows | [GitHub](https://github.com/PowerShellMafia/PowerSploit) |
+| 工具 | 用途 | 说明 |
+|------|------|------|
+| reg.exe | 注册表命令行 | Windows自带，最常用 |
+| regedit.exe | 图形界面 | 适合交互式修改 |
+| PowerShell | Set-ItemProperty | 脚本化修改 |
+| PowerSploit | 注册表操作 | 专注安全相关的注册表修改 |
 
 ### 注意事项
-- 注册表修改需要管理员权限
-- 某些键值修改需要SYSTEM权限
+
+- 修改HKLM需要管理员权限
+- 某些注册表修改需要重启或服务重启才能生效
+- Windows 10/11的Tamper Protection会阻止修改Defender注册表键
+- 修改错误的注册表键可能导致系统不稳定
 
 ## 蓝队视角
 
-**检测要点：**
-- 注册表修改事件（事件ID 4657）
-- 安全产品相关键值变更
-- UAC相关键值修改
+### 检测要点
 
-**防御重点：**
-- 监控关键注册表键值的修改
-- 使用Sysmon监控注册表变更
-- 对注册表键值实施ACL保护
+1. **关键安全键监控**：Defender、防火墙、UAC、LSA相关的注册表键
+2. **reg.exe/regedit.exe监控**：监控这些工具的命令行参数
+3. **注册表审计**：启用注册表对象的SACL审计
+4. **组策略路径监控**：`HKLM\SOFTWARE\Policies\`下的修改
+5. **Tamper Protection**：保持Defender的Tamper Protection启用
+
+### 监控建议
+
+- 部署Sysmon监控Event ID 12/13/14（注册表对象/值操作）
+- 启用注册表审计（通过组策略或auditpol）
+- 监控reg.exe和regedit.exe的执行（Event ID 1）
+- 使用Azure ATP/Defender for Identity监控可疑的注册表修改
+- 定期导出关键注册表键并对比基线
+
+## 避坑指南
+
+| 坑 | 后果 | 解决方法 |
+|----|------|----------|
+| 只监控HKLM，忽略HKCU | 漏报用户级修改 | 同时监控HKCU关键键 |
+| Tamper Protection已启用，攻击者修改失败 | 误认为安全 | 仍需监控修改尝试 |
+| 忽略组策略路径 | 漏报高优先级修改 | 重点监控Policies路径 |
+| 注册表监控事件过多 | 告警疲劳 | 只监控关键安全键，过滤已知合法操作 |
 
 ## 检测建议
 
-### 网络层检测
+### 网络层
 
-**检测方法：** 监控远程注册表修改流量和通过WinRM/PSExec的注册表操作
+**用人话说**：修改注册表是本地操作，不直接产生网络流量。但攻击者修改注册表后往往会立即进行后续攻击——关注注册表修改后短时间内的异常网络活动。
 
-**具体规则/命令示例：**
-```bash
-# 检测远程注册表修改（通过SMB）
-alert tcp $HOME_NET any -> $HOME_NET 445 (msg:"Remote Registry Modification via SMB"; flow:to_server; content:"|05 00|"; depth:2; pcre:"/\x00RegSetValue|\x00RegDeleteValue/Hi"; classtype:policy-violation; sid:1000046; rev:1;)
+监控指标：
+- 注册表修改后5分钟内的新增网络连接
+- reg.exe执行后的C2通信
+- 大量reg.exe调用的突发模式（可能是批量修改）
 
-# 检测WinRM远程注册表操作
-alert tcp $HOME_NET any -> $HOME_NET 5985 (msg:"Remote Registry via WinRM"; content:"Set-ItemProperty|New-ItemProperty"; nocase; classtype:trojan-activity; sid:1000047; rev:1;)
+### 主机层
+
+**用人话说**：监控关键安全注册表键的变更和reg.exe的执行——这是注册表修改最直接的信号。任何对Defender、防火墙、UAC配置的修改都应该告警。
+
+```event
+事件ID 13（Sysmon）：注册表值设置
+TargetObject包含：
+  - Windows Defender
+  - FirewallPolicy
+  - ConsentPromptBehaviorAdmin
+  - Wdigest\UseLogonCredential
 ```
 
-### 主机层检测
-
-**检测方法：** 监控注册表键值修改事件，重点关注安全产品相关的注册表路径
-
-**Windows事件ID：**
-- 事件ID 4657：注册表值修改（需启用注册表审计策略）
-- Sysmon事件ID 13：注册表值设置
-- Sysmon事件ID 12：注册表对象添加/删除
-
-**Linux日志：**
-- Linux注册表修改不适用（Linux不使用Windows注册表机制）
-- 替代监控：通过Wine运行的应用修改注册表的行为
-
-**具体命令示例：**
-```powershell
-# 检测Windows Defender禁用注册表修改
-Get-WinEvent -FilterHashtable @{LogName='Security';ID=4657} | Where-Object {$_.Message -match 'DisableRealtimeMonitoring'}
-
-# Sysmon检测注册表修改
-Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Sysmon/Operational';ID=13} | Where-Object {$_.Message -match 'DisableAntiSpyware|EnableLUA|DisableRealtimeMonitoring'}
+```event
+事件ID 1（Sysmon）：进程创建
+Image: reg.exe
+关注CommandLine中的add/delete/import
 ```
 
-### 应用层检测
+### 应用层
 
-**Sigma规则示例：**
+**用人话说**：监控reg.exe命令和PowerShell注册表操作——攻击者最常使用这两种方式修改注册表。
+
 ```yaml
-title: Windows Defender Disabled via Registry
-status: experimental
-description: Detects disabling of Windows Defender via registry
-logsource:
-    category: registry_set
-    product: windows
+title: 检测通过reg.exe禁用Defender
+detection:
+    selection:
+        EventID: 1
+        Image|endswith: 'reg.exe'
+        CommandLine|contains:
+            - 'Windows Defender'
+            - 'DisableAntiSpyware'
+    condition: selection
+level: critical
+```
+
+```yaml
+title: 检测启用WDigest明文密码存储
 detection:
     selection:
         EventID: 13
-        TargetObject|contains: 'DisableRealtimeMonitoring'
-        Details|contains: 'DWORD (0x00000001)'
+        TargetObject|contains: 'Wdigest\UseLogonCredential'
+        EventType: 'SetValue'
+        Details: 'DWORD (0x00000001)'
     condition: selection
-level: high
-tags:
-    - attack.t1112
+level: critical
 ```
 
 ## 缓解措施
 
-### 优先级1：关键措施
+### 高优先级
 
-**措施名称：** 保护关键注册表键值的ACL
+1. **启用Tamper Protection**：Windows 10/11启用Defender的防篡改保护
+2. **限制注册表修改权限**：通过组策略限制谁可以修改关键安全键
+3. **启用注册表审计**：对关键键启用SACL审计
 
-**具体实施步骤：**
-1. 对安全产品相关注册表键值实施严格的ACL保护
-2. 启用Windows Defender Tamper Protection防止安全配置被篡改
-3. 使用注册表访问审计监控异常键值修改
+### 中优先级
 
-**配置示例：**
-```powershell
-# 设置安全产品注册表键的ACL
-$path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender"
-$acl = Get-Acl $path
-$rule = New-Object System.Security.AccessControl.RegistryAccessRule("SYSTEM","FullControl","Allow")
-$acl.SetAccessRule($rule)
-Set-Acl -Path $path -AclObject $acl
-```
+4. **部署Sysmon**：监控注册表操作
+5. **使用应用控制**：限制reg.exe/regedit.exe的执行
+6. **配置安全基线**：使用CIS/STIG基线并定期检查合规性
+7. **监控组策略路径**：`HKLM\SOFTWARE\Policies\`下的修改
 
-### 优先级2：重要措施
+### 低优先级
 
-**措施名称：** 配置Sysmon监控注册表变更
+8. **定期备份注册表**：便于恢复
+9. **使用注册表权限**：对关键键设置严格的NTFS权限
+10. **部署HIDS**：主机入侵检测系统监控注册表修改
 
-**具体实施步骤：**
-1. 部署Sysmon并配置监控安全产品相关注册表键
-2. 启用注册表审计策略（事件ID 4657）记录所有注册表值修改
-3. 将注册表变更日志关联到SIEM进行实时告警
-
-**配置示例：**
-```xml
-<Sysmon>
-  <EventFiltering>
-    <RegistryEvent onmatch="include">
-      <TargetObject name="T1112_Detection">HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\*</TargetObject>
-    </RegistryEvent>
-  </EventFiltering>
-</Sysmon>
-```
-
-### MITRE ATT&CK缓解措施映射
-
-| 缓解措施ID | 缓解措施名称 | 适用性 | 说明 |
-|------------|-------------|--------|------|
-| M1022 | 权限限制 | 适用 | 对关键注册表键值实施ACL保护 |
-| M1040 | 防篡改 | 适用 | 启用Windows Defender Tamper Protection |
-| M1047 | 审计 | 适用 | 配置Sysmon监控安全产品相关注册表键 |
 ## 动手实验
 
-> ⚠️ **重要提示**：所有实验必须在隔离的实验室环境中进行，禁止对未授权的真实系统进行测试。
+### 实验1：查看关键安全注册表键
 
-### 实验1：使用reg命令修改注册表（初级）
 ```powershell
-# 查看当前Defender状态
-reg query "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableRealtimeMonitoring
-# 修改注册表（需要管理员权限）
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableRealtimeMonitoring /t REG_DWORD /d 1 /f
+# 查看Defender配置
+Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows Defender" | Select-Object DisableAntiSpyware, DisableRoutinelyTakingAction
+
+# 查看防火墙配置
+Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile" | Select-Object EnableFirewall
+
+# 查看UAC配置
+Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" | Select-Object ConsentPromptBehaviorAdmin, EnableLUA
+
+# 查看WDigest配置
+Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\Wdigest" | Select-Object UseLogonCredential
 ```
 
-### 实验2：使用PowerShell修改注册表（初级）
+**预期输出**：显示各安全配置的当前值，与安全基线对比
+
+### 实验2：监控注册表修改（实验环境）
+
 ```powershell
-# 修改UAC设置
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLUA" -Value 0
+# 启用对Defender注册表键的审计
+auditpol /set /subcategory:"Registry" /success:enable
+
+# 设置SACL（需要管理员权限）
+$acl = Get-Acl "HKLM:\SOFTWARE\Microsoft\Windows Defender"
+$rule = New-Object System.Security.AccessControl.RegistryAuditRule("Everyone","SetValue","ContainerInherit","None","Success")
+$acl.AddAuditRule($rule)
+Set-Acl -Path "HKLM:\SOFTWARE\Microsoft\Windows Defender" -AclObject $acl
+
+# 查看安全日志中的注册表审计事件
+Get-WinEvent -LogName Security | Where-Object {$_.Id -eq 4657} | Select-Object -First 10
 ```
 
-### 实验3：监控注册表变更（中级）
-```powershell
-# 使用Sysmon事件监控注册表变更
-Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Sysmon/Operational'; ID=13}
-```
+**预期输出**：注册表修改操作被记录在安全日志中（事件ID 4657）
 
 ## 术语解释
 
-| 术语 | 英文原名 | 通俗解释 |
-|------|----------|----------|
-| 注册表 | Registry | Windows系统和应用程序的配置数据库 |
-| IFEO | Image File Execution Options | 映像文件执行选项，Windows中用于调试的可执行文件配置 |
-| ETW | Event Tracing for Windows | Windows事件跟踪，系统级调试和性能分析框架 |
+| 术语 | 解释 |
+|------|------|
+| 注册表 | Windows的层次化配置数据库 |
+| HKLM | HKEY_LOCAL_MACHINE，系统级配置根键 |
+| HKCU | HKEY_CURRENT_USER，当前用户配置根键 |
+| reg.exe | Windows自带的注册表命令行工具 |
+| SACL | 系统访问控制列表，定义审计规则 |
+| Tamper Protection | Defender的防篡改保护功能 |
+| WDigest | Windows摘要认证协议，启用后会明文存储密码 |
+| PPL | Protected Process Light，LSASS保护进程 |
+| 组策略路径 | `HKLM\SOFTWARE\Policies\`下的配置，优先级高于普通配置 |
 
 ## 参考资料
 
-- [MITRE ATT&CK - T1112 Modify Registry](https://attack.mitre.org/techniques/T1112/)
-- [FBI - Conti Indicators of Compromise](https://www.ic3.gov/Media/News/2022/220202.pdf)
-- [The Hacker News - RealBlindingEDF Attack (2024)](https://thehackernews.com/2024/01/researchers-uncover-new-attack-against.html)
+### 📚 深入了解
+- [MITRE ATT&CK T1112](https://attack.mitre.org/techniques/T1112/) - 官方技术页面
+- [Windows注册表](https://docs.microsoft.com/en-us/windows/win32/sysinfo/registry) - 微软官方文档
+- [Tamper Protection](https://docs.microsoft.com/en-us/microsoft-365/security/defender-endpoint/prevent-changes-to-security-settings-with-tamper-protection) - 防篡改保护
+
+### 📰 真实攻击
+- [CISA BlackCat通告](https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-061a) - BlackCat禁用Defender
+- [CISA SolarWinds通告](https://www.cisa.gov/news-events/cybersecurity-advisories/aa21-148a) - APT29禁用事件日志
+- [CISA Conti通告](https://www.cisa.gov/news-events/cybersecurity-advisories/aa21-265a) - Conti启用WDigest
+
+### 🔧 动手试试
+- [Sysmon配置](https://github.com/SwiftOnSecurity/sysmon-config) - 注册表监控配置
+- [Autoruns](https://docs.microsoft.com/en-us/sysinternals/downloads/autoruns) - 查看注册表启动项
+- [RegRipper](https://github.com/keydet89/RegRipper3.0) - 注册表取证工具
+
+## 版本历史
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| 3.1 | 2026-07-10 | 初始版本，完整v3.1模板 |

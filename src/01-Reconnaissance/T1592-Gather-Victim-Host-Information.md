@@ -4,13 +4,34 @@
 
 > **收集受害者主机信息就像小偷在踩点时观察目标家里用什么锁、装什么牌子的监控，好准备对应的开锁工具。**
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者收集目标主机的硬件、软件、固件和客户端配置信息，为选择攻击载荷和绕过防护做准备 |
+| 为什么危险？ | 知道了操作系统版本和安装的软件，攻击者就能精准选择可利用的漏洞和免杀方案 |
+| 谁需要关心？ | 终端安全团队、系统管理员、资产管理团队 |
+| 你的第一步防御 | 建立完整的资产清单，及时修补已知漏洞，最小化暴露的系统版本信息 |
+| 如果只做一件事 | 禁用Web服务器响应头中的版本信息（Server、X-Powered-By），这是泄露主机信息最常见的方式 |
+
 ## 难度等级
 
 ⭐⭐ 中级 - 需要一定的技术知识来理解硬件和软件配置
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 操作系统版本识别（Windows/Linux/macOS版本特征）
+- [ ] HTTP头部分析（User-Agent、Server、X-Powered-By）
+- [ ] 软件漏洞与补丁管理基础
+
 ## 技术描述
 
 **通俗解释：**
+
+**过渡段：** 不要误以为主机信息收集只是简单的'看官网'——真正的主机侦察是系统化的指纹识别。攻击者通过HTTP响应头识别Web服务器版本，通过Banner抓取识别SSH/FTP服务版本，通过水坑攻击收集访问者的浏览器和操作系统信息，通过Shodan搜索暴露在互联网上的IoT设备固件版本。这些信息组合起来，攻击者就能精确匹配已知的漏洞利用模块。
 你要攻击一台电脑，首先得知道它用的是什么操作系统、装了哪些软件、有没有杀毒软件。攻击者在发动攻击前，需要了解目标主机的具体配置，这样才能选择最合适的攻击工具和方法。比如，如果目标用的是Windows 10且没有打最新补丁，攻击者就知道该用什么漏洞来突破。
 
 **技术原理：**
@@ -133,7 +154,7 @@ graph TD
 
 - **时间**: 2025-2026年
 - **目标**: 全球各行业组织
-- **攻击组织**: 多个APT组织
+- **攻击组织**: 据CrowdStrike 2026报告，多个未具名威胁行为者
 - **手法**: 根据CrowdStrike 2026全球威胁报告，攻击者使用AI增强的扫描工具自动识别目标主机的操作系统、软件版本和安全产品。AI辅助的指纹识别能够更准确地区分不同版本的服务和应用，减少了人工分析的工作量
 - **影响**: 主机信息收集的准确性和速度大幅提升
 - **参考链接**: [CrowdStrike 2026 Global Threat Report](https://www.crowdstrike.com/global-threat-report/)
@@ -181,6 +202,10 @@ graph TD
 - 定期扫描公司网站检查是否被篡改
 - 监控端点上的异常系统枚举行为
 
+## 避坑指南
+
+新手常犯的错误：以为关闭了端口号就安全了。实际上，即使端口关闭，Web服务器的HTTP响应头（Server: nginx/1.18.0、X-Powered-By: PHP/7.4.3）仍在广播软件版本。攻击者通过一个简单的curl命令就能获取这些信息，然后精准匹配该版本的已知CVE。检查方法：`curl -I https://yourdomain.com`，看看响应头里有没有版本号。
+
 ## 检测建议
 
 ### 网络层检测
@@ -214,6 +239,8 @@ ausearch -c systeminfo -c uname -c hostname
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：** 这条规则在监控"谁在用systeminfo扒你的系统底细"——systeminfo是Windows自带的命令，运行后会输出操作系统版本、补丁列表、硬件配置、网络设置等完整主机信息。正常运维人员偶尔会用来排查问题，但如果在短时间内多次执行，或者从非管理员账户执行，就可能是攻击者（或已植入的恶意软件）在收集主机指纹以选择后续攻击载荷。检测的关键信号是：systeminfo命令的异常执行频率、非工作时间执行、或与已知恶意进程链关联执行。
 ```yaml
 title: Host Information Enumeration via Systeminfo
 status: experimental
@@ -334,7 +361,7 @@ proxy_hide_header X-Powered-By;
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - 收集受害者主机信息 (T1592)](https://attack.mitre.org/techniques/T1592/)
 - [MITRE ATT&CK - 硬件信息收集 (T1592.001)](https://attack.mitre.org/techniques/T1592/001)
@@ -342,18 +369,18 @@ proxy_hide_header X-Powered-By;
 - [MITRE ATT&CK - 固件信息收集 (T1592.003)](https://attack.mitre.org/techniques/T1592/003)
 - [MITRE ATT&CK - 客户端配置收集 (T1592.004)](https://attack.mitre.org/techniques/T1592/004)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CISA: SolarWinds Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa20-352a) - 供应链攻击中的主机侦察
 - [Trend Micro: Andariel](https://www.trendmicro.com/en_us/research/18/g/new-andariel-reconnaissance-tactics-hint-at-next-targets.html) - 水坑攻击案例
 - [CrowdStrike 2026 Global Threat Report](https://www.crowdstrike.com/global-threat-report/) - AI增强侦察趋势
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Shodan](https://www.shodan.io/) - 互联网设备搜索引擎
 - [Wappalyzer](https://www.wappalyzer.com/) - 网站技术栈识别
 - [WhatWeb](https://github.com/urbanadventurer/WhatWeb) - 网站指纹识别
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [CISA: T1592 Guidance](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1592)

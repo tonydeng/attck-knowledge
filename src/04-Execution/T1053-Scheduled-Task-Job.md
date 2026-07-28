@@ -4,17 +4,38 @@
 
 **攻击者利用系统的"定时闹钟"功能，设定恶意程序在特定时间或开机时自动运行——就像在你家装了一个定时炸弹，到点就爆。**
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者在已入侵的系统上运行恶意代码的过程 |
+| 为什么危险？ | 执行是攻击活动的核心环节，没有执行就无法实现攻击目的 |
+| 谁需要关心？ | 系统管理员、安全运维团队 |
+| 你的第一步防御 | 限制用户和管理员运行未经签名的脚本和程序 |
+| 如果只做一件事 | 启用应用程序白名单（AppLocker），只让允许的程序运行 |
+
 ## 难度等级
 
 ⭐️⭐️ 中级（需要一定基础）
 
 需要了解不同操作系统的任务调度机制，但操作本身并不复杂。
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 操作系统进程模型
+- [ ] 常见脚本语言基础（PowerShell/bash/Python）
+- [ ] 代码执行基本概念
+
 ## 技术描述
 
 所有操作系统都有任务调度功能：Windows有任务计划程序（Task Scheduler），Linux有cron，macOS有launchd。这些功能本来是让管理员设定"每天凌晨3点备份数据库"、"每周五生成报告"之类的自动化任务用的。攻击者利用这些功能来实现持久化、权限提升和逃避检测。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为执行只是'运行恶意程序'这么简单——攻击者真正高明的地方在于'就地取材'（Living off the Land）。他们利用系统自带的PowerShell、cmd、wmic等合法工具执行恶意操作，因为它们本身就是操作系统的一部分，安全软件很难完全禁止。
 计划任务就像你家里的"定时闹钟"或"扫地机器人定时清扫"。你的初衷是让它在你不在家时自动工作，但如果坏人控制了你的"闹钟"，他就可以设定在凌晨3点——当你熟睡时——打开所有的门和窗户。攻击者就是利用系统的这些"定时器"来执行恶意操作。
 
 **技术原理：**
@@ -184,6 +205,10 @@ graph TD
 - 监控Windows任务目录C:\Windows\System32\Tasks\的新增和修改
 - 在Linux上使用auditd监控`/etc/crontab`和`/var/spool/cron/`的变更
 
+## 避坑指南
+
+防御者常见误区：只监控恶意文件而忽略脚本执行。
+
 ## 检测建议
 
 ### 网络层检测
@@ -222,6 +247,8 @@ Get-ScheduledTask | Where-Object {$_.State -ne 'Disabled'} | Select-Object TaskN
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：**计划任务检测的核心是发现"谁在创建任务、任务干了什么"。攻击者最爱用schtasks.exe或at.exe创建伪装成系统服务的定时任务（如"WindowsUpdate"、"AdobeFlashUpdate"），以SYSTEM权限开机自启执行恶意脚本。重点关注Windows事件ID 4698（任务创建）中任务名伪装系统服务、执行命令含PowerShell下载器或反弹Shell、以及非管理员用户发起的任务创建。Linux上则关注crontab异常修改和systemd timer新建。
 ```yaml
 title: Scheduled Task Creation - Suspicious Task Name
 status: experimental
@@ -362,24 +389,24 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK T1053官方页面](https://attack.mitre.org/techniques/T1053/)
 - [Windows任务计划程序文档](https://docs.microsoft.com/en-us/windows/win32/taskschd/task-scheduler-start-page)
 - [Linux crontab文档](https://man7.org/linux/man-pages/man5/crontab.5.html)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CISA Black Basta勒索软件公告](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-131a)
 - [Mandiant Lazarus分析](https://www.mandiant.com/resources/blog/lazarus-job-opportunities)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Windows计划任务安全最佳实践](https://www.crowdstrike.com/blog/how-to-detect-and-prevent-scheduled-task-abuse/)
 - [Kubernetes CronJob安全](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/)
 - [Atomic Red Team T1053测试](https://www.atomicredteam.io/atomics/T1053/)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Linux持久化技术](https://www.blackhat.com/docs/us-17/thursday/us-17-Kachalia-Linux-Persistence-Techniques.pdf)
 - [Windows计划任务攻击与检测](https://posts.specterops.io/the-phantom-account-47795296c03a)

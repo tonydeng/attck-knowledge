@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows认证体系（NTLM/Kerberos/LSASS）
+- [ ] 哈希基础（NTLM Hash/SHA）
+- [ ] 网络认证协议（SMB/LDAP/Kerberos）
+
 ## 技术描述
 
 中间人攻击（T1557，简称AitM/MITM）是MITRE ATT&CK框架中凭证访问战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误解凭证访问只是'窃取密码'——在现代企业中，凭证存在于内存、磁盘、网络流量和云API等多个位置。攻击者关注的不是密码本身，而是'能用它做什么'：一个服务账号的哈希就能横向移动到数十台服务器，OAuth令牌可以访问整个SaaS租户的数据。
 正常情况下你的电脑和服务器之间是"直连"的——你发消息给对方，对方直接收到。中间人攻击就是攻击者把自己"插"到你和服务器之间：你的消息先发到攻击者那里，攻击者看完（甚至修改后）再转发给服务器。服务器的回应也先经过攻击者。由于网络协议的一些设计缺陷，攻击者可以在你不察觉的情况下做到这一点。通过中间人位置，攻击者可以捕获你的登录密码、会话令牌甚至修改传输的内容。
 
 **技术原理：**
@@ -190,6 +200,10 @@ graph TD
 - 配置组策略禁用LLMNR和NetBIOS over TCP/IP（减少投毒攻击面）
 - 启用Windows Firewall阻止LLMNR和NetBIOS跨子网流量
 
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
+
 ## 检测建议
 
 ### 网络层检测
@@ -228,9 +242,6 @@ arp -a | Group-Object -Property {($_ -split '\s+')[2]} | Where-Object Count -gt 
 # 检测进程中运行Responder或Inveigh
 Get-Process | Where-Object { $_.ProcessName -match "Responder|Inveigh|Python" }
 ```
-
-
-
 
 **用人话说：** 这条规则在监控网络中是否有中间人攻击活动。中间人攻击是攻击者插入到通信双方之间，截获和篡改所有数据。正常情况下网络流量会直接到达目标服务器。如果发现流量异常地经过未知设备，或者ARP表出现异常，那就是攻击者在进行中间人攻击。
 
@@ -367,26 +378,26 @@ New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" 
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1557 Adversary-in-the-Middle](https://attack.mitre.org/techniques/T1557/)
 - [MITRE ATT&CK - T1557.001 LLMNR/NBT-NS Poisoning](https://attack.mitre.org/techniques/T1557/001/)
 - [MITRE ATT&CK - T1557.002 ARP Cache Poisoning](https://attack.mitre.org/techniques/T1557/002/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CISA - Black Basta Analysis 2024](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-277a) - SMB Relay在勒索攻击中的应用
 - [Mandiant - Salt Typhoon Telecom Analysis](https://www.mandiant.com/resources/blog/salt-typhoon-telecom-analysis) - ARP欺骗在电信攻击中的应用
 - [Kaspersky - DarkHotel](https://securelist.com/darkhotel-more-tales/) - 酒店Wi-Fi中间人攻击案例
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Responder - LLMNR/NBT-NS投毒工具](https://github.com/SpiderLabs/Responder)
 - [Impacket - 网络协议工具集](https://github.com/fortra/impacket)
 - [Ettercap - ARP欺骗工具](https://www.ettercap-project.org/)
 - [mitmproxy - TLS拦截代理](https://mitmproxy.org/)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Microsoft - 禁用LLMNR指南](https://learn.microsoft.com/en-us/windows-server/security/group-policy/)
 - [Cisco - DHCP Snooping配置](https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst3750x/software/15-2E/ip_services/configuration/guide/)

@@ -18,11 +18,21 @@
 
 - ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows认证体系（NTLM/Kerberos/LSASS）
+- [ ] 哈希基础（NTLM Hash/SHA）
+- [ ] 网络认证协议（SMB/LDAP/Kerberos）
+
 ## 技术描述
 
 网络嗅探（T1040）是MITRE ATT&CK框架中凭证访问战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误解凭证访问只是'窃取密码'——在现代企业中，凭证存在于内存、磁盘、网络流量和云API等多个位置。攻击者关注的不是密码本身，而是'能用它做什么'：一个服务账号的哈希就能横向移动到数十台服务器，OAuth令牌可以访问整个SaaS租户的数据。
 如果网络是一条高速公路，数据包就是路上跑的汽车。攻击者站在路边，用"摄像头"（抓包工具）拍下每一辆车的内部情况。如果汽车里的"货物"是明文密码（比如老旧的FTP、Telnet协议），攻击者能直接看到。即使是加密的通信，攻击者也能从"车牌号"（元数据）中推断有价值的信息。在公共Wi-Fi环境中，这种方法特别危险。
 
 **技术原理：**
@@ -166,6 +176,10 @@ graph TD
 - 在云环境中监控VPC流量镜像和流日志的创建事件
 - 使用网络流量异常检测分析流量模式的突然变化
 
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
+
 ## 检测建议
 
 ### 网络层检测
@@ -195,9 +209,6 @@ Get-NetAdapter | Select-Object Name, PromiscuousMode
 ps aux | grep tcpdump
 lsof -i | grep -E "tcpdump|wireshark"
 ```
-
-
-
 
 **用人话说：** 这条规则在监控网络接口是否被设置为混杂模式。混杂模式是网络嗅探的基础，它让网卡能接收所有网络流量而不仅仅是发给自己的。正常情况下只有网络监控工具（如Wireshark）会使用混杂模式。如果有陌生进程启用混杂模式，那就是攻击者在网络中'偷听'传输的密码和敏感数据。
 
@@ -315,19 +326,19 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1040](https://attack.mitre.org/techniques/T1040/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CISA - Salt Typhoon Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-326a) - 2024年Salt Typhoon事件分析
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Wireshark官方文档](https://www.wireshark.org/docs/) - Wireshark使用指南
 - [BetterCAP](https://github.com/bettercap/bettercap) - 网络攻击和监控框架
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [SANS - Network Sniffing and Credential Capture](https://www.sans.org/white-papers/network-sniffing/) - 网络嗅探技术白皮书

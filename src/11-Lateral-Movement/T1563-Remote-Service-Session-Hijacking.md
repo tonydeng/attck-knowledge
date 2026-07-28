@@ -18,11 +18,21 @@
 
 - ⭐⭐⭐⭐ 专家级（需要深度的系统理解）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 远程访问协议（RDP/SMB/SSH/WinRM）
+- [ ] Windows认证与Pass-the-Hash
+- [ ] AD域信任关系基础
+
 ## 技术描述
 
 远程服务会话劫持（T1563）是MITRE ATT&CK框架中横向移动战术下的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为横向移动只是'远程登录其他电脑'——真正的横向移动是一系列精巧的信任链利用：从一个普通工作站窃取的凭据，可以访问文件服务器；文件服务器上的管理员哈希，可以登录域控制器。每一次跳跃都是一次权限的扩大和访问范围的延伸。
 假设一位管理员用远程桌面（RDP）登录了一台服务器，正在上面进行操作。攻击者如果能在这台服务器上获得管理员权限，就可以"接管"这个已建立的远程会话——把管理员"踢出去"或者和他共享会话。攻击者不需要知道管理员的密码，因为会话已经认证过了。这就好比某人正在打电话时，你通过某种方式接过他的电话继续通话，对方完全不知道已经换了人。
 
 **技术原理：**
@@ -83,7 +93,7 @@ graph TD
 
 3. **会话接管**
    - 通俗描述：攻击者连接到目标会话，接管控制权
-   - 技术细节：使用`tscon &lt;SessionID&gt;`命令在SYSTEM权限下连接到目标会话
+   - 技术细节：使用`tscon <SessionID>`命令在SYSTEM权限下连接到目标会话
    - 常用工具：tscon.exe
 
 ## 真实案例
@@ -132,8 +142,8 @@ graph TD
 
 1. **RDP劫持的标准流程**
    - 获取SYSTEM权限后执行`query session`查看活跃会话
-   - 使用`tscon `&lt;ID&gt;``连接到目标会话
-   - 如果`tscon`直接执行会断开当前用户，可以使用`tscon &lt;ID&gt; /dest:console`
+   - 使用`tscon <ID>`连接到目标会话
+   - 如果`tscon`直接执行会断开当前用户，可以使用`tscon <ID> /dest:console`
 
 2. **SSH Agent Forwarding劫持**
    - `ls -la /tmp/ssh-*`查找SSH认证代理套接字
@@ -172,6 +182,10 @@ graph TD
 - 监控Event ID 4778和4779（远程桌面会话重新连接和断开）
 - 配置Sysmon监控`tscon.exe`和`rwinsta.exe`的执行
 - 对SSH跳板机实施增强的会话日志记录
+
+## 避坑指南
+
+防御最大误区：只关注南北向流量而忽略东西向流量。
 
 ## 检测建议
 
@@ -274,7 +288,7 @@ tags:
 2. 管理员通过RDP连接到目标服务器
 3. 攻击者在目标服务器上获取SYSTEM权限
 4. 使用`query session`查看活跃会话
-5. 使用`tscon `&lt;ID&gt;``命令接管会话
+5. 使用`tscon <ID>`命令接管会话
 
 ## 术语解释
 
@@ -288,13 +302,13 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Remote Service Session Hijacking](https://attack.mitre.org/techniques/T1563/)
 - [tscon命令文档 - Microsoft](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/tscon)
 - [远程桌面服务最佳实践 - Microsoft](https://docs.microsoft.com/en-us/windows-server/remote/remote-desktop-services)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Kaspersky RDP劫持分析报告](https://securelist.com/rdp-hijacking/104300/)
 - [Conti勒索软件内部手册分析 - Cisco Talos](https://blog.talosintelligence.com/conti-ransomware-leak/)

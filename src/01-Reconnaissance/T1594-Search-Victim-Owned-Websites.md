@@ -4,13 +4,35 @@
 
 > **搜索受害者拥有的网站就像直接去目标公司门口看公告栏，从他们自己的网站上找有用的信息。**
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者直接浏览目标组织自己的官网、员工门户、合作伙伴页面，从中收集员工联系方式、技术栈、业务关系等信息 |
+| 为什么危险？ | 目标自己网站上"关于我们"页暴露的高管名单、招聘页暴露的技术栈、错误页暴露的版本号，都是攻击者的免费情报 |
+| 谁需要关心？ | Web运维团队、安全团队、市场/HR（决定网站上放什么信息） |
+| 你的第一步防御 | 用`curl -I https://yourdomain.com`检查HTTP响应头是否暴露服务器版本，访问自己的`/robots.txt`和`/.git/`看泄露了什么 |
+| 如果只做一件事 | 定期审查官网所有公开页面（含错误页、招聘页、关于我们），移除不必要的版本号、员工个人邮箱、技术栈细节 |
+
 ## 难度等级
 
 ⭐ 初级 - 直接浏览目标网站，技术门槛最低
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] HTTP协议基础（请求/响应头、状态码、Cookie）
+- [ ] 网站元数据识别（HTML source、robots.txt、sitemap.xml、`.well-known/`）
+- [ ] Web指纹识别（Server头、X-Powered-By、CMS识别）
+- [ ] 错误页面信息泄露（调试信息、堆栈跟踪、路径泄露）
+
 ## 技术描述
 
 **通俗解释：**
+
+**过渡段：** 不要以为浏览目标网站只是看看首页——攻击者会翻遍历每个角落：`/robots.txt`告诉你哪些路径被管理员藏起来了（越藏越说明有价值），`/sitemap.xml`列出所有页面URL，错误页面（如访问不存在的页面）可能泄露服务器版本和物理路径，甚至网页HTML源代码里的注释`<!-- TODO: 临时调试密码 admin123 -->`都会被攻击者挖出来。
 你想了解一家公司，最直接的方法就是去他们官网看看。攻击者也一样，他们会仔细浏览目标组织的官网、员工门户、合作伙伴页面等，从中收集员工联系方式、组织结构、技术栈等信息。有时候，网站的源代码、robots.txt文件、错误页面等"边角料"里也藏着有价值的信息。
 
 **技术原理：**
@@ -165,6 +187,10 @@ graph TD
 - 定期审计网站上的信息暴露
 - 监控异常的访问模式
 
+## 避坑指南
+
+新手常犯的错误：只关注网站正文内容，忽略技术性"边角料"。实际上攻击者最爱的恰恰是这些：`robots.txt`里`Disallow`的路径（等于告诉攻击者哪里有宝贝）、HTTP响应头里的`Server: Apache/2.4.49`（暴露可利用的版本漏洞）、自定义404/500错误页里的调试信息、HTML注释里的临时密码或TODO标记。专业做法是定期用攻击者视角审查自己的网站——跑一遍`whatweb`、`nikto`、`curl -I`，看看暴露了什么。
+
 ## 检测建议
 
 ### 网络层检测
@@ -192,6 +218,8 @@ cat access.log | grep " 404 " | awk '{print $1}' | sort | uniq -c | sort -nr
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：** 搜索受害者网站的检测核心是识别"不正常的人类浏览模式"。正常访客会点首页→产品页→联系页，停留几秒看内容；攻击者用工具（如Gobuster、DirBuster）会在几秒内请求上千个路径（/admin、/backup、/.git/config），90%返回404。Web日志里如果看到同一IP短时间内大量404响应+请求路径包含常见敏感目录名，基本可判定为目录枚举攻击。
 ```yaml
 title: Directory Enumeration via Gobuster
 status: experimental
@@ -314,21 +342,21 @@ error_page 404 /custom_404.html;
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - 搜索受害者拥有的网站 (T1594)](https://attack.mitre.org/techniques/T1594/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CISA: Silent Librarian Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-208a) - 大学网站侦察案例
 - [Ransomnews: AI Recon Agents 2026](https://ransomnews.com/ai-agents-automate-reconnaissance-2026/) - AI自动化网站侦察
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Wappalyzer](https://www.wappalyzer.com/) - 网站技术栈识别
 - [BuiltWith](https://builtwith.com/) - 网站技术查询
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [CISA: T1594 Guidance](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1594)
 - [Startup Defense: T1594 Analysis](https://www.startupdefense.io/mitre-attack-techniques/t1594-search-victim-owned-websites/)

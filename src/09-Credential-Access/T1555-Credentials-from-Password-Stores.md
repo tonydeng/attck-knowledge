@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows认证体系（NTLM/Kerberos/LSASS）
+- [ ] 哈希基础（NTLM Hash/SHA）
+- [ ] 网络认证协议（SMB/LDAP/Kerberos）
+
 ## 技术描述
 
 密码存储凭证提取（T1555）是MITRE ATT&CK框架中凭证访问战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误解凭证访问只是'窃取密码'——在现代企业中，凭证存在于内存、磁盘、网络流量和云API等多个位置。攻击者关注的不是密码本身，而是'能用它做什么'：一个服务账号的哈希就能横向移动到数十台服务器，OAuth令牌可以访问整个SaaS租户的数据。
 为了方便用户，操作系统和浏览器都提供了"记住密码"的功能——macOS有Keychain（钥匙串），Windows有凭据管理器（Credential Manager），Chrome和Edge可以保存网站密码。这些功能就像你的"数字钱包"，里面装着所有登录信息。攻击者的目标就是偷走这个钱包。他们使用专门的工具，从这些存储中提取明文密码，然后利用这些密码登录其他系统。
 
 **技术原理：**
@@ -145,7 +155,7 @@ graph TD
    Chrome和Edge的密码存储在 `%LOCALAPPDATA%\Google\Chrome\User Data\Default\Login Data`（SQLite数据库）。使用`sqlite3`命令行工具打开数据库后，运行`SELECT signon_realm, username_value, password_value FROM logins;`获取加密的密码字段。加密的password_value需要使用Chromium的DPAPI解密函数处理。mimikatz的`dpapi::chrome`模块可以自动完成解密。
 
 3. **macOS Keychain的无密码提取**
-   如果目标macOS已登录且Keychain解锁，直接使用`security dump-keychain -a`即可导出所有密码。如果只有登录密码，使用`security unlock-keychain -p ``&lt;password&gt;`` ~/Library/Keychains/login.keychain-db`解锁后导出。
+   如果目标macOS已登录且Keychain解锁，直接使用`security dump-keychain -a`即可导出所有密码。如果只有登录密码，使用`security unlock-keychain -p <password> ~/Library/Keychains/login.keychain-db`解锁后导出。
 
 ### 常用工具
 
@@ -190,6 +200,10 @@ graph TD
 - 在macOS上使用Endpoint Security Framework监控`security`命令的执行
 - 使用AppLocker或WDAC白名单限制非授权工具的启动
 
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
+
 ## 检测建议
 
 ### 网络层检测
@@ -228,9 +242,6 @@ Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Sysmon/Operational';I
 # 检测Keychain的批量导出
 sudo log show --predicate 'process == "security" AND eventMessage CONTAINS "dump-keychain"'
 ```
-
-
-
 
 **用人话说：** 这条规则在监控是否有进程在读取密码管理器的数据库文件。密码管理器（如KeePass、1Password）把用户的所有密码存在加密数据库中。正常情况下只有密码管理器应用会访问这个数据库。如果有陌生进程试图读取数据库文件或内存，那就是攻击者在偷密码管理器中的所有密码。
 
@@ -366,27 +377,27 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1555 Credentials from Password Stores](https://attack.mitre.org/techniques/T1555/)
 - [MITRE ATT&CK - T1555.001 Keychain](https://attack.mitre.org/techniques/T1555/001/)
 - [MITRE ATT&CK - T1555.003 Web Browsers](https://attack.mitre.org/techniques/T1555/003/)
 - [MITRE ATT&CK - T1555.004 Windows Credential Manager](https://attack.mitre.org/techniques/T1555/004/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Kaspersky - Lumma Stealer Analysis 2024](https://securelist.com/lumma-stealer-analysis/) - 浏览器密码批量窃取案例
 - [CISA AA23-320A - Scattered Spider](https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-320a) - 浏览器凭证与社会工程学结合
 - [Mandiant - LockBit Ransomware](https://www.mandiant.com/resources/lockbit-ransomware) - 凭据管理器提取在勒索攻击中的应用
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [LaZagne - 多来源凭证提取工具](https://github.com/AlessandroZ/LaZagne)
 - [mimikatz - Windows凭证提取工具](https://github.com/gentilkiwi/mimikatz)
 - [keychaindump - macOS Keychain提取](https://github.com/juuso/keychaindump)
 - [WebBrowserPassView - 浏览器密码查看](https://www.nirsoft.net/utils/web_browser_password.html)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Microsoft - 凭据管理器概述](https://learn.microsoft.com/en-us/windows/security/identity-protection/credential-manager/)
 - [Apple - Keychain安全指南](https://support.apple.com/guide/security/keychain-data-protection-sec0a7e0b1a8/)

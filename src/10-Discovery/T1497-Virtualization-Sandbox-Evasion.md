@@ -18,11 +18,21 @@
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 虚拟化/沙箱规避（T1497）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 安全分析师会把可疑软件放在"沙箱"（一个隔离的观察室）里运行，观察它的行为。聪明的恶意软件会先检查自己是否在这样一个观察室里——比如检查CPU是不是虚拟机的型号、检测有没有分析工具在运行、看看鼠标有没有人操作。如果发现自己在被观察，就装作无害或直接停止运行，让分析师白忙一场。就像小偷在行动前先观察四周有没有警察。
 
 **技术原理：**
@@ -189,6 +199,10 @@ graph TD
 - 检测长时间 `Sleep` 调用后的异常行为模式
 - 使用EDR的行为分析功能检测沙箱规避的聚合行为
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -230,6 +244,31 @@ level: medium
 tags:
     - attack.t1497
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1497
+status: experimental
+description: Detects potential T1497 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1497
+
 
 ## 缓解措施
 
@@ -308,19 +347,19 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1497](https://attack.mitre.org/techniques/T1497/)
 - [MITRE ATT&CK - T1497.001](https://attack.mitre.org/techniques/T1497/001/)
 - [MITRE ATT&CK - T1497.002](https://attack.mitre.org/techniques/T1497/002/)
 - [MITRE ATT&CK - T1497.003](https://attack.mitre.org/techniques/T1497/003/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [MITRE - Emotet](https://attack.mitre.org/software/S0367/)
 - [MITRE - TrickBot](https://attack.mitre.org/software/S0266/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Cuckoo Sandbox](https://cuckoosandbox.org/)
 - [Joe Sandbox](https://www.joesandbox.com/)

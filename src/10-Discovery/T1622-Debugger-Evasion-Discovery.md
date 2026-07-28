@@ -18,11 +18,21 @@
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 调试器规避发现（T1622）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 安全分析师会用调试器（如x64dbg、WinDbg）来逐步分析恶意软件的行为，就像科学家用显微镜观察细菌。聪明的恶意软件会主动检查自己是否被"监视"着——比如调用 `IsDebuggerPresent` 这个API来问Windows"有人在调试我吗？"，或者通过测量代码执行时间来判断是否有人在单步跟踪。
 
 **技术原理：**
@@ -171,6 +181,10 @@ graph TD
 - 关注分析工具进程名被恶意软件扫描的模式
 - 使用ETW监控异常进程行为
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -211,6 +225,31 @@ level: medium
 tags:
     - attack.t1622
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1622
+status: experimental
+description: Detects potential T1622 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1622
+
 
 ## 缓解措施
 
@@ -290,19 +329,19 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1622](https://attack.mitre.org/techniques/T1622/)
 - [Microsoft - IsDebuggerPresent](https://learn.microsoft.com/en-us/windows/win32/api/debugapi/nf-debugapi-isdebuggerpresent)
 - [Microsoft - NtQueryInformationProcess](https://learn.microsoft.com/en-us/windows/win32/api/winternl/nf-winternl-ntqueryinformationprocess)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Kaspersky - Lazarus VSingle](https://securelist.com/lazarus-vsingle-malware-debugger-detection/)
 - [Microsoft - TEARDROP Analysis](https://www.microsoft.com/security/blog/2020/12/18/analyzing-solorigate-the-compromised-dll-file-that-started-a-sophisticated-cyberattack-and-how-microsoft-defender-helps-protect/)
 - [FireEye - FIN7 Anti-Debugging](https://www.fireeye.com/blog/threat-research/2018/08/fin7-carbanak-anti-debugging.html)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [x64dbg](https://x64dbg.com/)
 - [WinDbg](https://learn.microsoft.com/en-us/windows-hardware/drivers/debugger/)

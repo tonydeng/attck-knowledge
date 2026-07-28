@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 查询注册表（T1012）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 Windows注册表就像一个巨大的数据库，记录了系统和所有软件的配置信息——电脑的序列号、安装了哪些程序、启动时自动运行什么等。攻击者入侵后可以像翻字典一样查询注册表，找到大量有用的信息。
 
 **技术原理：**
@@ -69,7 +79,7 @@ graph TD
 
 2. **读取键值**
    - 通俗描述：读取具体配置项的值
-   - 技术细节：`reg query <path> /v &lt;valuename&gt;`
+   - 技术细节：`reg query <path> /v <valuename>`
    - 常用工具：reg.exe、PowerShell
 
 3. **分析信息**
@@ -174,6 +184,10 @@ graph TD
 - 启用注册表审计策略
 - 配置Sysmon Event ID 12-14监控注册表事件
 - 监控非标准工具对安全产品注册表路径的读取
+
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
 
 ## 检测建议
 
@@ -301,17 +315,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1012](https://attack.mitre.org/techniques/T1012/)
 - [Microsoft - Reg Command](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/reg)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Mandiant - APT29 Analysis](https://www.mandiant.com/resources/blog/apt29-wineloader-german-political-parties)
 - [Trend Micro - TrickBot Registry Analysis](https://www.trendmicro.com/vinfo/us/security/news/cybercrime-and-digital-threats/trickbot-trojans-new-module-steals-browser-passwords-and-credentials)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [RegRipper - Registry Forensic Tool](https://github.com/keydet89/RegRipper3.0)
 - [PowerShell Registry Documentation](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-itemproperty)

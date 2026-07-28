@@ -69,25 +69,25 @@ graph LR
 | [T1098](./T1098-Account-Manipulation.md) | 账户操纵 | ⭐⭐ | 7 | 偷偷给自己的钥匙加上管理员权限 | ✅ 已完成 |
 | [T1108](./T1108-Redundant-Access.md) | 冗余访问 | ⭐⭐ | 0 | 建立多个备用入口，确保主入口被封后仍能进入系统 | ✅ 已完成 |
 | [T1197](./T1197-BITS-Jobs.md) | BITS作业 | ⭐⭐ | 0 | 利用Windows的"后台下载"功能偷偷运行恶意代码 | ✅ 已完成 |
-| [T1547](./T1547-Boot-or-Logon-Autostart-Execution.md) | 启动或登录自动执行 | ⭐⭐ | 15 | 在系统启动的"自动播放列表"里塞进恶意程序 | ✅ 已完成 |
+| [T1547](./T1547-Boot-or-Logon-Autostart-Execution.md) | 启动或登录自动执行 | ⭐⭐ | 14 | 在系统启动的"自动播放列表"里塞进恶意程序 | ✅ 已完成 |
 | [T1037](./T1037-Boot-or-Logon-Initialization-Scripts.md) | 启动或登录初始化脚本 | ⭐⭐ | 5 | 修改开机/登录时自动运行的脚本 | ✅ 已完成 |
 | [T1671](./T1671-Cloud-Application-Integration.md) | 云应用集成 | ⭐⭐⭐ | 0 | 在云平台上安装"合法"的间谍应用 | ✅ 已完成 |
 | [T1554](./T1554-Compromise-Client-Software-Binary.md) | 篡改客户端软件二进制 | ⭐⭐⭐ | 0 | 把正版软件偷偷换成夹带私货的版本 | ✅ 已完成 |
 | [T1136](./T1136-Create-Account.md) | 创建账户 | ⭐ | 3 | 偷偷给自己开一个管理员账号 | ✅ 已完成 |
 | [T1543](./T1543-Create-or-Modify-System-Process.md) | 创建或修改系统进程 | ⭐⭐ | 5 | 创建一个伪装成系统服务的后门 | ✅ 已完成 |
 | [T1050](./T1050-New-Service.md) | 创建新服务 | ⭐⭐ | 0 | 创建一个新的系统服务来持久化运行恶意代码 | ✅ 已完成 |
-| [T1546](./T1546-Event-Triggered-Execution.md) | 事件触发执行 | ⭐⭐⭐ | 18 | 设置"陷阱"——当特定事件发生时自动执行恶意代码 | ✅ 已完成 |
+| [T1546](./T1546-Event-Triggered-Execution.md) | 事件触发执行 | ⭐⭐⭐ | 15 | 设置"陷阱"——当特定事件发生时自动执行恶意代码 | ✅ 已完成 |
 | [T1668](./T1668-Exclusive-Control.md) | 独占控制 | ⭐⭐⭐ | 0 | 锁住云资源，让管理员自己都删不掉 | ✅ 已完成 |
 | [T1133](./T1133-External-Remote-Services.md) | 外部远程服务 | ⭐⭐ | 0 | 用你的VPN/远程桌面当自己的后门 | ✅ 已完成 |
 | [T1525](./T1525-Implant-Internal-Image.md) | 植入内部镜像 | ⭐⭐⭐ | 0 | 在系统镜像/容器镜像里预埋后门 | ✅ 已完成 |
 | [T1556](./T1556-Modify-Authentication-Process.md) | 修改认证流程 | ⭐⭐⭐⭐ | 9 | 篡改门禁系统，让假钥匙也能开门 | ✅ 已完成 |
-| [T1574](./T1574-Hijack-Execution-Flow.md) | 劫持执行流 | ⭐⭐⭐ | 12 | 偷梁换柱——让程序加载恶意的DLL而不是正版的 | ✅ 已完成 |
+| [T1574](./T1574-Hijack-Execution-Flow.md) | 劫持执行流 | ⭐⭐⭐ | 11 | 偷梁换柱——让程序加载恶意的DLL而不是正版的 | ✅ 已完成 |
 | [T1112](./T1112-Modify-Registry.md) | 修改注册表 | ⭐⭐ | 0 | 在Windows的"配置数据库"里动手脚 | ✅ 已完成 |
 | [T1137](./T1137-Office-Application-Startup.md) | Office应用启动 | ⭐⭐ | 6 | 利用Word/Excel/Outlook的自动化功能执行恶意代码 | ✅ 已完成 |
 | [T1653](./T1653-Power-Settings.md) | 电源设置 | ⭐ | 0 | 修改电源设置，确保电脑不会"睡觉"而中断恶意活动 | ✅ 已完成 |
 | [T1542](./T1542-Pre-OS-Boot.md) | 预启动 | ⭐⭐⭐⭐ | 5 | 在操作系统加载之前就植入后门（固件级） | ✅ 已完成 |
-| [T1053](./T1053-Scheduled-Task-Job.md) | 计划任务/作业 | ⭐ | 7 | 设置定时器，让恶意代码按时自动运行 | ✅ 已完成 |
-| [T1505](./T1505-Server-Software-Component.md) | 服务器软件组件 | ⭐⭐⭐ | 6 | 在Web服务器/数据库里植入后门组件 | ✅ 已完成 |
+| [T1053](./T1053-Scheduled-Task-Job.md) | 计划任务/作业 | ⭐ | 6 | 设置定时器，让恶意代码按时自动运行 | ✅ 已完成 |
+| [T1505](./T1505-Server-Software-Component.md) | 服务器软件组件 | ⭐⭐⭐ | 5 | 在Web服务器/数据库里植入后门组件 | ✅ 已完成 |
 | [T1176](./T1176-Software-Extensions.md) | 软件扩展 | ⭐⭐ | 2 | 通过恶意浏览器扩展或Office插件保持访问 | ✅ 已完成 |
 | [T1205](./T1205-Traffic-Signaling.md) | 流量信号 | ⭐⭐⭐⭐ | 2 | 发送特定"暗号"网络包来唤醒休眠的后门 | ✅ 已完成 |
 | [T1078](./T1078-Valid-Accounts.md) | 有效账户 | ⭐⭐ | 4 | 直接用偷来的合法账号登录，无需安装任何恶意软件 | ✅ 已完成 |
@@ -98,15 +98,15 @@ graph LR
 
 | 子技术ID | 名称 | 难度 | 一句话理解 | 文档状态 |
 |----------|------|:----:|-----------|:--------:|
-| [T1037.001](./T1037/T1037.001-Logon Script (Windows)-登录脚本（Windows）.md) | 登录脚本（Windows） | ⭐⭐ | Windows域登录脚本和本地登录脚本 | ✅ 已完成 |
-| [T1037.002](./T1037/T1037.002-Logon Script (Mac)-登录脚本（Mac）.md) | 登录脚本（Mac） | ⭐⭐ | macOS的loginhook和启动脚本 | ✅ 已完成 |
-| [T1037.003](./T1037/T1037.003-Logon Script (Linux)-登录脚本（Linux）.md) | 登录脚本（Linux） | ⭐⭐ | Linux的.bashrc、.profile等shell配置 | ✅ 已完成 |
-| [T1037.004](./T1037/T1037.004-Logon Script (Network)-登录脚本（网络）.md) | 登录脚本（网络） | ⭐⭐ | 域控制器上的组策略登录脚本 | ✅ 已完成 |
-| [T1037.005](./T1037/T1037.005-Logon Script (Cross-platform)-登录脚本（跨平台）.md) | 登录脚本（跨平台） | ⭐⭐ | Python/PowerShell等跨平台脚本 | ✅ 已完成 |
-| [T1053.001](./T1053/T1053.001-At (Windows)-At（Windows）.md) | At（Windows） | ⭐ | Windows at.exe调度 | ✅ 已完成 |
-| [T1053.002](./T1053/T1053.002-At (Linux)-At（Linux）.md) | At（Linux） | ⭐ | Linux at命令 | ✅ 已完成 |
-| [T1053.003](./T1053/T1053.003-Cron-Cron.md) | Cron | ⭐ | Unix/Linux cron作业 | ✅ 已完成 |
-| [T1053.005](./T1053/T1053.005-Scheduled Task (Windows)-计划任务（Windows）.md) | 计划任务（Windows） | ⭐ | Windows任务调度器 | ✅ 已完成 |
+| [T1037.001](./T1037/T1037.001-Logon-Script-Windows.md) | 登录脚本（Windows） | ⭐⭐ | Windows域登录脚本和本地登录脚本 | ✅ 已完成 |
+| [T1037.002](./T1037/T1037.002-Logon-Script-Mac.md) | 登录脚本（Mac） | ⭐⭐ | macOS的loginhook和启动脚本 | ✅ 已完成 |
+| [T1037.003](./T1037/T1037.003-Logon-Script-Linux.md) | 登录脚本（Linux） | ⭐⭐ | Linux的.bashrc、.profile等shell配置 | ✅ 已完成 |
+| [T1037.004](./T1037/T1037.004-Logon-Script-Network.md) | 登录脚本（网络） | ⭐⭐ | 域控制器上的组策略登录脚本 | ✅ 已完成 |
+| [T1037.005](./T1037/T1037.005-Logon-Script-Cross-platform.md) | 登录脚本（跨平台） | ⭐⭐ | Python/PowerShell等跨平台脚本 | ✅ 已完成 |
+| [T1053.001](./T1053/T1053.001-At-Windows.md) | At（Windows） | ⭐ | Windows at.exe调度 | ✅ 已完成 |
+| [T1053.002](./T1053/T1053.002-At-Linux.md) | At（Linux） | ⭐ | Linux at命令 | ✅ 已完成 |
+| [T1053.003](./T1053/T1053.003-Cron.md) | Cron | ⭐ | Unix/Linux cron作业 | ✅ 已完成 |
+| [T1053.005](./T1053/T1053.005-Scheduled-Task-Windows.md) | 计划任务（Windows） | ⭐ | Windows任务调度器 | ✅ 已完成 |
 | [T1053.006](./T1053/T1053.006-Systemd-Timers.md) | Systemd定时器 | ⭐ | Linux systemd定时器 | ✅ 已完成 |
 | [T1053.007](./T1053/T1053.007-Container-Orchestration-Job.md) | 容器编排作业 | ⭐ | Kubernetes CronJob | ✅ 已完成 |
 | [T1078.001](./T1078/T1078.001-Default-Accounts.md) | 默认账户 | ⭐⭐ | 使用系统预配置的默认账户 | ✅ 已完成 |
@@ -128,42 +128,42 @@ graph LR
 | [T1137.003](./T1137/T1137.003-Outlook-Forms.md) | Outlook表单 | ⭐⭐ | 创建恶意自定义表单 | ✅ 已完成 |
 | [T1137.004](./T1137/T1137.004-Outlook-Home-Page.md) | Outlook主页 | ⭐⭐ | 设置文件夹自定义主页 | ✅ 已完成 |
 | [T1137.005](./T1137/T1137.005-Outlook-Rules.md) | Outlook规则 | ⭐⭐ | 创建恶意邮件规则 | ✅ 已完成 |
-| [T1137.006](./T1137/T1137.006-Outlook-API-Outlook-API.md) | Outlook API | ⭐⭐ | 使用OOM/MAPI注册事件处理程序 | ✅ 已完成 |
+| [T1137.006](./T1137/T1137.006-Outlook-API.md) | Outlook API | ⭐⭐ | 使用OOM/MAPI注册事件处理程序 | ✅ 已完成 |
 | [T1176.001](./T1176/T1176.001-Microsoft-Office-Add-in.md) | Microsoft Office加载项 | ⭐⭐ | 恶意Office COM/VSTO加载项 | ✅ 已完成 |
 | [T1176.002](./T1176/T1176.002-Browser-Extensions.md) | 浏览器扩展 | ⭐⭐ | 恶意浏览器扩展程序 | ✅ 已完成 |
 | [T1205.001](./T1205/T1205.001-Port-Knocking.md) | 端口敲门 | ⭐⭐⭐ | 发送特定端口序列激活后门 | ✅ 已完成 |
 | [T1205.002](./T1205/T1205.002-Socket-Filters.md) | 套接字过滤器 | ⭐⭐⭐ | 使用BPF/WFP过滤器触发操作 | ✅ 已完成 |
 | [T1505.001](./T1505/T1505.001-SQL-Stored-Procedures.md) | SQL存储过程 | ⭐⭐⭐ | 创建恶意数据库存储过程 | ✅ 已完成 |
 | [T1505.002](./T1505/T1505.002-Transport-Agent.md) | 传输代理 | ⭐⭐⭐ | 安装恶意邮件传输代理 | ✅ 已完成 |
-| [T1505.003](./T1505/T1505.003-Web-Shell-Web-Shell.md) | Web Shell | ⭐⭐⭐ | 部署Web后门脚本 | ✅ 已完成 |
+| [T1505.003](./T1505/T1505.003-Web-Shell.md) | Web Shell | ⭐⭐⭐ | 部署Web后门脚本 | ✅ 已完成 |
 | [T1505.004](./T1505/T1505.004-IIS-Components.md) | IIS组件 | ⭐⭐⭐ | 安装恶意IIS模块 | ✅ 已完成 |
 | [T1505.005](./T1505/T1505.005-Terminal-Services.md) | 终端服务 | ⭐⭐⭐ | 修改RDP组件 | ✅ 已完成 |
 | [T1542.001](./T1542/T1542.001-System-Firmware.md) | 系统固件 | ⭐⭐⭐ | 修改BIOS/UEFI固件 | ✅ 已完成 |
 | [T1542.002](./T1542/T1542.002-Component-Firmware.md) | 组件固件 | ⭐⭐⭐ | 修改硬盘/网卡等硬件固件 | ✅ 已完成 |
-| [T1542.003](./T1542/T1542.003-Bootkit-Bootkit.md) | Bootkit | ⭐⭐⭐ | 修改启动加载程序 | ✅ 已完成 |
-| [T1542.004](./T1542/T1542.004-ROMMONkit-ROMMONkit.md) | ROMMONkit | ⭐⭐⭐ | 修改网络设备固件 | ✅ 已完成 |
+| [T1542.003](./T1542/T1542.003-Bootkit.md) | Bootkit | ⭐⭐⭐ | 修改启动加载程序 | ✅ 已完成 |
+| [T1542.004](./T1542/T1542.004-ROMMONkit.md) | ROMMONkit | ⭐⭐⭐ | 修改网络设备固件 | ✅ 已完成 |
 | [T1542.005](./T1542/T1542.005-TFTP-Boot.md) | TFTP启动 | ⭐⭐⭐ | 配置网络设备从TFTP启动 | ✅ 已完成 |
-| [T1543.001](./T1543/T1543.001-Launch-Agent-Launch-Agent.md) | Launch Agent | ⭐⭐ | macOS用户级自动启动代理 | ✅ 已完成 |
+| [T1543.001](./T1543/T1543.001-Launch-Agent.md) | Launch Agent | ⭐⭐ | macOS用户级自动启动代理 | ✅ 已完成 |
 | [T1543.002](./T1543/T1543.002-SystemD-Service.md) | SystemD服务 | ⭐⭐ | Linux系统服务 | ✅ 已完成 |
 | [T1543.003](./T1543/T1543.003-Windows-Service.md) | Windows服务 | ⭐⭐ | Windows系统服务 | ✅ 已完成 |
-| [T1543.004](./T1543/T1543.004-Launch-Daemon-Launch-Daemon.md) | Launch Daemon | ⭐⭐ | macOS系统级守护进程 | ✅ 已完成 |
+| [T1543.004](./T1543/T1543.004-Launch-Daemon.md) | Launch Daemon | ⭐⭐ | macOS系统级守护进程 | ✅ 已完成 |
 | [T1543.005](./T1543/T1543.005-Containers.md) | 容器 | ⭐⭐ | Docker/Kubernetes容器持久化 | ✅ 已完成 |
 | [T1546.001](./T1546/T1546.001-Change-Default-File-Association.md) | 更改默认文件关联 | ⭐⭐⭐ | 修改文件类型打开方式 | ✅ 已完成 |
 | [T1546.002](./T1546/T1546.002-Screensaver.md) | 屏幕保护程序 | ⭐⭐⭐ | 替换屏幕保护程序为恶意程序 | ✅ 已完成 |
 | [T1546.003](./T1546/T1546.003-WMI-Event-Subscription.md) | WMI事件订阅 | ⭐⭐⭐ | 使用WMI创建事件触发器 | ✅ 已完成 |
 | [T1546.004](./T1546/T1546.004-Unix-Shell-Configuration-Modification.md) | Unix Shell配置修改 | ⭐⭐⭐ | 修改.bashrc等shell配置文件 | ✅ 已完成 |
-| [T1546.005](./T1546/T1546.005-Trap-Trap.md) | Trap | ⭐⭐⭐ | 使用Unix trap命令捕获信号 | ✅ 已完成 |
-| [T1546.006](./T1546/T1546.006-LC_LOAD_DYLIB-Addition.md) | LC_LOAD_DYLIB添加 | ⭐⭐⭐ | macOS动态库注入 | ✅ 已完成 |
+| [T1546.005](./T1546/T1546.005-Trap.md) | Trap | ⭐⭐⭐ | 使用Unix trap命令捕获信号 | ✅ 已完成 |
+| [T1546.006](./T1546/T1546.006-LC-LOAD-DYLIB-Addition.md) | LC_LOAD_DYLIB添加 | ⭐⭐⭐ | macOS动态库注入 | ✅ 已完成 |
 | [T1546.007](./T1546/T1546.007-Netsh-Helper-DLL.md) | Netsh辅助DLL | ⭐⭐⭐ | 注册netsh辅助DLL | ✅ 已完成 |
 | [T1546.008](./T1546/T1546.008-Accessibility-Features.md) | 辅助功能 | ⭐⭐⭐ | 替换辅助功能二进制文件 | ✅ 已完成 |
-| [T1546.009](./T1546/T1546.009-AppInit-DLLs-AppInit-DLLs.md) | AppInit DLLs | ⭐⭐⭐ | 注册AppInit DLL | ✅ 已完成 |
-| [T1546.010](./T1546/T1546.010-AppCert-DLLs-AppCert-DLLs.md) | AppCert DLLs | ⭐⭐⭐ | 注册AppCert DLL | ✅ 已完成 |
+| [T1546.009](./T1546/T1546.009-AppInit-DLLs.md) | AppInit DLLs | ⭐⭐⭐ | 注册AppInit DLL | ✅ 已完成 |
+| [T1546.010](./T1546/T1546.010-AppCert-DLLs.md) | AppCert DLLs | ⭐⭐⭐ | 注册AppCert DLL | ✅ 已完成 |
 | [T1546.011](./T1546/T1546.011-Application-Shim.md) | 应用程序兼容性垫片 | ⭐⭐⭐ | 使用sdbinst安装垫片 | ✅ 已完成 |
 | [T1546.012](./T1546/T1546.012-Image-File-Execution-Options.md) | 映像文件执行选项 | ⭐⭐⭐ | 使用IFEO调试器劫持 | ✅ 已完成 |
 | [T1546.013](./T1546/T1546.013-PowerShell-Profile.md) | PowerShell配置文件 | ⭐⭐⭐ | 修改PowerShell启动脚本 | ✅ 已完成 |
 | [T1546.014](./T1546/T1546.014-Email.md) | 电子邮件 | ⭐⭐⭐ | 利用邮件规则触发代码 | ✅ 已完成 |
 | [T1546.015](./T1546/T1546.015-Update-Orchestrator.md) | 更新编排器 | ⭐⭐⭐ | 滥用Windows更新服务 | ✅ 已完成 |
-| [T1547.001](./T1547/T1547.001-Registry-Run-Keys---Startup-Folder-注册表Run键.md) | 注册表Run键/启动文件夹 | ⭐⭐ | 最常见的自动启动位置 | ✅ 已完成 |
+| [T1547.001](./T1547/T1547.001-Registry-Run-Keys-Startup-Folder.md) | 注册表Run键/启动文件夹 | ⭐⭐ | 最常见的自动启动位置 | ✅ 已完成 |
 | [T1547.002](./T1547/T1547.002-Authentication-Package.md) | 认证包 | ⭐⭐ | 加载到LSASS进程中的DLL | ✅ 已完成 |
 | [T1547.003](./T1547/T1547.003-Time-Providers.md) | 时间提供者 | ⭐⭐ | 系统时间同步相关的DLL | ✅ 已完成 |
 | [T1547.004](./T1547/T1547.004-Winlogon-Helper-DLL.md) | Winlogon辅助DLL | ⭐⭐ | 用户登录时加载的DLL | ✅ 已完成 |
@@ -175,7 +175,7 @@ graph LR
 | [T1547.010](./T1547/T1547.010-Port-Monitors.md) | 端口监视器 | ⭐⭐ | 打印相关的系统DLL | ✅ 已完成 |
 | [T1547.012](./T1547/T1547.012-Print-Processors.md) | 打印处理器 | ⭐⭐ | 打印处理相关的DLL | ✅ 已完成 |
 | [T1547.013](./T1547/T1547.013-XDG-Autostart-Entries.md) | XDG自动启动条目 | ⭐⭐ | Linux桌面环境自动启动 | ✅ 已完成 |
-| [T1547.014](./T1547/T1547.014-Active-Setup-Active-Setup.md) | Active Setup | ⭐⭐ | Windows组件自动安装机制 | ✅ 已完成 |
+| [T1547.014](./T1547/T1547.014-Active-Setup.md) | Active Setup | ⭐⭐ | Windows组件自动安装机制 | ✅ 已完成 |
 | [T1547.015](./T1547/T1547.015-Login-Items.md) | 登录项 | ⭐⭐ | macOS登录时自动启动的应用 | ✅ 已完成 |
 | [T1556.001](./T1556/T1556.001-Domain-Controller-Authentication.md) | 域控制器认证 | ⭐⭐⭐ | 修改DC认证机制（Skeleton Key） | ✅ 已完成 |
 | [T1556.002](./T1556/T1556.002-Password-Filter.md) | 密码过滤器 | ⭐⭐⭐ | 安装恶意密码过滤器DLL | ✅ 已完成 |
@@ -195,14 +195,14 @@ graph LR
 | [T1574.008](./T1574/T1574.008-Search-Order-Interception.md) | 搜索顺序路径拦截 | ⭐⭐⭐ | 利用应用搜索顺序 | ✅ 已完成 |
 | [T1574.009](./T1574/T1574.009-Unquoted-Path-Interception.md) | 未引用路径路径拦截 | ⭐⭐⭐ | 利用路径中的空格 | ✅ 已完成 |
 | [T1574.010](./T1574/T1574.010-Service-File-Permissions-Weakness.md) | 服务文件权限弱点 | ⭐⭐⭐ | 利用服务二进制弱权限 | ✅ 已完成 |
-| [T1574.011](./T1574/T1574.011-PLAT (Android)-PLAT（Android）.md) | PLAT（Android） | ⭐⭐⭐ | Android系统级加载劫持 | ✅ 已完成 |
-| [T1574.012](./T1574/T1574.012-COR_PROFILER-COR_PROFILER.md) | COR_PROFILER | ⭐⭐⭐ | .NET CLR配置劫持 | ✅ 已完成 |
+| [T1574.011](./T1574/T1574.011-PLAT-Android.md) | PLAT（Android） | ⭐⭐⭐ | Android系统级加载劫持 | ✅ 已完成 |
+| [T1574.012](./T1574/T1574.012-COR-PROFILER.md) | COR_PROFILER | ⭐⭐⭐ | .NET CLR配置劫持 | ✅ 已完成 |
 
 ### 统计信息
 
-- **技术总数**：25 个
-- **子技术总数**：99 个
-- **已完成文档**：99 个
+- **技术总数**：22 个
+- **子技术总数**：90 个
+- **已完成文档**：112 个（22 父技术 + 90 子技术）
 - **进行中文档**：0 个
 - **待编写文档**：0 个
 
@@ -280,3 +280,13 @@ graph LR
 - [Atomic Red Team - 持久化测试用例](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics) - 可执行的安全测试用例库
 - [Sysinternals Autoruns](https://docs.microsoft.com/en-us/sysinternals/downloads/autoruns) - 查看所有自动启动位置的权威工具
 - [MITRE CALDERA](https://caldera.mitre.org/) - 自动化 adversary emulation 平台
+
+## 速查卡
+
+- **常用技术**：[T1547](T1547-Boot-or-Logon-Autostart-Execution.md)（注册表Run键/启动文件夹）、[T1053](T1053-Scheduled-Task-Job.md)（计划任务）、[T1136](T1136-Create-Account.md)（创建账户）、[T1098](T1098-Account-Manipulation.md)（SSH密钥添加）、[T1505](T1505-Server-Software-Component.md)（Web Shell）
+- **关键检测信号**：注册表Run键新增项、计划任务创建（Event ID 4698）、新用户创建（Event ID 4720）、异常SSH authorized_keys修改
+- **攻击者常用工具**：Sysinternals Autoruns（检测工具）、Mimikatz（凭证持久化）、Web Shell（中国菜刀/蚁剑）、Cobalt Strike
+- **防御要点**：定期审计启动项和计划任务、监控特权账户创建、限制SSH密钥部署、部署文件完整性监控
+- **蓝队关注点**：持久化机制越隐蔽越难清除——重点关注注册表Run键、计划任务、WMI事件订阅三类
+
+> **版本**: v19.1 | **更新**: 2026-07-28 | **模板**: 战术README v3.1

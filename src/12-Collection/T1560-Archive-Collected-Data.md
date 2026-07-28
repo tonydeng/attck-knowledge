@@ -18,11 +18,21 @@
 
 ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 文件系统与存储基础
+- [ ] 数据压缩与归档基本概念
+- [ ] 邮件系统与协作平台工作原理
+
 ## 技术描述
 
 压缩收集的数据（T1560）是MITRE ATT&CK框架中收集战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要低估收集阶段的隐蔽性——攻击者收集数据时，不会一次性复制所有文件引起注意。而是像'精明的窃贼'一样：先确认最有价值的文件类型（.xlsx > .docx > 随机文件），然后用合法工具（如7zip、rar甚至是系统自带的compress-archive）打包，混在正常的网络流量中传输。
 偷东西之后怎么运出去？一个一个文件传输太慢了。攻击者会把收集到的多个文件打包成一个ZIP或RAR压缩包——就像你用WinRAR压文件一样——然后一次性上传到远程服务器。压缩不仅方便传输，还能减小文件体积（节省流量），甚至用密码加密压缩使安全设备难以检测。
 
 **技术原理：**
@@ -197,6 +207,10 @@ graph TD
 - 监控压缩工具（WinRAR、7-Zip、WinZip）的进程创建，特别是从非常规路径启动的场景
 - 检测`Compress-Archive`或`System.IO.Compression`的PowerShell使用
 - 监控临时目录（`%TEMP%`、`%APPDATA%`）中的压缩包创建
+
+## 避坑指南
+
+检测盲点：对合法压缩工具的滥用视而不见。
 
 ## 检测建议
 
@@ -409,21 +423,21 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1560](https://attack.mitre.org/techniques/T1560/)
 - [MITRE ATT&CK - T1560.001](https://attack.mitre.org/techniques/T1560/001/)
 - [MITRE ATT&CK - T1560.002](https://attack.mitre.org/techniques/T1560/002/)
 - [MITRE ATT&CK - T1560.003](https://attack.mitre.org/techniques/T1560/003/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [INC Ransomware Guidance - HHS 2025](https://www.hhs.gov/about/agencies/asa/hec-ransomware/inc-ransomware-guidance.html)
 - [SolarMarker Backdoor - Red Canary](https://redcanary.com/blog/solarmarker/)
 - [Akira Ransomware - Halcyon WinRAR TTP Report](https://www.halcyon.ai/ioc-ttp-index/winrar-in-ransomware-operations)
 - [7-Zip in Ransomware Operations - Halcyon](https://www.halcyon.ai/ioc-ttp-index/7-zip-in-ransomware-operations)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [PowerShell Compress-Archive](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.archive/compress-archive)
 - [7-Zip Command Line](https://7-zip.org/)

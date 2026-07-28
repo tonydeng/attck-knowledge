@@ -4,17 +4,38 @@
 
 **攻击者骗你自己点击链接、打开文件、复制粘贴命令——让你亲手执行恶意代码，连安全软件都拦不住。**
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者在已入侵的系统上运行恶意代码的过程 |
+| 为什么危险？ | 执行是攻击活动的核心环节，没有执行就无法实现攻击目的 |
+| 谁需要关心？ | 系统管理员、安全运维团队 |
+| 你的第一步防御 | 限制用户和管理员运行未经签名的脚本和程序 |
+| 如果只做一件事 | 启用应用程序白名单（AppLocker），只让允许的程序运行 |
+
 ## 难度等级
 
 ⭐ 初级（新手可学）
 
 不需要技术漏洞，只需要社会工程学技巧来欺骗用户。
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 操作系统进程模型
+- [ ] 常见脚本语言基础（PowerShell/bash/Python）
+- [ ] 代码执行基本概念
+
 ## 技术描述
 
 用户执行是一种完全依赖"人"的攻击技术。攻击者不靠技术漏洞，而是通过精心设计的骗局，诱导用户自己执行恶意操作。用户可能被欺骗点击恶意链接、打开恶意文件、查看恶意图片、复制粘贴恶意代码，甚至使用恶意的软件库。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为执行只是'运行恶意程序'这么简单——攻击者真正高明的地方在于'就地取材'（Living off the Land）。他们利用系统自带的PowerShell、cmd、wmic等合法工具执行恶意操作，因为它们本身就是操作系统的一部分，安全软件很难完全禁止。
 攻击者不撬锁（技术漏洞）、不翻墙（网络攻击），而是直接敲门对你说："我是物业的，麻烦您开一下门"（社会工程）。你自己把门打开了，保安（安全软件）也没办法——因为是你"自愿"的。用户执行就是这个道理——攻击者让你自己运行恶意代码。
 
 **技术原理：**
@@ -212,6 +233,10 @@ graph TD
 - 配置安全信息和事件管理（SIEM）系统关联浏览器下载日志和进程创建日志，建立"文件下载→执行"的事件链告警
 - 定期审计WMI事件订阅和设备上的计划任务，排查可疑的持久化机制
 
+## 避坑指南
+
+防御者常见误区：只监控恶意文件而忽略脚本执行。
+
 ## 检测建议
 
 ### 网络层检测
@@ -269,6 +294,8 @@ Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-PowerShell/Operationa
 **检测方法：** 通过Sigma规则检测用户执行相关的事件模式
 
 **Sigma规则示例1：检测ClickFix/PowerShell隐藏执行**
+
+**用人话说：**用户执行检测的核心是发现"正常用户做了不正常的事"。攻击者诱导用户点击钓鱼链接、打开恶意附件或粘贴恶意代码（ClickFix），本质是利用人的信任绕过技术防线。重点关注：Office应用（Word/Excel）启动PowerShell/cmd子进程、用户下载目录中带Mark of the Web标记的可执行文件、PowerShell隐藏窗口（-w hidden）配合编码命令（-enc）执行、以及剪贴板粘贴后立即执行的脚本。正常用户不会从Word里启动PowerShell。
 ```yaml
 title: ClickFix Style PowerShell Execution with Hidden Window
 status: experimental
@@ -553,7 +580,7 @@ Install-Module -Name powershell-yaml -Force
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK T1204官方页面](https://attack.mitre.org/techniques/T1204/)
 - [MITRE ATT&CK T1204.001 恶意链接](https://attack.mitre.org/techniques/T1204/001/)
@@ -562,7 +589,7 @@ Install-Module -Name powershell-yaml -Force
 - [MITRE ATT&CK T1204.004 恶意复制粘贴](https://attack.mitre.org/techniques/T1204/004/)
 - [MITRE ATT&CK T1204.005 恶意库](https://attack.mitre.org/techniques/T1204/005/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Microsoft ClickFix深度分析（2025.08）](https://www.microsoft.com/en-us/security/blog/2025/08/21/think-before-you-clickfix-analyzing-the-clickfix-social-engineering-technique/) - 微软对ClickFix技术的最新全面分析
 - [Proofpoint ClickFix技术分析](https://www.proofpoint.com/us/blog/threat-insight/clickfix-social-engineering-lures-are-here-stay) - ClickFix攻击手法和威胁态势概述
@@ -575,7 +602,7 @@ Install-Module -Name powershell-yaml -Force
 - [Lazarus Group攻击分析](https://www.mandiant.com/resources/blog/lazarus-job-opportunities) - Mandiant对Lazarus求职主题钓鱼的分析
 - [KrebsOnSecurity ClickFix分析（2025.03）](https://krebsonsecurity.com/2025/03/clickfix-how-to-infect-your-pc-in-three-easy-steps/) - Krebs对ClickFix攻击的通俗解读
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [GoPhish钓鱼框架](https://github.com/gophish/gophish) - 开源钓鱼演练平台
 - [Atomic Red Team](https://github.com/redcanaryco/atomic-red-team) - ATT&CK技术检测测试框架
@@ -583,7 +610,7 @@ Install-Module -Name powershell-yaml -Force
 - [LOLBAS项目](https://lolbas-project.github.io/) - 被滥用的合法Windows二进制文件清单
 - [MacroPack](https://github.com/sevagas/macro_pack) - Office宏混淆工具（仅用于授权测试）
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [红队钓鱼攻击指南](https://www.ired.team/offensive-security/persistence/t1204-user-execution) - 用户执行技术的红队实践
 - [Phishing 基础知识](https://www.cyber.gov.au/acsc/view-all-content/threats/phishing) - 澳大利亚信号局钓鱼防御指南

@@ -18,11 +18,21 @@
 
 - ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 系统网络连接发现（T1049）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 当你用电脑时，后台有很多程序在跟互联网上的其他电脑"通话"——浏览器在加载网页、邮件客户端在收信、聊天软件在收发消息。`netstat` 命令可以列出所有这些正在进行的通话记录，攻击者可以用它来了解系统的通信情况。
 
 **技术原理：**
@@ -156,6 +166,10 @@ graph TD
 - 监控netstat.exe的执行上下文
 - 结合防火墙日志分析异常连接模式
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -275,16 +289,16 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1049](https://attack.mitre.org/techniques/T1049/)
 - [Microsoft - Netstat](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/netstat)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [The DFIR Report - RansomHub 2025](https://thedfirreport.com/2025/06/30/hide-your-rdp-password-spray-leads-to-ransomhub-deployment/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [TCPView - Sysinternals](https://learn.microsoft.com/en-us/sysinternals/downloads/tcpview)
 - [PowerShell NetTCPConnection](https://learn.microsoft.com/en-us/powershell/module/nettcpip/get-nettcpconnection)

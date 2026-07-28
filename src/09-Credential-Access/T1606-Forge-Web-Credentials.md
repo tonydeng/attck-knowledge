@@ -18,11 +18,21 @@
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows认证体系（NTLM/Kerberos/LSASS）
+- [ ] 哈希基础（NTLM Hash/SHA）
+- [ ] 网络认证协议（SMB/LDAP/Kerberos）
+
 ## 技术描述
 
 伪造Web凭证（T1606）是MITRE ATT&CK框架中凭证访问战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误解凭证访问只是'窃取密码'——在现代企业中，凭证存在于内存、磁盘、网络流量和云API等多个位置。攻击者关注的不是密码本身，而是'能用它做什么'：一个服务账号的哈希就能横向移动到数十台服务器，OAuth令牌可以访问整个SaaS租户的数据。
 现代的Web应用和云服务不再使用传统的密码登录，而是使用一种"电子令牌"（Token）来证明身份。最常见的两种是SAML断言（用于企业单点登录）和OAuth令牌（用于API和云服务访问）。这些令牌由身份提供商（IdP，比如Azure AD、Okta）用私钥签名，持有令牌的人可以证明自己是某个用户。攻击者的目标就是获得或者伪造这些令牌。如果拿到了IdP的签名密钥（私钥），攻击者就可以为任何人（包括CEO、系统管理员）签发合法的令牌，完全绕过密码和MFA。
 
 **技术原理：**
@@ -182,6 +192,10 @@ graph TD
 - 使用Microsoft Sentinel创建SAML令牌异常检测规则
 - 监控证书导出事件（Event ID 4690、4692、5061）
 
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
+
 ## 检测建议
 
 ### 网络层检测
@@ -214,9 +228,6 @@ zeek -C -r capture.pcap http.log | grep -iE "Bearer|Authorization: Bearer" | \
 Get-WinEvent -FilterHashtable @{LogName='Security';ID=4690} |
     Where-Object {$_.Properties[2].Value -like '*AD FS*'}
 ```
-
-
-
 
 **用人话说：** 这条规则在监控Web凭证（SAML/OAuth）的签发和使用是否异常。SAML和OAuth是企业单点登录的核心协议。正常情况下凭证会在固定设备和位置使用。如果发现有异常的凭证被签发，或者凭证从不同地理位置使用，那就是攻击者在伪造Web凭证访问企业应用。
 
@@ -367,25 +378,25 @@ Update-AdfsCertificate -CertificateType Token-Signing -Urgent $true
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1606 Forge Web Credentials](https://attack.mitre.org/techniques/T1606/)
 - [MITRE ATT&CK - T1606.001 SAML Tokens](https://attack.mitre.org/techniques/T1606/001/)
 - [MITRE ATT&CK - T1606.002 OAuth Tokens](https://attack.mitre.org/techniques/T1606/002/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Mandiant - Golden SAML and Golden Certificates](https://www.mandiant.com/resources/blog/golden-saml-and-golden-certificates)
 - [Microsoft - Nobelium OAuth Abuse](https://www.microsoft.com/en-us/security/blog/2021/05/28/breaking-down-nobeliums-latest-targeted-activity/)
 - [CISA AA23-320A - Scattered Spider](https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-320a)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [ADFSDump - AD FS配置提取](https://github.com/mandiant/ADFSDump)
 - [jwt_tool - JWT攻击测试](https://github.com/ticarpi/jwt_tool)
 - [TokenTactics - OAuth令牌操作](https://github.com/rvrsh3ll/TokenTactics)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Microsoft - 保护AD FS](https://learn.microsoft.com/en-us/windows-server/identity/ad-fs/deployment/best-practices-securing-ad-fs)
 - [OAuth 2.0授权框架](https://oauth.net/2/)

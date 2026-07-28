@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows认证体系（NTLM/Kerberos/LSASS）
+- [ ] 哈希基础（NTLM Hash/SHA）
+- [ ] 网络认证协议（SMB/LDAP/Kerberos）
+
 ## 技术描述
 
 窃取Web会话Cookie（T1539）是MITRE ATT&CK框架中凭证访问战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误解凭证访问只是'窃取密码'——在现代企业中，凭证存在于内存、磁盘、网络流量和云API等多个位置。攻击者关注的不是密码本身，而是'能用它做什么'：一个服务账号的哈希就能横向移动到数十台服务器，OAuth令牌可以访问整个SaaS租户的数据。
 当你登录网站后，网站会在你的浏览器上贴一个小标签（Cookie），上面写着"这个用户已登录"。以后每次访问时，浏览器出示这个标签，网站就不再问密码了。攻击者如果偷走这个标签，贴在自己的浏览器上，就能直接以你的身份登录——不需要知道密码，也不需要MFA验证。就像你进电影院时手上盖了一个荧光章，中途出去再进来只要亮出章就行。小偷如果能复制这个章，就能免费进场。
 
 **技术原理：**
@@ -152,7 +162,7 @@ graph TD
 
 2. **恶意浏览器扩展**
    - 日志来源：浏览器扩展管理
-   - 关注字段：请求cookies和`&lt;tabs&gt;`高级权限的扩展
+   - 关注字段：请求cookies和<tabs>高级权限的扩展
    - 异常特征：非官方扩展商店来源的扩展安装
 
 ### 监控建议
@@ -160,6 +170,10 @@ graph TD
 - 监控Web应用后端日志中的异常地理位置或IP的会话复用
 - 检测短时间内从不同IP使用同一会话标识
 - 使用WAF和CSP防御XSS攻击导致的Cookie泄露
+
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
 
 ## 检测建议
 
@@ -186,9 +200,6 @@ zeek -C -r capture.pcap http.log | grep -iE "Cookies|cookies.sqlite|.sqlite"
 # 监控Chrome Cookie文件的访问
 lsof | grep -i "Cookies"
 ```
-
-
-
 
 **用人话说：** 这条规则在监控Web会话Cookie是否被异常使用。会话Cookie是网站的'登录凭证'，正常情况下一个Cookie只会从一个IP地址使用。如果发现同一个Cookie突然从不同IP地址发起请求，那很可能是攻击者偷到了用户的Cookie，正在冒充合法用户访问网站。
 
@@ -289,15 +300,15 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1539](https://attack.mitre.org/techniques/T1539/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Microsoft - 2025数字防御报告](https://cdn-dynmedia-1.microsoft.com/is/content/microsoftcorp/microsoft/final/en-us/microsoft-brand/documents/Microsoft%20Digital%20Defense%20Report%202024) - 每天39,000次令牌攻击
 - [Push Security - 2024身份攻击分析](https://pushsecurity.com/blog/2024-identity-breaches) - 79%的Web应用入侵来自被盗凭证
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [OWASP - Session Hijacking Prevention](https://owasp.org/www-community/attacks/Session_hijacking_attack) - 会话劫持防御指南

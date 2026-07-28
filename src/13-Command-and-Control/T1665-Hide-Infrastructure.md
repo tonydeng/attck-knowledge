@@ -4,15 +4,36 @@
 
 就像特工把自己的老巢伪装成普通办公室——攻击者把C2服务器藏在CDN、云服务后面，让防御方找不到真实位置。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者通过前置服务器、CDN、云函数等隐藏真实C2服务器 |
+| 为什么危险？ | 封锁前置IP无效，真实C2服务器位置被隐藏，难以溯源和清除 |
+| 谁需要关心？ | 威胁狩猎团队、SOC分析师 |
+| 你的第一步防御 | 关联分析C2基础设施特征，识别前置和后端服务器关联 |
+| 如果只做一件事 | 监控与已知CDN/云服务关联的异常域名和基础设施模式 |
+
 ## 难度等级
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络协议基础（TCP/IP/DNS/HTTP）
+- [ ] C2通信模式
+- [ ] 加密通信基本原理
 
 ## 技术描述
 
 隐藏基础设施（Hide Infrastructure）是 MITRE ATT&CK 框架中命令与控制战术下的一种高级技术，编号为 T1665。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为C2只是'恶意软件发心跳包'——现代C2基础设施堪比小型互联网公司。攻击者使用CDN隐藏真实服务器、用Domain Fronting伪装流量目的地、借助合法云服务（如GitHub Issues、Slack API）作为通信通道。攻击者的C2流量与正常流量混杂在一起，传统IoC检测几乎无效。
 攻击者的C2服务器就像战场上的指挥部——如果被敌人发现位置，很快就会被端掉。所以攻击者费尽心思隐藏C2服务器：把C2服务部署在CDN后面（看起来像普通网站）、使用被攻破的合法服务器作为跳板、通过多层代理转发流量。防御者即使捕获到C2流量，看到的也是Cloudflare或Azure的IP地址，而不是攻击者的真实服务器。
 
 **技术原理：**
@@ -146,6 +167,10 @@ graph TD
 - 监控 CDN 域名的异常连接模式
 - 与威胁情报源同步已知的恶意CDN入口
 
+## 避坑指南
+
+SOC常见误区：只检测已知恶意域名和IP。
+
 ## 检测建议
 
 ### 网络层检测
@@ -161,6 +186,10 @@ graph TD
 ### Sigma规则示例
 
 **Sigma规则示例：**
+
+**用人话说：**C2检测关注通信行为特征而非IP黑名单——固定间隔心跳、非常规DNS查询、小数据包频繁发送比内容分析更有效。
+
+**用人话说：**C2检测关注通信行为特征而非IP黑名单——固定间隔心跳包、非常规DNS查询、小数据包频繁发送比内容分析更有效。
 ```yaml
 title: SNI与HTTP Host头不一致检测（域名前置）
 status: experimental
@@ -180,6 +209,30 @@ tags:
     - attack.t1665
     - attack.command_and_control
 ```
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1665
+status: experimental
+description: Detects potential T1665 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1665
+
 
 ## 缓解措施
 
@@ -231,11 +284,11 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1665](https://attack.mitre.org/techniques/T1665/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Praetorian - Google Domain Fronting (2025)](https://www.praetorian.com/blog/domain-fronting-is-dead-long-live-domain-fronting/)
 - [Viettel - Lotus Blossom Domain Fronting (2025)](https://blog.viettelcybersecurity.com/lotus-blossoms-new-attack-campaign-domain-fronting-and-abusing-centralized-domain-management-part-2/)

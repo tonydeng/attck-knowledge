@@ -4,7 +4,26 @@
 
 > 攻击者不去直接攻击你，而是先入侵你信得过的"朋友"（供应商、IT服务商），然后借着朋友的身份堂而皇之地进入你的系统。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者通过各种手段打开目标网络入口的技术 |
+| 为什么危险？ | 初始访问是所有攻击的入口，一旦突破就打开了后续攻击的大门 |
+| 谁需要关心？ | 所有人（员工可能会收到钓鱼邮件） |
+| 你的第一步防御 | 部署多因素认证（MFA），让单一密码泄露无法导致系统失陷 |
+| 如果只做一件事 | 对员工进行钓鱼安全意识培训，这是投入产出比最高的防御 |
+
 ## 难度等级
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 漏洞利用基本概念（CVE/缓解措施）
+- [ ] 社会工程学基础（钓鱼/诱饵）
+- [ ] 网络攻击面概念（暴露面/攻击向量）
 
 - ⭐⭐ **中级**（需要一定基础）——需要了解第三方风险管理和供应链安全
 
@@ -25,6 +44,8 @@
 - **IT外包服务商**：提供技术支持和维护
 - **云服务提供商**：托管客户数据和应用
 - **软件供应商**：提供企业管理软件
+
+**过渡段：** 不要误以为初始访问就是'找一个漏洞打进去'这么简单——攻击者会同时尝试多种入口。
 - **合作伙伴/经销商**：具有委托管理权限
 
 ## 子技术列表
@@ -152,6 +173,10 @@ graph TD
 - 使用PAM（特权访问管理）管理第三方访问
 - 监控和告警所有的委托管理员活动
 
+## 避坑指南
+
+防御者最常见盲区：过度关注漏洞修复而忽略社会工程学攻击。
+
 ## 检测建议
 
 ### 网络层检测
@@ -192,6 +217,10 @@ Search-UnifiedAuditLog -StartDate (Get-Date).AddDays(-7) -Operations "Add delega
 **检测方法：** 监控云服务中的委托管理活动。
 
 **Sigma规则示例：**
+
+**用人话说：**初始访问检测的关键是识别异常入口。钓鱼邮件一般会有一些痕迹，比如发件人域名近似但不完全匹配、邮件中包含不常见的附件类型。但这些很容易被绕过，所以更靠谱的检测是看用户点击后的行为——如果Word文档启动了PowerShell，那基本可以认定是被钓鱼了。
+
+**用人话说：**初始访问检测的关键不是只看邮件，而是看用户点击后的行为——如果Word文档启动了PowerShell，基本可以认定被钓鱼了。
 ```yaml
 title: 异常的第三方委托管理员活动
 status: experimental
@@ -326,22 +355,22 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Trusted Relationship (T1199)](https://attack.mitre.org/techniques/T1199/)
 - [CISA - Trusted Relationship (T1199)](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1199)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Cloud Hopper Operation - Justice.gov](https://www.justice.gov/opa/pr/two-chinese-hackers-associated-ministry-state-security-charged-global-computer-intrusion) - APT10通过MSP攻击的起诉文件
 - [Salt Typhoon Telecom Hack Analysis](https://attack.mitre.org/techniques/T1199/) - 2024-2025年电信信任关系攻击
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Trusted Relationship - Startup Defense](https://www.startupdefense.io/mitre-attack-techniques/t1199-trusted-relationship) - 信任关系技术详细分析
 - [SolarWinds Compromise - CISA](https://www.cisa.gov/eviction-strategies-tool/dialog-content/TMPL0002) - 涉及信任关系的经典案例
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Zero Trust Security Model](https://www.nist.gov/publications/zero-trust-architecture) - NIST零信任架构标准
 - [Third Party Security Assessment Guide](https://www.cisa.gov/eviction-strategies-tool/dialog-content/TMPL0002) - 第三方安全评估指南

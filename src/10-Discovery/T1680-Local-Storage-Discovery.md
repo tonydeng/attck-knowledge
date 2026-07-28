@@ -18,11 +18,21 @@
 
 - ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 本地存储发现（T1680）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 电脑通常有多个磁盘分区（C盘、D盘、E盘等），还有可能插着U盘、移动硬盘、网络映射驱动器。攻击者入侵后会查看所有存储设备：每个盘有多大、还剩多少空间、是什么类型的磁盘。主要目的是：找到存放数据的位置（特别是大容量数据盘）、判断哪些盘可以加密（勒索软件需要知道加密范围）、查找备份盘和USB设备（防止受害者通过外部设备恢复数据）。
 
 **技术原理：**
@@ -72,7 +82,7 @@ graph TD
 
 2. **查看卷详细信息**
    - 通俗描述：查看每个盘的详细信息和容量
-   - 技术细节：`fsutil volume list` 和 `fsutil volume diskfree &lt;drive&gt;:`
+   - 技术细节：`fsutil volume list` 和 `fsutil volume diskfree <drive>:`
    - 常用工具：fsutil.exe
 
 3. **识别驱动器类型**
@@ -174,6 +184,10 @@ graph TD
 - 监控 `diskpart` 和 `vssadmin` 的批量调用
 - 在EDR中配置基于命令序列的检测规则
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -214,6 +228,31 @@ level: low
 tags:
     - attack.t1680
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1680
+status: experimental
+description: Detects potential T1680 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1680
+
 
 ## 缓解措施
 
@@ -293,20 +332,20 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1680](https://attack.mitre.org/techniques/T1680/)
 - [Microsoft - wmic logicaldisk](https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-logicaldisk)
 - [Microsoft - fsutil](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/fsutil)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [MITRE - Ryuk](https://attack.mitre.org/software/S0446/)
 - [MITRE - LockBit](https://attack.mitre.org/software/S0372/)
 - [MITRE - BlackCat](https://attack.mitre.org/software/S0695/)
 - [MITRE - APT28](https://attack.mitre.org/groups/G0007/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [PowerShell Get-PSDrive](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-psdrive)
 - [Linux lsblk - List Block Devices](https://man7.org/linux/man-pages/man8/lsblk.8.html)

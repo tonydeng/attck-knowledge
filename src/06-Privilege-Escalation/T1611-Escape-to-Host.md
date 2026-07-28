@@ -4,15 +4,36 @@
 
 就像住在监狱的牢房里，但发现了一个通风管道可以从牢房"逃到"监狱管理员的办公室——攻击者从虚拟机、容器或应用沙箱中"逃逸"出来，获得底层宿主机或操作系统的控制权。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者从虚拟机、容器或应用沙箱中"逃逸"到底层宿主机，突破隔离边界获取更高权限 |
+| 为什么危险？ | 一旦逃逸成功，攻击者可控制宿主机及所有运行其上的虚拟机/容器，影响范围远超单个容器 |
+| 谁需要关心？ | 容器平台运维团队、云安全团队、虚拟化管理员 |
+| 你的第一步防御 | 禁止以特权模式运行容器(--privileged)、限制容器能力(cap_drop ALL)、及时更新容器运行时 |
+| 如果只做一件事 | 以非特权模式运行所有容器，并删除不必要的Linux capabilities |
+
 ## 难度等级
 
 ⭐⭐⭐ **高级** - 需要对虚拟化、容器化或应用程序沙箱底层技术有深入理解，通常需要利用零日漏洞或复杂的配置漏洞。
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 容器与虚拟化基础（Docker/Kubernetes/VM原理）
+- [ ] Linux namespaces与cgroups隔离机制
+- [ ] 容器运行时安全配置（capabilities/seccomp/AppArmor）
 
 ## 技术描述
 
 逃逸到宿主机是攻击者从隔离环境中突破到宿主系统的一类技术。常见的隔离环境包括虚拟机（VM）、容器（Docker/容器运行时）、应用程序沙箱（如 Chromium sandbox、Cloudflare Workers）等。
 
 **通俗解释：**
+
+**过渡段：** 不要以为容器就是'天然安全'的——容器的隔离依赖Linux namespaces和cgroups，但一旦容器以--privileged运行或被赋予过多capabilities，隔离边界就被打破。常见的逃逸路径包括：挂载宿主机文件系统(/)、访问Docker socket、利用内核漏洞(如dirty cow)、通过cgroup notify_on_release触发宿主机命令执行。
 想象一下，你在一个高度安保的"隔离室"里——这个房间的墙壁、门、窗户都是加固的（这是虚拟机或容器的安全隔离）。但攻击者发现：
 1. 通风管道连接到了管理员的办公室（利用虚拟化软件的漏洞）
 2. 墙上的某块砖是可以推动的（容器配置错误）
@@ -203,6 +224,10 @@ graph TD
 - 监控异常的 nsenter、mount、unshare 命令使用
 - 使用内核审计（auditd）跟踪 namespace 操作
 
+## 避坑指南
+
+红队新手常见错误：一上来就找内核漏洞提权。
+
 ## 检测建议
 
 ### 网络层检测
@@ -253,6 +278,31 @@ rules:
   priority: CRITICAL
   tags: [container, mitre_escape]
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**重点关注特权容器(--privileged)的创建、容器内访问Docker socket或宿主机文件系统(/etc、/proc/1/root)、容器内执行mount或nsenter命令、以及cgroup notify_on_release的异常写入。云原生环境下，Falco等运行时安全工具可检测这些行为。
+
+
+yaml
+title: Detected Suspicious Activity - T1611
+status: experimental
+description: Detects potential T1611 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1611
+
 
 ### Sigma规则示例
 
@@ -410,19 +460,19 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK T1611 - Escape to Host](https://attack.mitre.org/techniques/T1611/)
 - [MITRE ATT&CK T1611.002 - Container Escape](https://attack.mitre.org/techniques/T1611/002/)
 - [MITRE ATT&CK T1611.003 - Application Sandbox Escape](https://attack.mitre.org/techniques/T1611/003/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [NVD - CVE-2024-1086 Netfilter Escape](https://nvd.nist.gov/vuln/detail/CVE-2024-1086)
 - [VMware Security Advisory VMSA-2023-0019](https://www.vmware.com/security/advisories/VMSA-2023-0019.html)
 - [Black Hat 2024 - GHOSTTRACKER Cloud Escape](https://www.blackhat.com/us-24/briefings/schedule/)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Docker Security](https://docs.docker.com/engine/security/security/)
 - [Container Escape Techniques](https://www.crowdstrike.com/blog/container-escape-techniques/)

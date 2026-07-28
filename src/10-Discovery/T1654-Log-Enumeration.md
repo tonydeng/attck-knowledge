@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 日志枚举（T1654）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 系统和应用程序会记录详细的日志——谁登录了、运行了什么程序、访问了哪些文件。攻击者入侵后会读取这些日志来了解：管理员一般在什么时间工作（选择最佳攻击窗口）、安全团队有没有发现入侵迹象（评估被发现风险）、有哪些高权限用户最近登录过（横向移动目标）。就像小偷查看大楼的访客登记表，了解哪些房间有人、保安什么时候换班。
 
 **技术原理：**
@@ -174,6 +184,10 @@ graph TD
 - 监控Linux `/var/log/` 目录下日志文件的批量读取
 - 配置日志完整性监控防止日志被篡改
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -214,6 +228,31 @@ level: medium
 tags:
     - attack.t1654
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1654
+status: experimental
+description: Detects potential T1654 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1654
+
 
 ## 缓解措施
 
@@ -293,19 +332,19 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1654](https://attack.mitre.org/techniques/T1654/)
 - [Microsoft - wevtutil](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/wevtutil)
 - [Microsoft - Get-WinEvent](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.diagnostics/get-winevent)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [MITRE - APT41](https://attack.mitre.org/groups/G0096/)
 - [MITRE - Wizard Spider](https://attack.mitre.org/groups/G0102/)
 - [MITRE - APT29](https://attack.mitre.org/groups/G0143/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Windows Event Logging Best Practices](https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/plan/appendix-e--securing-event-logs)
 - [Sysinternals Sysmon](https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon)

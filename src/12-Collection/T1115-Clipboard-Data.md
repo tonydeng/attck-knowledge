@@ -18,11 +18,21 @@
 
 ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 文件系统与存储基础
+- [ ] 数据压缩与归档基本概念
+- [ ] 邮件系统与协作平台工作原理
+
 ## 技术描述
 
 剪贴板数据（T1115）是MITRE ATT&CK框架中收集战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要低估收集阶段的隐蔽性——攻击者收集数据时，不会一次性复制所有文件引起注意。而是像'精明的窃贼'一样：先确认最有价值的文件类型（.xlsx > .docx > 随机文件），然后用合法工具（如7zip、rar甚至是系统自带的compress-archive）打包，混在正常的网络流量中传输。
 你复制（Ctrl+C）一段文字时，它被临时保存在电脑的"剪贴板"中。攻击者的恶意软件可以随时读取剪贴板的内容——你复制的密码、银行卡号、加密货币钱包地址、机密文本，全部暴露无遗。更危险的是，有一种"剪贴板劫持"攻击：恶意软件（称为Clipper）检测到你复制了加密货币地址，会自动把地址替换成攻击者的地址，导致你转账时把钱打给了攻击者。
 
 **技术原理：**
@@ -167,6 +177,10 @@ graph TD
 - 监控进程对`GetClipboardData`、`OpenClipboard`等剪贴板API的调用
 - 配置PowerShell Script Block Logging检测剪贴板访问命令
 - 对剪贴板内容被替换的行为（特别是加密货币地址模式）进行告警
+
+## 避坑指南
+
+检测盲点：对合法压缩工具的滥用视而不见。
 
 ## 检测建议
 
@@ -330,17 +344,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1115](https://attack.mitre.org/techniques/T1115/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [MassJacker Malware Analysis - CyberArk 2025](https://www.cyberark.com/resources/threat-research-blog/captain-massjacker-sparrow-uncovering-the-malwares-buried-treasure)
 - [Lumma Stealer Analysis - Genians 2025](https://www.genians.co.kr/blog/threat_intelligence/lumma-infostealer)
 - [Clipboard Hijacking Explained - ChangeNOW](https://changenow.io/blog/crypto-copy-paste-risk)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Clipboard API文档 - Microsoft](https://docs.microsoft.com/en-us/windows/win32/dataxchg/clipboard)
 - [.NET Clipboard Class](https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.clipboard)

@@ -73,8 +73,8 @@ graph LR
 | [T1611](./T1611-Escape-to-Host.md) | 逃逸到主机 | ⭐⭐⭐ | 4 | 从虚拟机/容器里"越狱"到宿主机 | ✅ 已完成 |
 | [T1546](./T1546-Event-Triggered-Execution.md) | 事件触发执行 | ⭐⭐⭐ | 12 | 设置一个"定时炸弹"，特定事件发生时自动执行 | ✅ 已完成 |
 | [T1068](./T1068-Exploitation-for-Privilege-Escalation.md) | 利用漏洞提升权限 | ⭐⭐⭐ | 0 | 利用系统漏洞直接获取最高权限 | ✅ 已完成 |
-| [T1055](./T1055-Process-Injection.md) | 进程注入 | ⭐⭐⭐ | 14 | 把恶意代码"寄生"在合法的高权限进程里 | ✅ 已完成 |
-| [T1053](./T1053-Scheduled-Task-Job.md) | 计划任务/作业 | ⭐ | 7 | 利用系统的"定时闹钟"功能执行恶意代码 | ✅ 已完成 |
+| [T1055](./T1055-Process-Injection.md) | 进程注入 | ⭐⭐⭐ | 13 | 把恶意代码"寄生"在合法的高权限进程里 | ✅ 已完成 |
+| [T1053](./T1053-Scheduled-Task-Job.md) | 计划任务/作业 | ⭐ | 6 | 利用系统的"定时闹钟"功能执行恶意代码 | ✅ 已完成 |
 | [T1078](./T1078-Valid-Accounts.md) | 有效账户 | ⭐ | 4 | 直接用别人的账号密码登录高权限账户 | ✅ 已完成 |
 
 
@@ -83,30 +83,30 @@ graph LR
 
 | 子技术ID | 名称 | 难度 | 一句话理解 | 文档状态 |
 |----------|------|:----:|-----------|:--------:|
-| [T1037.001](./T1037/T1037.001-Logon Script (Windows)-登录脚本 (Windows).md) | 登录脚本 (Windows) | ⭐⭐ | 在 Windows 组策略或注册表中的登录脚本里塞入恶意命令 | ✅ 已完成 |
-| [T1037.002](./T1037/T1037.002-Login Hook (macOS)-登录钩子 (macOS).md) | 登录钩子 (macOS) | ⭐⭐ | 利用 macOS 的 Login Hook 机制在用户登录时执行恶意代码 | ✅ 已完成 |
-| [T1037.003](./T1037/T1037.003-Network Logon Script (Windows)-网络登录脚本 (Windows).md) | 网络登录脚本 (Windows) | ⭐⭐ | 修改域控制器上分发的网络登录脚本，影响所有域用户 | ✅ 已完成 |
-| [T1037.004](./T1037/T1037.004-RC Scripts (Linux-macOS)-RC 脚本 (Linux-macOS).md) | RC 脚本 (Linux/macOS) | ⭐⭐ | 在 Linux 的 `/etc/rc.local` 等启动脚本中植入恶意命令 | ✅ 已完成 |
-| [T1037.005](./T1037/T1037.005-Startup Item (macOS)-启动项 (macOS).md) | 启动项 (macOS) | ⭐⭐ | 在 macOS 的启动项目录中放置恶意程序 | ✅ 已完成 |
-| [T1053.001](./T1053/T1053.001-At-At (Windows).md) | At (Windows) | ⭐ | 使用 Windows 的 at 命令创建一次性定时任务（已弃用但可能仍可用） | ✅ 已完成 |
-| [T1053.002](./T1053/T1053.002-At-At (Linux).md) | At (Linux) | ⭐ | 使用 Linux 的 at 命令创建一次性定时任务 | ✅ 已完成 |
-| [T1053.003](./T1053/T1053.003-Cron-Cron.md) | Cron | ⭐ | 利用 Linux/macOS 的 cron 定时执行恶意命令 | ✅ 已完成 |
-| [T1053.005](./T1053/T1053.005-计划任务-计划任务 (Windows).md) | 计划任务 (Windows) | ⭐ | 使用 Windows 任务计划程序创建以 SYSTEM 权限运行的任务 | ✅ 已完成 |
-| [T1053.006](./T1053/T1053.006-Systemd-定时器.md) | Systemd 定时器 | ⭐ | 利用 Linux systemd 的定时器功能执行恶意代码 | ✅ 已完成 |
+| [T1037.001](./T1037/T1037.001-Logon-Script-Windows.md) | 登录脚本 (Windows) | ⭐⭐ | 在 Windows 组策略或注册表中的登录脚本里塞入恶意命令 | ✅ 已完成 |
+| [T1037.002](./T1037/T1037.002-Login-Hook-macOS.md) | 登录钩子 (macOS) | ⭐⭐ | 利用 macOS 的 Login Hook 机制在用户登录时执行恶意代码 | ✅ 已完成 |
+| [T1037.003](./T1037/T1037.003-Network-Logon-Script-Windows.md) | 网络登录脚本 (Windows) | ⭐⭐ | 修改域控制器上分发的网络登录脚本，影响所有域用户 | ✅ 已完成 |
+| [T1037.004](./T1037/T1037.004-RC-Scripts-Linux-macOS.md) | RC 脚本 (Linux/macOS) | ⭐⭐ | 在 Linux 的 `/etc/rc.local` 等启动脚本中植入恶意命令 | ✅ 已完成 |
+| [T1037.005](./T1037/T1037.005-Startup-Item-macOS.md) | 启动项 (macOS) | ⭐⭐ | 在 macOS 的启动项目录中放置恶意程序 | ✅ 已完成 |
+| [T1053.001](./T1053/T1053.001-At-Windows.md) | At (Windows) | ⭐ | 使用 Windows 的 at 命令创建一次性定时任务（已弃用但可能仍可用） | ✅ 已完成 |
+| [T1053.002](./T1053/T1053.002-At-Linux.md) | At (Linux) | ⭐ | 使用 Linux 的 at 命令创建一次性定时任务 | ✅ 已完成 |
+| [T1053.003](./T1053/T1053.003-Cron.md) | Cron | ⭐ | 利用 Linux/macOS 的 cron 定时执行恶意命令 | ✅ 已完成 |
+| [T1053.005](./T1053/T1053.005-Scheduled-Task.md) | 计划任务 (Windows) | ⭐ | 使用 Windows 任务计划程序创建以 SYSTEM 权限运行的任务 | ✅ 已完成 |
+| [T1053.006](./T1053/T1053.006-Systemd-Timers.md) | Systemd 定时器 | ⭐ | 利用 Linux systemd 的定时器功能执行恶意代码 | ✅ 已完成 |
 | [T1053.007](./T1053/T1053.007-Container-Orchestration-Job.md) | 容器编排作业 | ⭐ | 在 Kubernetes 中创建恶意 CronJob 以高权限运行容器 | ✅ 已完成 |
 | [T1055.001](./T1055/T1055.001-DLL-Injection.md) | DLL 注入 | ⭐⭐⭐ | 让系统进程加载恶意的动态链接库 | ✅ 已完成 |
 | [T1055.002](./T1055/T1055.002-PE-Injection.md) | PE 注入 | ⭐⭐⭐ | 直接把完整的恶意程序塞进目标进程内存 | ✅ 已完成 |
 | [T1055.003](./T1055/T1055.003-Thread-Execution-Hijacking.md) | 线程执行劫持 | ⭐⭐⭐ | 劫持目标进程的线程，让它执行恶意代码 | ✅ 已完成 |
-| [T1055.004](./T1055/T1055.004-Asynchronous Procedure Call-异步过程调用 (APC).md) | 异步过程调用 (APC) | ⭐⭐⭐ | 利用系统的"排队执行"机制注入代码 | ✅ 已完成 |
-| [T1055.005](./T1055/T1055.005-Thread Local Storage-线程本地存储 (TLS).md) | 线程本地存储 (TLS) | ⭐⭐⭐ | 利用线程存储回调机制执行恶意代码 | ✅ 已完成 |
+| [T1055.004](./T1055/T1055.004-Asynchronous-Procedure-Call.md) | 异步过程调用 (APC) | ⭐⭐⭐ | 利用系统的"排队执行"机制注入代码 | ✅ 已完成 |
+| [T1055.005](./T1055/T1055.005-Thread-Local-Storage.md) | 线程本地存储 (TLS) | ⭐⭐⭐ | 利用线程存储回调机制执行恶意代码 | ✅ 已完成 |
 | [T1055.007](./T1055/T1055.007-Ptrace-System-Calls.md) | Ptrace 系统调用 | ⭐⭐⭐ | Linux 上的进程调试接口，被滥用来注入代码 | ✅ 已完成 |
 | [T1055.008](./T1055/T1055.008-VDSO-Hijacking.md) | VDSO 劫持 | ⭐⭐⭐ | 覆盖 Linux 的虚拟动态共享对象 | ✅ 已完成 |
 | [T1055.009](./T1055/T1055.009-Proc-Memory.md) | Proc 内存 | ⭐⭐⭐ | 通过 /proc 文件系统直接修改进程内存 | ✅ 已完成 |
 | [T1055.010](./T1055/T1055.010-Process-Hollowing.md) | 进程空心化 | ⭐⭐⭐ | 创建合法进程然后替换其内存内容 | ✅ 已完成 |
 | [T1055.011](./T1055/T1055.011-Extra-Window-Memory-Injection.md) | 额外窗口内存注入 | ⭐⭐⭐ | 利用 Windows 窗口机制存储恶意代码 | ✅ 已完成 |
 | [T1055.012](./T1055/T1055.012-Process-Herpaderping.md) | 进程重影 | ⭐⭐⭐ | 利用 NTFS 事务功能创建"隐形"进程 | ✅ 已完成 |
-| [T1055.013](./T1055/T1055.013-ProcMem-Linux-ProcMem-Linux.md) | ProcMem Linux | ⭐⭐⭐ | Linux 上通过 /proc/mem 注入代码 | ✅ 已完成 |
-| [T1055.014](./T1055/T1055.014-VDSO-Linux-VDSO-Linux.md) | VDSO Linux | ⭐⭐⭐ | 覆盖 Linux VDSO 页面执行恶意代码 | ✅ 已完成 |
+| [T1055.013](./T1055/T1055.013-ProcMem-Linux.md) | ProcMem Linux | ⭐⭐⭐ | Linux 上通过 /proc/mem 注入代码 | ✅ 已完成 |
+| [T1055.014](./T1055/T1055.014-VDSO-Linux.md) | VDSO Linux | ⭐⭐⭐ | 覆盖 Linux VDSO 页面执行恶意代码 | ✅ 已完成 |
 | [T1078.001](./T1078/T1078.001-Default-Accounts.md) | 默认账户 | ⭐ | 使用设备或软件的出厂默认用户名和密码（如 admin/admin） | ✅ 已完成 |
 | [T1078.002](./T1078/T1078.002-Domain-Account.md) | 域账户 | ⭐ | 使用 Active Directory 域中的账户凭据登录域资源 | ✅ 已完成 |
 | [T1078.003](./T1078/T1078.003-Local-Account.md) | 本地账户 | ⭐ | 使用操作系统本地账户的凭据登录计算机 | ✅ 已完成 |
@@ -118,29 +118,29 @@ graph LR
 | [T1098.005](./T1098/T1098.005-Device-Registration.md) | 设备注册 | ⭐⭐ | 在身份提供商中注册受控设备 | ✅ 已完成 |
 | [T1098.006](./T1098/T1098.006-Additional-Container-Cluster-Roles.md) | 额外容器集群角色 | ⭐⭐ | 为 Kubernetes 服务账户绑定高权限角色 | ✅ 已完成 |
 | [T1098.007](./T1098/T1098.007-Additional-Local-or-Domain-Groups.md) | 额外本地或域组 | ⭐⭐ | 将用户添加到本地管理员或域管理员组 | ✅ 已完成 |
-| [T1134.001](./T1134/T1134.001-Token-Impersonation-Theft-令牌冒充.md) | 令牌冒充/盗取 | ⭐⭐⭐ | 从高权限进程"偷"令牌来冒充管理员 | ✅ 已完成 |
+| [T1134.001](./T1134/T1134.001-Token-Impersonation-Theft.md) | 令牌冒充/盗取 | ⭐⭐⭐ | 从高权限进程"偷"令牌来冒充管理员 | ✅ 已完成 |
 | [T1134.002](./T1134/T1134.002-Create-Process-with-Token.md) | 使用令牌创建进程 | ⭐⭐⭐ | 用偷来的令牌启动新进程，新进程也有高权限 | ✅ 已完成 |
 | [T1134.003](./T1134/T1134.003-Make-and-Impersonate-Token.md) | 制作并冒充令牌 | ⭐⭐⭐ | 自己伪造一个高权限令牌 | ✅ 已完成 |
 | [T1134.004](./T1134/T1134.004-Parent-PID-Spoofing.md) | 父进程ID欺骗 | ⭐⭐⭐ | 伪装进程的"父进程"，让系统以为是合法程序启动的 | ✅ 已完成 |
-| [T1134.005](./T1134/T1134.005-SID-History-Injection-SID.md) | SID-History 注入 | ⭐⭐⭐ | 在域中注入虚假的历史身份信息 | ✅ 已完成 |
+| [T1134.005](./T1134/T1134.005-SID-History-Injection.md) | SID-History 注入 | ⭐⭐⭐ | 在域中注入虚假的历史身份信息 | ✅ 已完成 |
 | [T1484.001](./T1484/T1484.001-Group-Policy-Modification.md) | 组策略修改 | ⭐⭐⭐ | 修改 Windows 域的 GPO，影响域内所有计算机 | ✅ 已完成 |
 | [T1484.002](./T1484/T1484.002-Trust-Modification.md) | 信任修改 | ⭐⭐⭐ | 修改 AD 信任关系或联合身份验证配置，伪造身份令牌 | ✅ 已完成 |
 | [T1484.003](./T1484/T1484.003-Cloud-Policy-Modification.md) | 云策略修改 | ⭐⭐⭐ | 修改 Azure AD/Office 365 的条件访问和安全策略 | ✅ 已完成 |
 | [T1484.004](./T1484/T1484.004-Cloud-Implicit-Trust-Modification.md) | 云隐式信任修改 | ⭐⭐⭐ | 修改云环境中的隐式信任关系 | ✅ 已完成 |
 | [T1543.001](./T1543/T1543.001-Windows-Service.md) | Windows 服务 | ⭐⭐ | 创建或修改 Windows 服务，使其以 SYSTEM 权限自动运行 | ✅ 已完成 |
 | [T1543.002](./T1543/T1543.002-System-Daemon.md) | 系统守护进程 | ⭐⭐ | 在 Linux/Mac 上创建或修改系统守护进程（systemd/launchd） | ✅ 已完成 |
-| [T1543.003](./T1543/T1543.003-Windows Service (Alternative)-Windows 服务（另一视角）.md) | Windows 服务（另一视角） | ⭐⭐ | IOC 视野下关注的 Windows 服务异常行为 | ✅ 已完成 |
-| [T1543.004](./T1543/T1543.004-launchd-launchd.md) | launchd | ⭐⭐ | 在 macOS 上创建或修改 launchd 守护进程或代理 | ✅ 已完成 |
+| [T1543.003](./T1543/T1543.003-Windows-Service-Alternative.md) | Windows 服务（另一视角） | ⭐⭐ | IOC 视野下关注的 Windows 服务异常行为 | ✅ 已完成 |
+| [T1543.004](./T1543/T1543.004-launchd.md) | launchd | ⭐⭐ | 在 macOS 上创建或修改 launchd 守护进程或代理 | ✅ 已完成 |
 | [T1546.001](./T1546/T1546.001-Change-Default-File-Association.md) | 更改默认文件关联 | ⭐⭐ | 改修文件类型默认打开程序，点击.tx t文件变成启动恶意软件 | ✅ 已完成 |
 | [T1546.002](./T1546/T1546.002-Screensaver.md) | 屏幕保护程序 | ⭐⭐ | 设置恶意程序为屏保程序，屏幕锁定时触发 | ✅ 已完成 |
 | [T1546.003](./T1546/T1546.003-WMI-Event-Subscription.md) | Windows 管理规范事件订阅 | ⭐⭐ | 注册 WMI 事件，系统条件满足时触发恶意脚本 | ✅ 已完成 |
-| [T1546.004](./T1546/T1546.004-bash_profile-and-.bashrc.md) | .bash_profile 和 .bashrc | ⭐⭐ | 修改 Linux 用户的 shell 配置文件，登录时触发 | ✅ 已完成 |
+| [T1546.004](./T1546/T1546.004-bash-profile-and-bashrc.md) | .bash_profile 和 .bashrc | ⭐⭐ | 修改 Linux 用户的 shell 配置文件，登录时触发 | ✅ 已完成 |
 | [T1546.005](./T1546/T1546.005-Application-Initialization.md) | 应用程序初始化 | ⭐⭐ | 修改 DLL 劫持配置，程序启动时加载恶意 DLL | ✅ 已完成 |
 | [T1546.006](./T1546/T1546.006-Accessibility-Features.md) | 辅助功能 | ⭐⭐ | 替换登录界面的辅助功能程序（如放大镜），在登录前以 SYSTEM 运行 | ✅ 已完成 |
 | [T1546.007](./T1546/T1546.007-Netsh-Helper-DLL.md) | Netsh 帮助程序 DLL | ⭐⭐ | 通过 netsh 加载恶意 DLL，在管理员上下文中执行 | ✅ 已完成 |
 | [T1546.008](./T1546/T1546.008-Accessibility-Features.md) | 访问功能 | ⭐⭐ | 修改登录界面的访问功能，类似辅助功能 | ✅ 已完成 |
-| [T1546.009](./T1546/T1546.009-AppCert-DLL-AppCert-DLL.md) | AppCert DLL | ⭐⭐ | 通过 AppCert DLL 注册，所有调用 CreateProcess 的进程都加载恶意 DLL | ✅ 已完成 |
-| [T1546.010](./T1546/T1546.010-AppInit-DLL-AppInit-DLL.md) | AppInit DLL | ⭐⭐ | 通过 AppInit DLL 注入，所有加载 user32.dll 的进程加载恶意 DLL | ✅ 已完成 |
+| [T1546.009](./T1546/T1546.009-AppCert-DLL.md) | AppCert DLL | ⭐⭐ | 通过 AppCert DLL 注册，所有调用 CreateProcess 的进程都加载恶意 DLL | ✅ 已完成 |
+| [T1546.010](./T1546/T1546.010-AppInit-DLL.md) | AppInit DLL | ⭐⭐ | 通过 AppInit DLL 注入，所有加载 user32.dll 的进程加载恶意 DLL | ✅ 已完成 |
 | [T1546.011](./T1546/T1546.011-Application-Shutdown.md) | 应用程序关闭 | ⭐⭐ | 设置程序退出时的自动执行逻辑 | ✅ 已完成 |
 | [T1546.012](./T1546/T1546.012-Security-Support-Provider.md) | 安全支持提供器 | ⭐⭐ | 注册 SSP 在 LSASS 启动后自动加载，监控所有认证事件 | ✅ 已完成 |
 | [T1547.001](./T1547/T1547.001-Registry-Auto-start-Entry.md) | 注册表自启项 | ⭐ | 在注册表 Run/RunOnce 中添加启动项，最经典的自动启动方法 | ✅ 已完成 |
@@ -164,13 +164,13 @@ graph LR
 | [T1611.001](./T1611/T1611.001-Virtual-Machine-Escape.md) | 虚拟机逃逸 | ⭐⭐⭐ | 从客户虚拟机突破到虚拟机管理程序或宿主机 | ✅ 已完成 |
 | [T1611.002](./T1611/T1611.002-Container-Escape.md) | 容器逃逸 | ⭐⭐⭐ | 从 Docker/容器运行时突破到宿主机 | ✅ 已完成 |
 | [T1611.003](./T1611/T1611.003-Application-Sandbox-Escape.md) | 应用程序沙箱逃逸 | ⭐⭐⭐ | 从浏览器或应用程序沙箱中逃逸到操作系统 | ✅ 已完成 |
-| [T1611.004](./T1611/T1611.004-Hardware-Peripheral-Escape-硬件.md) | 硬件/外设隔离逃逸 | ⭐⭐⭐ | 利用 GPU、USB、网络设备等硬件虚拟化漏洞逃逸 | ✅ 已完成 |
+| [T1611.004](./T1611/T1611.004-Hardware-Peripheral-Escape.md) | 硬件/外设隔离逃逸 | ⭐⭐⭐ | 利用 GPU、USB、网络设备等硬件虚拟化漏洞逃逸 | ✅ 已完成 |
 
 ### 统计信息
 
 - **技术总数**：13 个
-- **子技术总数**：82 个
-- **已完成文档**：82 个
+- **子技术总数**：83 个
+- **已完成文档**：96 个（13 父技术 + 83 子技术）
 - **进行中文档**：0 个
 - **待编写文档**：0 个
 
@@ -257,6 +257,14 @@ graph LR
 - [LinPEAS](https://github.com/carlospolop/PEASS-ng) - Linux 提权辅助枚举脚本
 - [Metasploit](https://www.metasploit.com/) - 漏洞利用框架，包含大量提权模块
 
+## 速查卡
+
+- **常用技术**：[T1068](T1068-Exploitation-for-Privilege-Escalation.md)（漏洞利用提权——如PrintNightmare）、[T1055](T1055-Process-Injection.md)（进程注入）、[T1548](T1548-Abuse-Elevation-Control-Mechanism.md)（UAC绕过）、[T1134](T1134-Access-Token-Manipulation.md)（令牌窃取/模拟）
+- **关键检测信号**：系统漏洞利用特征（CVE对应签名）、进程注入行为（OpenProcess+WriteProcessMemory）、UAC绕过事件（Event ID 4688）
+- **攻击者常用工具**：WinPEAS/LinPEAS（提权枚举）、Metasploit（getsystem）、Mimikatz、PowerUp、BloodHound
+- **防御要点**：及时修补已知提权漏洞（关注CISA KEV）、启用LSA保护、配置Windows Defender Credential Guard、最小权限原则
+- **蓝队关注点**：提权往往伴随异常进程创建——监控"非交互式登录"获得SYSTEM权限的进程
+
 ---
 
-> **版本**: v2.0 | **更新**: 2026-06-10 | **模板**: 战术README v2.0
+> **版本**: v19.1 | **更新**: 2026-07-28 | **模板**: 战术README v3.1

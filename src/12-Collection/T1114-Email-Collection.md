@@ -18,11 +18,21 @@
 
 ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 文件系统与存储基础
+- [ ] 数据压缩与归档基本概念
+- [ ] 邮件系统与协作平台工作原理
+
 ## 技术描述
 
 邮件收集（T1114）是MITRE ATT&CK框架中收集战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要低估收集阶段的隐蔽性——攻击者收集数据时，不会一次性复制所有文件引起注意。而是像'精明的窃贼'一样：先确认最有价值的文件类型（.xlsx > .docx > 随机文件），然后用合法工具（如7zip、rar甚至是系统自带的compress-archive）打包，混在正常的网络流量中传输。
 电子邮件就像你的"数字信箱"——工作往来、合同文件、系统通知、密码重置邮件，全都在里面。攻击者一旦获得了你邮箱的访问权限（通过窃取密码或会话令牌），就可以像你一样登录邮箱，把收件箱里的邮件全部下载走。更隐蔽的是，他们还可以设置"自动转发"规则，把你的新邮件自动转发到攻击者的邮箱，而你完全察觉不到。
 
 **技术原理：**
@@ -185,6 +195,10 @@ graph TD
 - 监控邮件转发规则到外部域名的创建和修改事件
 - 使用条件访问策略（Conditional Access）对远程邮件访问要求MFA
 - 在SIEM中建立用户邮件行为基线，标记异常的大量邮件下载
+
+## 避坑指南
+
+检测盲点：对合法压缩工具的滥用视而不见。
 
 ## 检测建议
 
@@ -406,7 +420,7 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1114](https://attack.mitre.org/techniques/T1114/)
 - [MITRE ATT&CK - T1114.001](https://attack.mitre.org/techniques/T1114/001/)
@@ -414,14 +428,14 @@ tags:
 - [MITRE ATT&CK - T1114.003](https://attack.mitre.org/techniques/T1114/003/)
 - [MITRE ATT&CK - T1114.004](https://attack.mitre.org/techniques/T1114/004/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Token Tactics - Microsoft Security](https://www.microsoft.com/security/blog/2022/11/16/token-tactics-how-to-prevent-detect-and-respond-to-cloud-token-theft/)
 - [Storm-2372 Device Code Phishing - Microsoft 2025](https://www.microsoft.com/en-us/security/blog/2025/02/13/storm-2372-conducts-device-code-phishing-campaign/)
 - [Kimsuky Email Collection - Volexity](https://www.volexity.com/blog/2021/08/23/kimsuky-abuses-browsers-compromises-think-tanks/)
 - [EvilTokens PhaaS - Sekoia 2026](https://blog.sekoia.io/new-widespread-eviltokens-kit-device-code-phishing-as-a-service-part-1/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Microsoft Graph PowerShell SDK](https://learn.microsoft.com/en-us/powershell/microsoftgraph/)
 - [IMAP协议说明](https://tools.ietf.org/html/rfc3501)

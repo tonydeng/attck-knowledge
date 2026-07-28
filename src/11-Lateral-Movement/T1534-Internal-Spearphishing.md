@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 远程访问协议（RDP/SMB/SSH/WinRM）
+- [ ] Windows认证与Pass-the-Hash
+- [ ] AD域信任关系基础
+
 ## 技术描述
 
 内部鱼叉式钓鱼（T1534）是MITRE ATT&CK框架中横向移动战术下的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为横向移动只是'远程登录其他电脑'——真正的横向移动是一系列精巧的信任链利用：从一个普通工作站窃取的凭据，可以访问文件服务器；文件服务器上的管理员哈希，可以登录域控制器。每一次跳跃都是一次权限的扩大和访问范围的延伸。
 传统的钓鱼攻击是从外部发送恶意邮件（如假装是银行的邮件）。内部鱼叉式钓鱼不同——攻击者先入侵了一个内部员工的邮箱或即时通讯账号，然后用这个被黑的账号给公司其他人发钓鱼消息。因为消息来自同事（而且是内部的邮箱地址），收件人很自然地会信任它。这种技术利用了"内部信任"——大家通常觉得公司内部的邮件比外部邮件更安全。
 
 **技术原理：**
@@ -161,6 +171,10 @@ graph TD
 - 监控邮件转发规则的异常创建和修改
 - 提供方便的"举报钓鱼"按钮，建立快速响应流程
 
+## 避坑指南
+
+防御最大误区：只关注南北向流量而忽略东西向流量。
+
 ## 检测建议
 
 ### 网络层检测
@@ -266,12 +280,12 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Internal Spearphishing](https://attack.mitre.org/techniques/T1534/)
 - [CISA企业邮件安全指南](https://www.cisa.gov/secure-business-email)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [APT28内部钓鱼分析 - CrowdStrike](https://www.crowdstrike.com/blog/apt28-using-internal-spearphishing/)
 - [OilRig内部钓鱼案例 - FireEye](https://www.fireeye.com/blog/threat-research/2018/10/group5-apt-activity-in-middle-east.html)

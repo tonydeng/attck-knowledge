@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 权限组发现（T1069）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 在公司里，IT管理员会给不同的人分配不同的权限——财务可以看账本、人事可以看工资、IT可以修电脑。攻击者入侵后，会像翻看公司的组织架构图一样，查看系统上有哪些安全组、每个组有哪些成员，从中找到最关键的管理员组。
 
 **技术原理：**
@@ -180,6 +190,10 @@ graph TD
 - 监控对Domain Admins等敏感组的枚举
 - 使用AD审计策略记录LDAP查询
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -215,6 +229,40 @@ detection:
     condition: selection
 level: high
 tags:
+    - attack.t1069
+```
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：** 这条规则在监控Windows安全事件日志中是否有人触发本地组和域组的成员枚举事件。事件ID 4799在有人查询安全组成员时自动产生，是组枚举行为的直接证据。重点关注非管理账户在非工作时间查询高权限组（如Domain Admins、Enterprise Admins）的行为。
+
+
+```yaml
+title: 检测权限组枚举 - EID 4799
+status: experimental
+description: 检测Windows安全组成员枚举行为（本地组和域组）
+logsource:
+    product: windows
+    service: security
+detection:
+    selection_event:
+        EventID: 4799
+    selection_group:
+        GroupName|contains:
+            - 'Administrators'
+            - 'Domain Admins'
+            - 'Enterprise Admins'
+            - 'Remote Desktop Users'
+            - 'Remote Management Users'
+    filter_system:
+        SubjectUserName|endswith: '$'
+    condition: selection_event and selection_group and not filter_system
+level: high
+tags:
+    - attack.discovery
     - attack.t1069
 ```
 
@@ -287,18 +335,18 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1069](https://attack.mitre.org/techniques/T1069/)
 - [Microsoft - Net Group](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/net-group)
 - [Microsoft - Net Localgroup](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/net-localgroup)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Trend Micro - The Gentlemen 2025](https://www.trendmicro.com/en/research/25/i/unmasking-the-gentlemen-ransomware.html)
 - [Rapid7 - MuddyWater 2026](https://www.rapid7.com/blog/post/tr-muddying-tracks-state-sponsored-shadow-behind-chaos-ransomware/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [BloodHound](https://github.com/BloodHoundAD/BloodHound)
 - [PowerView](https://github.com/PowerShellMafia/PowerSploit)

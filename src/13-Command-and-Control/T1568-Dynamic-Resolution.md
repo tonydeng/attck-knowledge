@@ -4,15 +4,36 @@
 
 就像打地鼠游戏——攻击者的C2地址不断变化，你刚封了一个，它又从另一个地方冒出来。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者使用Fast Flux DNS、DGA域名生成算法等动态解析技术隐藏C2服务器 |
+| 为什么危险？ | 域名IP频繁变化，封锁IP无效，DGA域名更难以预测 |
+| 谁需要关心？ | 网络安全团队、DNS管理员 |
+| 你的第一步防御 | 部署DNS安全网关，过滤已知DGA域名和Fast Flux网络 |
+| 如果只做一件事 | 监控DNS查询中大量NXDOMAIN响应（DGA特征）和短TTL记录 |
+
 ## 难度等级
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络协议基础（TCP/IP/DNS/HTTP）
+- [ ] C2通信模式
+- [ ] 加密通信基本原理
 
 ## 技术描述
 
 动态解析（Dynamic Resolution）是 MITRE ATT&CK 框架中命令与控制战术下的一种高级技术，编号为 T1568。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为C2只是'恶意软件发心跳包'——现代C2基础设施堪比小型互联网公司。攻击者使用CDN隐藏真实服务器、用Domain Fronting伪装流量目的地、借助合法云服务（如GitHub Issues、Slack API）作为通信通道。攻击者的C2流量与正常流量混杂在一起，传统IoC检测几乎无效。
 传统C2使用固定的IP地址或域名，安全厂商发现后可以直接封掉。动态解析让C2地址像变色龙一样不断变化——一小时内换几十个IP，一天生成几百个域名。安全团队刚把当前地址加入黑名单，攻击者已经换到了下一个。这种"动态"特性使基于静态黑名单的防御策略几乎失效。
 
 **技术原理：**
@@ -179,6 +200,10 @@ graph TD
 - 使用机器学习分析 DNS 查询模式
 - 建立组织 DNS 流量基线，标记新域名的访问
 
+## 避坑指南
+
+SOC常见误区：只检测已知恶意域名和IP。
+
 ## 检测建议
 
 ### 网络层检测
@@ -215,6 +240,35 @@ level: medium
 tags:
     - attack.t1568
 ```
+
+
+**用人话说：**C2检测关注通信行为特征而非IP黑名单——固定间隔心跳、非常规DNS查询、小数据包频繁发送比内容分析更有效。
+
+**用人话说：**C2检测关注通信行为特征而非IP黑名单——固定间隔心跳包、非常规DNS查询、小数据包频繁发送比内容分析更有效。
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1568
+status: experimental
+description: Detects potential T1568 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1568
+
 
 ## 缓解措施
 
@@ -276,11 +330,11 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1568](https://attack.mitre.org/techniques/T1568/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Skitnet/Cactus 勒索软件分析(2025)](https://cybersecsentinel.com/skitnet-malware-c2-via-dns-and-rust-loader-threatens-enterprise-networks/)
 - [Unit 42 - DNS Tunneling 新活动(2024)](https://unit42.paloaltonetworks.com/detecting-dns-tunneling-campaigns/)

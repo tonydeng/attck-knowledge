@@ -1,0 +1,58 @@
+[
+  {
+    "tid": "T1050",
+    "local_name": "New Service",
+    "local_file": "T1050-New-Service.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1108",
+    "local_name": "Redundant Access",
+    "local_file": "T1108-Redundant-Access.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1574",
+    "local_name": "Hijack Execution Flow",
+    "local_file": "T1574-Hijack-Execution-Flow.md",
+    "_tactic_id": "TA0003",
+    "_tactic_dir": "05-Persistence"
+  },
+  {
+    "tid": "T1141",
+    "local_name": "Input Prompt",
+    "local_file": "T1141-Input-Prompt.md",
+    "_tactic_id": "TA0006",
+    "_tactic_dir": "09-Credential-Access"
+  },
+  {
+    "tid": "T1503",
+    "local_name": "Credentials from Web Browsers",
+    "local_file": "T1503-Credentials-from-Web-Browsers.md",
+    "_tactic_id": "TA0006",
+    "_tactic_dir": "09-Credential-Access"
+  },
+  {
+    "tid": "T1550",
+    "local_name": "Use Alternate Authentication Material",
+    "local_file": "T1550-Use-Alternate-Authentication-Material.md",
+    "_tactic_id": "TA0006",
+    "_tactic_dir": "09-Credential-Access"
+  },
+  {
+    "tid": "T1051",
+    "local_name": "Shared Webroot",
+    "local_file": "T1051-Shared-Webroot.md",
+    "_tactic_id": "TA0008",
+    "_tactic_dir": "11-Lateral-Movement"
+  },
+  {
+    "tid": "T1207",
+    "local_name": "Rogue Domain Controller",
+    "local_file": "T1207-Rogue-Domain-Controller.md",
+    "_tactic_id": "TA0008",
+    "_tactic_dir": "11-Lateral-Movement"
+  }
+]

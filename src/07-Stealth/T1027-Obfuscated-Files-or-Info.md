@@ -18,12 +18,23 @@
 
 ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 安全软件工作原理（EDR/AV/SIEM基础）
+- [ ] 进程注入与API Hook基本概念
+- [ ] 编码/加密/混淆基础知识
+
 ## 技术描述
 
 混淆文件或信息（T1027）是MITRE ATT&CK框架中隐蔽战术的一种技术，也是攻击链中使用最广泛的技术之一，几乎所有的恶意软件都会使用某种形式的混淆。
 
 **通俗解释：**
+
 想象你要寄一个危险品，但快递公司会检查包裹内容。你会怎么做？把危险品藏在玩具熊肚子里、用锡纸包裹防扫描、在包装上写"易碎品"让人不敢打开——这就是混淆。在网络安全中，攻击者用类似的方法：把恶意代码进行Base64编码（像用暗号写日记）、用加壳工具压缩（像真空打包）、隐藏在图片里（像隐写术），让安全软件"看到"的是一堆无害的乱码，而不是真正的恶意代码。
+
+**过渡段：** 简单来说，混淆的本质是"改皮不换骨"——数据的内容没变，只是外表变了。安全软件通常用特征码（一段特定的字节序列）来识别恶意文件，比如查找 `MZ...This program cannot be run in DOS mode` 这样的PE头标志。攻击者只要把这些特征字节打乱、编码或加密，特征码匹配就失效了。但混淆后的代码最终必须还原成可执行的原始形态才能运行，所以检测的突破口就在"还原"这一刻。下面我们来看看具体的混淆方法。
 
 **技术原理：**
 混淆的基本原理是改变数据的表现形式而不改变其本质。具体方法包括：
@@ -40,7 +51,7 @@
 
 ## 子技术列表
 
-**该技术共有 18 个子技术：**
+**该技术共有 14 个子技术：**
 
 | 子技术ID | 中文名称 | 通俗解释 |
 |----------|----------|----------|
@@ -200,6 +211,10 @@ graph TD
 - 监控PowerShell的ScriptBlock日志记录
 - 部署支持行为分析的EDR而非仅依赖签名检测
 
+## 避坑指南
+
+常见混淆误区：认为Base64编码就能绕过检测。
+
 ## 检测建议
 
 **用人话说：** 混淆检测就像看一封用密码写的信。如果你发现邮件附件是Base64编码的一大串乱码，或者PowerShell命令里用了-EncodedCommand参数，那就很可疑。正常程序不会把自己藏起来，只有恶意代码才需要"化妆"。
@@ -343,16 +358,16 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1027 Obfuscated Files or Information](https://attack.mitre.org/techniques/T1027/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [HTML Smuggling Surges - Microsoft](https://www.microsoft.com/security/blog/2021/01/20/html-smuggling-surges/)
 - [APT41 - Mandiant Report](https://www.mandiant.com/resources/apt41-global-cyber-espionage)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [CyberChef - 在线编码/解码工具](https://gchq.github.io/CyberChef/)
 - [Invoke-Obfuscation - PowerShell混淆工具](https://github.com/danielbohannon/Invoke-Obfuscation)

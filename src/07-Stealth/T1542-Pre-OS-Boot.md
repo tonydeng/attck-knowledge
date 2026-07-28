@@ -1,193 +1,243 @@
-# 操作系统启动前 (T1542)
+# 引导前启动 (T1542)
 
 ## 一句话通俗理解
 
-攻击者在Windows系统启动之前就把恶意代码植入到主板或硬盘的固件中，就像在手机出厂前就把窃听器焊在主板上——重装系统都没用。
+> **在操作系统启动之前就先运行恶意代码，就像在房子建好之前就在地基里埋了暗门**
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 在操作系统启动前执行的恶意代码（Bootkit/UEFI rootkit） |
+| 为什么危险？ | 在操作系统加载前运行，能控制整个系统且极难检测 |
+| 谁需要关心？ | 系统管理员、安全架构师、固件安全团队 |
+| 你的第一步防御 | 启用Secure Boot并验证固件完整性 |
+| 如果只做一件事 | 启用UEFI Secure Boot功能 |
 
 ## 难度等级
 
-⭐⭐⭐ 高级（需要深入技术知识）
+⭐⭐⭐ 高级 - 需要UEFI/BIOS固件、引导过程和内核级编程知识
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] UEFI/BIOS启动流程
+- [ ] Windows/Linux内核加载过程
+- [ ] 固件编程和驱动开发基础
 
 ## 技术描述
 
-操作系统启动前（T1542）是MITRE ATT&CK框架中隐蔽战术的一种高级技术。
+### 通俗解释
 
-**通俗解释：**
-当你的电脑启动时，系统是从"基础输入输出系统"（BIOS/UEFI）引导的，然后加载操作系统。攻击者可以在系统启动前——在BIOS/UEFI、硬盘主引导记录（MBR）或引导扇区中植入恶意代码。因为这些东西在操作系统加载之前就运行了，杀毒软件和EDR根本无法检测到它们。更可怕的是，即使你格式化硬盘、重装系统，这些恶意代码仍然存在——它们不在操作系统里，而在底层硬件中。
+电脑开机时，首先运行的不是Windows，而是主板上的固件（UEFI/BIOS），然后是引导程序（Bootloader），最后才是操作系统。攻击者如果在这个"操作系统启动之前"的阶段植入恶意代码，就能在操作系统加载前控制整个系统。这就像在房子的地基里预先埋了一个暗门，无论你在房子里装多少锁都防不住，因为暗门在房子建好之前就有了。
 
-**技术原理：**
-1. **MBR/VBR感染**：改写硬盘的主引导记录（MBR）或卷引导记录（VBR），在系统启动时第一个执行
-2. **UEFI固件感染**：在UEFI固件中植入恶意代码，绕过Secure Boot保护
-3. **Bootkit**：在引导过程中加载的恶意驱动程序，在操作系统之前获取控制权
-4. **固件植入**：在硬盘、网卡或其他硬件设备的固件中植入后门
+### 过渡段
+
+简单来说，Pre-OS Boot攻击在固件（UEFI/BIOS）或引导加载器层面植入恶意代码。这些代码在操作系统内核加载之前执行，能够修改内核、禁用安全功能、安装内核级后门。
+
+### 技术原理
+
+Pre-OS Boot的主要攻击方式：
+1. **UEFI固件植入**：修改SPI Flash中的UEFI固件模块，植入恶意DXE驱动
+2. **Bootloader修改**：修改GRUB或Windows Boot Manager，在加载内核前注入代码
+3. **BCD修改**：修改Windows启动配置数据（BCD），禁用安全启动或修改加载顺序
+4. **内核补丁**：在内核加载到内存后、执行前修改内核代码（bootkit）
+5. **Option ROM攻击**：在设备的Option ROM（如网卡PXE ROM）中植入恶意代码
+
+### 用途与影响
+
+Pre-OS Boot攻击是最高级别的持久化手段，能在系统重装后仍然存活。被FinFisher、Equation Group（NSA）等高级威胁组织使用。由于在OS层面之下运行，传统安全软件完全无法检测。
 
 ## 子技术列表
 
-| 子技术ID | 中文名称 | 通俗解释 |
-|----------|----------|----------|
-| T1542.001 | 系统固件 | 在系统固件（BIOS/UEFI）中植入恶意代码 |
-| T1542.002 | 组件固件 | 在硬件设备固件（硬盘、网卡）中植入后门 |
-| T1542.003 | 主引导记录 | 改写硬盘MBR，在操作系统之前获得控制权 |
-| T1542.004 | 引导扇区 | 感染卷引导记录（VBR），在分区加载时执行 |
-| T1542.005 | 磁盘区域擦除 | 使用磁盘上的隐藏区域存储持久化恶意负载 |
+| 子技术ID | 名称 | 说明 |
+|----------|------|------|
+| T1542.001 | System Firmware | 系统固件 |
+| T1542.002 | Component Firmware | 组件固件 |
+| T1542.003 | Bootkit | 引导套件 |
+| T1542.004 | Rommonkit | Cisco ROM监控器 |
+| T1542.005 | TFTP Boot | TFTP启动 |
 
 ## 攻击流程
 
 ```mermaid
-graph TD
-    A["攻击者获取管理员权限"] --> B["改写MBR/UEFI固件"]
-    B --> C["植入Bootkit恶意代码"]
-    C --> D["重启系统"]
-    D --> E["恶意代码在系统前加载"]
-    E --> F["加载合规操作系统<br/>同时注入恶意负载"]
+flowchart TD
+    A[获取系统物理访问或管理员权限] --> B[选择攻击目标层]
+    B --> C{攻击层级}
+    C -->|UEFI固件| D[修改SPI Flash<br/>植入恶意DXE驱动]
+    C -->|Bootloader| E[修改GRUB/BCD<br/>注入预加载代码]
+    C -->|内核补丁| F[修改内核镜像<br/>在加载前patch]
+    D --> G[系统启动时执行恶意代码]
+    E --> G
+    F --> G
+    G --> H[禁用安全功能<br/>安装内核后门]
+    H --> I[操作系统加载<br/>已被篡改]
 ```
+
+### 步骤详解
+1. 攻击者通过物理访问或管理员权限获取系统控制
+2. 选择攻击的层级（UEFI固件、Bootloader、内核镜像）
+3. 修改目标——如写入SPI Flash中的UEFI DXE驱动
+4. 恶意代码在系统启动时优先执行
+5. 禁用Secure Boot验证或Patch安全功能
+6. 在内核加载前安装后门或Rootkit
+7. 操作系统加载后已处于被控制状态，安全软件无法检测
 
 ## 真实案例
 
-### 案例1：HackingTeam UEFI Bootkit (VectorEDK)（2015-2018）
+### 案例1：FinFisher使用UEFI Bootkit（2021年）
+- **时间**：2021年
+- **目标**：记者、活动人士
+- **攻击组织**：FinFisher（商业间谍软件公司）
+- **手法**：FinFisher开发了一个UEFI Bootkit模块，通过修改SPI Flash中的UEFI固件来植入持久化后门。攻击者需要先获取管理员权限，然后使用flashrom工具直接写入SPI Flash芯片。植入的恶意DXE驱动在UEFI启动阶段执行，在Windows内核加载前安装内核驱动。该驱动会注入到Windows的LSASS进程中，实现凭据拦截和持久化。即使重装Windows，后门仍存在于固件中
+- **影响**：目标设备在多次系统重装后仍被监控
+- **参考链接**：ESET FinFisher分析报告
 
-- **时间**: 2015-2018年
-- **目标**: 全球特定目标的监控
-- **攻击组织**: HackingTeam
-- **手法**: 将恶意代码植入UEFI固件中，每次系统启动时Bootkit会预先加载，向操作系统注入恶意DLL。即使重装系统也无法清除。
-- **参考链接**: [HackingTeam UEFI Bootkit](https://www.wired.com/2015/07/hacking-team-uefi-bootkit/)
+### 案例2：Equation Group的硬盘固件攻击（2015年曝光）
+- **时间**：2001-2015年
+- **目标**：政府、军事、能源部门
+- **攻击组织**：Equation Group（NSA相关）
+- **手法**：Equation Group开发了能够修改硬盘驱动器（HDD）固件的恶意软件。通过重写硬盘的Controller Firmware，在硬盘启动时将恶意代码注入操作系统内核。这种攻击利用了各硬盘厂商（Seagate, Western Digital, Toshiba等）固件更新的漏洞。恶意代码存储在硬盘固件的隐藏区域，即使格式化硬盘也无法清除
+- **影响**：被认为是史上最复杂的恶意软件之一，感染了30多个国家的政府机构
+- **参考链接**：Kaspersky Equation Group报告
 
-### 案例2：Sednit (APT28) LoJax UEFI Bootkit（2018）
-
-- **时间**: 2018年
-- **目标**: 东欧政府机构
-- **攻击组织**: APT28
-- **手法**: 首个在野发现的UEFI Bootkit。APT28将恶意代码写入系统固件，在每次启动时加载恶意驱动。即使硬盘完全格式化，恶意代码仍然存在。
-- **参考链接**: [ESET - LoJax](https://www.welivesecurity.com/2018/10/11/lojax-first-uefi-rootkit/)
-
-### 案例3：BlackLotus UEFI Bootkit（2023）
-
-- **时间**: 2023年
-- **目标**: Windows系统，全球用户
-- **攻击组织**: 未知
-- **手法**: BlackLotus是首个能够绕过UEFI Secure Boot的Bootkit。利用CVE-2022-21894漏洞，即使在完全更新的Windows 11上也能绕过Secure Boot保护，在系统启动前获得控制权。
-- **影响**: 展示即使是Secure Boot也并非绝对安全
-- **参考链接**: [ESET - BlackLotus](https://www.welivesecurity.com/2023/03/01/blacklotus-uefi-bootkit/)
-
-### 案例4：Bootkitty UEFI检测绕过（2024年）
-
-- **时间**: 2024年
-- **手法**: Bootkitty是一种概念验证的UEFI Bootkit，专门设计用于绕过2024年Windows Boot Manager的加固措施。它展示了即使微软不断增强安全防护，固件级攻击仍然有突破空间。
-- **参考链接**: [BleepingComputer - Bootkitty](https://www.bleepingcomputer.com/)
+### 案例3：LoJax UEFI Rootkit攻击（2018年）
+- **时间**：2018年
+- **目标**：巴尔干半岛和东欧政府机构
+- **攻击组织**：APT28（Fancy Bear，俄罗斯GRU）
+- **手法**：APT28使用LoJax UEFI Rootkit，通过RWEverything工具直接写入SPI Flash。LoJax将恶意NTFS模块植入UEFI固件，在Windows启动时写入system32文件夹中的恶意DLL，并设置自动启动。该Rootkit还通过修改Runtime DXE驱动来绕过Secure Boot。即使受害者重装操作系统或更换硬盘，只要主板固件未被刷新，恶意代码就会持续存在
+- **影响**：多个政府机构被长期监控，系统重装无法清除后门
+- **参考链接**：ESET LoJax深度分析
 
 ## 红队视角
 
-> ⚠️ **免责声明**：以下内容仅用于合法的安全测试、渗透测试和教育目的。未经授权对他人系统进行测试是违法行为。
+### 实战技巧
+- UEFI攻击需要物理访问或Ring 0权限，但一旦成功极其持久
+- 使用flashrom或SPI编程器直接操作SPI Flash
+- 植入DXE驱动是UEFI攻击的核心——它在最早阶段执行
+- 修改BCD（bcdedit）是更简单但效果较弱的Bootloader攻击
 
 ### 常用工具
-
-| 工具名称 | 用途 | 平台 | 链接 |
-|----------|------|------|------|
-| EfiGuard | UEFI引导保护绕过工具 | UEFI | https://github.com/Mattiwatti/EfiGuard |
+| 工具 | 类型 | 特点 |
+|------|------|------|
+| flashrom | 开源工具 | 读写SPI Flash芯片 |
+| RWEverything | Windows工具 | 直接读写硬件寄存器 |
+| UEFITool | 开源工具 | 解析和修改UEFI固件镜像 |
+| CHIPSEC | 安全工具 | 固件安全评估框架 |
+| GRUB修改 | 系统工具 | 修改Linux Bootloader |
 
 ## 蓝队视角
 
 ### 检测要点
+- 监控SPI Flash固件版本的异常变更
+- 检测BCD（启动配置数据）的修改
+- 使用TPM测量启动环境（Measured Boot）
+- 监控UEFI变量存储的异常修改
 
+### 监控建议
 - 启用Secure Boot和TPM 2.0
-- 监控MBR/VBR的修改（Sysmon事件ID 13）
-- 定期检查UEFI固件完整性
-- 使用硬件安全模块（HSM）保护引导流程
+- 定期检查固件版本是否与厂商发布的版本一致
+- 使用Windows Device Guard和Credential Guard
+
+## 避坑指南
+
+- Secure Boot不是万能的——部分UEFI实现存在漏洞
+- 固件更新是清除UEFI Rootkit的唯一可靠方法
+- TPM的Measured Boot能检测但不能阻止攻击
 
 ## 检测建议
 
-### 网络层检测
+### 网络层
+- Pre-OS Boot攻击在网络层几乎不可见——代码在OS网络栈启动前执行
+- 可能检测到C2通信（但已在OS层运行）
 
-**检测方法：** 监控Bootkit和固件级恶意软件的C2通信，通常在系统启动后立即产生异常的网络连接，或在固件更新过程中向非可信源发起连接。
-
-**具体规则/命令示例：**
+### 主机层
+- **用人话说**：系统可以检查固件版本是否被篡改，就像检查房子的地基是否被动过手脚
+```powershell
+# 检查Secure Boot状态
+Confirm-SecureBootUEFI
+# 检查TPM状态
+Get-Tpm
+# 检查BCD配置
+bcdedit /enum all
 ```
-# 检测系统启动后立即产生的异常外连
-tcpdump -i eth0 'tcp[tcpflags] & (tcp-syn) != 0' | grep -v "dhcp\|dns" | head -20
 
-# 检测固件下载到非标准IP
-suricata -r traffic.pcap --rule "alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (msg:\"Firmware Download to Unknown IP\"; content:\".bin\"; http_uri; nocase; sid:1000015;)"
-```
-
-**主机层：**
-- 监控磁盘扇区的非常规写入操作（Event ID 4663）
-- 检测磁盘末尾或隐藏区域的异常数据
-- 使用Measured Boot检测启动路径中的异常
-- Sysmon事件ID 13监控注册表修改（UEFI相关键值）
-
-**固件层：**
-- 定期检查UEFI固件版本和完整性
-- 启用Secure Boot和TPM 2.0
-- 使用硬件安全模块验证固件签名
-
-**Sigma规则：**
+### 应用层
 ```yaml
-title: MBR or Boot Sector Modification
+# 检测BCD修改
+title: 检测启动配置数据修改
 status: experimental
-description: Detects attempts to write to the Master Boot Record or boot sectors
+description: 监控bcdedit对启动配置的修改
 logsource:
     category: process_creation
     product: windows
 detection:
     selection:
-        Image|endswith: '\diskpart.exe'
-        CommandLine|contains: 'MBR'
+        Image|endswith: '\bcdedit.exe'
+        CommandLine|contains:
+            - '/set'
+            - '/delete'
+            - 'nointegritychecks'
+            - 'disable_integrity_checks'
     condition: selection
 level: high
-tags:
-    - attack.t1542
 ```
 
 ## 缓解措施
 
-### 优先级1：关键措施
-**启用Secure Boot和TPM 2.0：**
-- 在UEFI设置中启用Secure Boot，确保只加载经过签名的引导程序
-- 启用TPM 2.0进行平台完整性验证
-- 配置Measured Boot记录启动路径中的每个组件
+### 优先级1（必须实施）
+- 启用UEFI Secure Boot
+- 启用TPM 2.0和Measured Boot
+- 限制对固件更新工具的访问
 
-### 优先级2：重要措施
-**固件安全加固：**
-- 设置UEFI固件密码，防止未授权的固件修改
-- 定期检查固件更新，及时修补已知漏洞
-- 禁用不必要的固件功能（如网络启动、外部设备启动）
+### 优先级2（推荐实施）
+- 使用CHIPSEC定期审计固件完整性
+- 部署Windows Device Guard
+- 监控BCD修改操作
 
-### 优先级3：建议措施
-**监控与检测：**
-- 监控MBR/VBR的写操作（Sysmon事件ID 11）
-- 配置BIOS/UEFI修改的审计告警
-- 部署硬件安全模块（HSM）保护引导流程
-
-### MITRE ATT&CK缓解措施映射
-
-| 缓解措施ID | 缓解措施名称 | 适用性 | 说明 |
-|------------|-------------|--------|------|
-| M1047 | 启动完整性保护 | 适用 | 启用Secure Boot和Measured Boot |
-| M1040 | 防篡改 | 适用 | 设置UEFI固件密码保护 |
-| M1053 | 固件更新管理 | 适用 | 定期更新固件修补已知漏洞 |
+### 优先级3（长期规划）
+- 使用支持固件远程证明的硬件
+- 建立固件版本基线监控
 
 ## 动手实验
 
-> ⚠️ **重要提示**：所有实验必须在隔离的实验室环境中进行，禁止对未授权的真实系统进行测试。
+### 实验1：检查Secure Boot和TPM状态
+```powershell
+# 预期输出：Secure Boot状态为True
+Confirm-SecureBootUEFI
+# 预期输出：TPM Ready为True
+Get-Tpm
+```
 
-### 实验1：分析MBR结构（高级）
-
-**实验步骤：**
-1. 使用dd命令备份MBR：`dd if=\\.\PhysicalDrive0 of=mbr.bin bs=512 count=1`
-2. 使用hexdump工具分析MBR内容
-3. 识别MBR中的引导代码和分区表
+### 实验2：使用CHIPSEC检查固件完整性
+```bash
+# 预期输出：显示SPI Flash描述符和固件模块
+chipsec_util.py spi dump spi_dump.bin
+chipsec_util.py uefi list
+```
 
 ## 术语解释
 
-| 术语 | 英文原名 | 通俗解释 |
-|------|----------|----------|
-| MBR | Master Boot Record | 主引导记录，硬盘的第一个扇区，负责启动系统 |
-| UEFI | Unified Extensible Firmware Interface | 比BIOS更现代的固件接口，相当于电脑主板的操作系统 |
-| Bootkit | Bootkit | 在操作系统加载前运行的恶意代码，比Rootkit更底层 |
-| Secure Boot | Secure Boot | UEFI的安全启动功能，只加载经过签名的引导程序 |
+| 术语 | 说明 |
+|------|------|
+| UEFI | 统一可扩展固件接口，取代传统BIOS的固件标准 |
+| Secure Boot | 安全启动，验证启动组件签名防止未授权代码执行 |
+| SPI Flash | 串行外设接口Flash芯片，存储UEFI固件 |
+| DXE Driver | Driver eXecution Environment驱动，UEFI启动阶段执行的驱动 |
+| Bootkit | 引导套件，在OS启动前执行的恶意代码 |
+| Measured Boot | 测量启动，使用TPM记录启动组件哈希值 |
 
 ## 参考资料
 
-- [MITRE ATT&CK - T1542 Pre-OS Boot](https://attack.mitre.org/techniques/T1542/)
-- [ESET - LoJax UEFI Rootkit Analysis](https://www.welivesecurity.com/2018/10/11/lojax-first-uefi-rootkit/)
-- [ESET - BlackLotus UEFI Bootkit](https://www.welivesecurity.com/2023/03/01/blacklotus-uefi-bootkit/)
+### 📚 深入了解
+- [MITRE ATT&CK T1542](https://attack.mitre.org/techniques/T1542/)
+- [CHIPSEC固件安全框架](https://github.com/chipsec/chipsec)
+
+### 📰 真实攻击
+- [ESET LoJax分析](https://www.welivesecurity.com/2018/09/27/lojax-first-uefi-rootkit-found-wild-courtesy-sednit-group/)
+- [Kaspersky Equation Group](https://www.kaspersky.com/)
+
+### 🔧 动手试试
+- [UEFITool](https://github.com/LongSoft/UEFITool)
+- [CHIPSEC使用指南](https://chipsec.github.io/)

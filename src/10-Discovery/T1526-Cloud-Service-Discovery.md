@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 云服务发现（T1526）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 越来越多的企业将系统部署在云平台上（如AWS、Azure、GCP）。攻击者一旦窃取到云平台的访问凭证（如IAM密钥、控制台密码），就可以像云管理员一样使用API查询云上的所有资源——有多少台虚拟机、哪些数据库、存储了哪些文件、运行着哪些容器。这就像小偷拿到了大楼的管理员门禁卡，可以一间一间地查看每个房间里的物品。
 
 **技术原理：**
@@ -165,6 +175,10 @@ graph TD
 - 使用AWS GuardDuty、Azure Defender for Cloud的异常检测功能
 - 监控来自非预期地理位置的云API调用
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -289,18 +303,18 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1526](https://attack.mitre.org/techniques/T1526/)
 - [AWS CLI文档](https://aws.amazon.com/cli/)
 - [Azure CLI文档](https://docs.microsoft.com/en-us/cli/azure/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CrowdStrike - Scattered Spider](https://www.crowdstrike.com/blog/scattered-spider-cloud-dashboard-access/)
 - [Aqua Security - TeamTNT](https://blog.aquasec.com/teamtnt-container-discovery)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [ScoutSuite - Cloud Security Audit](https://github.com/nccgroup/ScoutSuite)
 - [AWS GuardDuty](https://aws.amazon.com/guardduty/)

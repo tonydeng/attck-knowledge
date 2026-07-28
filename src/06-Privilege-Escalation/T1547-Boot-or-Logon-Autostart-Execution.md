@@ -1,385 +1,440 @@
-# 启动或登录自动启动执行 (T1547)
+# T1547 - 启动或登录自动执行
 
 ## 一句话通俗理解
 
-就像把恶意的"小程序"注册为电脑开机时自动启动的"正经软件"——攻击者在系统启动或用户登录时自动运行恶意程序，确保每次重启后控制权不丢失。
+Windows 和 Linux 都有"开机自启动"功能——本来是让常用软件（如输入法、杀毒）开机就跑，攻击者发现这是完美的持久化载体，把自己的后门也加进去，从此每次开机自动激活。
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 利用系统开机/登录自启动机制实现持久化 |
+| 为什么危险？ | 自启动是系统级机制，每次开机必定触发，隐蔽性高 |
+| 谁需要关心？ | 所有系统管理员、终端安全团队 |
+| 你的第一步防御 | 定期审计 Run/RunOnce 键和 Startup 文件夹 |
+| 如果只做一件事 | 用 Autoruns 工具定期导出自启动项对比基线 |
 
 ## 难度等级
 
-⭐ **基础** - 理解门槛低，操作简单，各种攻击工具和教程丰富，但检测也相对容易。
+⭐⭐ 中级：需要了解系统自启动机制（注册表 Run 键/Startup 文件夹/LaunchAgent），无需编程基础
+
+## 前置知识检查
+
+读这个文件前，你需要知道：
+- **自启动（Autostart）**：系统开机或用户登录时自动执行的程序
+- **Run 注册表键**：`HKLM/HKCU\...\CurrentVersion\Run`，经典自启动位置
+- **Startup 文件夹**：开始菜单的"启动"文件夹，放快捷方式自动执行
+- **LaunchAgent/LaunchDaemon**：macOS 的自启动机制
 
 ## 技术描述
 
-操作系统为合法软件提供了多种"开机自启"机制——注册表启动项、开始菜单启动文件夹、计划任务等。攻击者正是利用这些机制，将恶意程序注册为自动启动项。
+### 场景引入
 
-**通俗解释：**
-你的电脑上有QQ、微信等软件，安装后它们设置了"开机自动启动"——这样每次你打开电脑，它们就自己运行了。攻击者做的事情完全一样：把恶意程序放进"启动文件夹"或添加到注册表的启动项中。唯一不同的是，恶意程序通常是"开机自启后门"，等待连接 C2 服务器接收命令。
+想象你家的电视有个"开机自动播放"功能——每次开电视，自动播放你上次设的频道。某天小偷偷偷改了设置，让电视开机时顺便给他的手机发个信号"电视开了，家里有人"。
 
-**技术原理：**
+你每天开电视，以为是正常自动播放——实际上每次开机都在给小偷通风报信。系统自启动机制就是这套"开机自动播放"：攻击者把自己的后门注册进去，每次开机/登录自动执行，用户毫无察觉。
 
-1. **选择自启动位置**：注册表启动项、启动文件夹、服务、驱动等
-2. **注册恶意程序**：将恶意程序路径写入自启动配置
-3. **系统重启/用户登录触发**：操作系统在启动或登录时自动加载
-4. **恶意程序获得高权限**：触发时以当前用户权限或 SYSTEM 权限运行
+### 通俗比喻
 
-**用途与影响：**
-自动启动执行是最基础的持久化方法。虽然容易被检测，但也是最广泛使用的——几乎所有恶意软件都会使用至少一种自启动方法。从提权角度看，如果自启动配置在 SYSTEM 上下文中执行，攻击者可以从低权限账户触发高权限操作。
+| 自启动位置 | 比喻 | 攻击者怎么用 |
+|-----------|------|-------------|
+| HKLM Run 键 | "大楼所有电视的开机设置" | 加恶意程序路径，所有用户登录都执行 |
+| HKCU Run 键 | "你家电视的开机设置" | 仅当前用户登录时执行，无需管理员 |
+| Startup 文件夹 | "电视旁的便签" | 放快捷方式，登录时自动运行 |
+| 计划任务启动触发器 | "定时器" | 开机或登录时触发 |
+| LaunchAgent | "macOS 的开机管家" | macOS 登录时自动加载 |
+| Winlogon Shell | "登录界面的程序" | 修改 Shell 值，登录时替换 explorer |
+
+### 进阶理解
+
+操作系统为方便用户，提供了多种"开机/登录自启动"机制。这些机制在系统启动或用户登录的特定阶段被触发，自动执行注册的程序——本意是让输入法、杀毒软件等常用程序"开机即用"。
+
+攻击者利用的核心逻辑：**自启动是系统级机制，触发频率高（每次开机/登录）、隐蔽性强（在大量自启动项中不易发现）、持久性好（重启后依然有效）**。
+
+**Windows 关键自启动位置：**
+- `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run` —— 所有用户登录时执行
+- `HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run` —— 当前用户登录时执行
+- `HKLM\...\RunOnce` —— 执行一次后删除
+- `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\` —— Startup 文件夹
+- `HKLM\...\Winlogon\Userinit` / `Shell` —— 登录流程执行
+- `HKLM\SYSTEM\...\Services` —— 系统服务，开机时启动
+
+**Linux/macOS 关键位置：**
+- `/etc/rc.local`、`/etc/init.d/` —— 系统启动脚本
+- `systemd` 单元文件 —— `/etc/systemd/system/`
+- `crontab @reboot` —— 重启时执行
+- `~/Library/LaunchAgents/` —— macOS 用户登录时执行
+- `/Library/LaunchDaemons/` —— macOS 系统启动时执行
 
 ## 子技术列表
 
-**该技术共有 14 种子技术：**
+T1547 有 15 个子技术，是持久化战术中子技术最多的父技术。常用子技术：
 
-| 子技术ID | 中文名称 | 通俗解释 |
-|----------|----------|----------|
-| T1547.001 | 注册表自启项 | 在注册表 Run/RunOnce 中添加启动项，最经典的自动启动方法 |
-| T1547.002 | 身份验证包 | 注册身份验证包 DLL，在 LSASS 中加载 |
-| T1547.003 | 时间提供程序 | 注册 Windows 时间服务扩展 DLL |
-| T1547.004 | Winlogon 辅助 DLL | 注册 Winlogon 通知包，在用户登录时加载 |
-| T1547.005 | 内核模块和扩展 | 加载恶意的内核驱动程序或内核模块 |
-| T1547.006 | 启用启动文件夹 | 在开始菜单启动文件夹中放置快捷方式 |
-| T1547.007 | 重新打开应用程序 | 利用 Windows 10/11 的自动重新打开应用功能 |
-| T1547.008 | LSASS 驱动 | 在 LSASS 中加载恶意驱动程序 |
-| T1547.009 | 快捷方式修改 | 修改系统启动自动加载的快捷方式目标路径 |
-| T1547.010 | 端口监视器 | 注册端口监视器 DLL，打印子系统加载时自动执行 |
-| T1547.011 | 打印机进程 | 利用打印子系统加载恶意 DLL |
-| T1547.012 | 打印处理器 | 注册打印处理器组件 |
-| T1547.013 | 启动代理 | macOS 启动代理（LaunchAgent）持久化 |
-| T1547.014 | 活动设置修改 | 修改活动设置实现持久化 |
+| 子技术 ID | 名称 | 简述 |
+|----------|------|------|
+| T1547.001 | Registry Run Keys / Startup Folder | Run 键和 Startup 文件夹 |
+| T1547.004 | Winlogon Helper DLL | Winlogon 辅助 DLL |
+| T1547.005 | Security Support Provider | 安全支持提供者 |
+| T1547.007 | Re-opened Applications | 重新打开的应用程序 |
+| T1547.009 | Shortcut Modification | 快捷方式修改 |
+| T1547.010 | Port Monitors | 端口监视器 |
+| T1547.012 | Print Processors | 打印处理器 |
+| T1547.014 | Active Setup | Active Setup 键 |
+| T1547.015 | Login Items | macOS 登录项 |
 
-<details>
-<summary><strong>展开查看各子技术详细说明</strong></summary>
+**详写 2 个最常用的子技术：**
 
-各子技术详细说明请参阅独立文档：
+**T1547.001 Registry Run Keys / Startup Folder**：最经典的自启动手法。攻击者在 `HKLM\...\Run` 或 `HKCU\...\Run` 键下添加值，指向恶意程序路径。系统登录时自动执行该程序。HKLM 需要管理员权限（影响所有用户），HKCU 只需用户权限（仅影响当前用户）。Startup 文件夹效果类似，放快捷方式即可。
 
-- [T1547.001 - 注册表自启项](./T1547/T1547.001-Registry-Auto-start-Entry.md) — 在系统的"开机启动清单"上加一行恶意程序的路径。
-- [T1547.006 - 启动文件夹](./T1547/T1547.006-Enable-Startup-Folder.md) — 在"启动"文件夹中贴一张"自启纸条"。
-- [T1547.009 - 快捷方式修改](./T1547/T1547.009-Shortcut-Modification.md) — 把"开机自启程序"的快捷方式偷偷改成指向恶意软件。
-
-</details>
+**T1547.004 Winlogon Helper DLL**：修改 `HKLM\...\Winlogon\Userinit` 或 `Shell` 值。正常情况下 Userinit 是 `userinit.exe`，Shell 是 `explorer.exe`。攻击者在值后追加恶意程序路径（如 `userinit.exe, C:\malware.exe`），登录时两者都会执行。需要管理员权限。
 
 ## 攻击流程
 
 ```mermaid
-graph TD
-    A["获得初始访问"] --> B["选择自启<br/>位置"]
-    B --> C["注册表 Run 项<br/>T1547.001"]
-    B --> D["启动文件夹<br/>T1547.006"]
-    B --> E["快捷方式劫持<br/>T1547.009"]
-    B --> F["其他自启<br/>机制"]
-    C --> G["reg add HKLM\...\Run<br/>/v Malware /t REG_SZ<br/>/d C:\malware.exe"]
-    D --> H["复制 malware.exe 到<br/>%AppData%\...\Startup\"]
-    E --> I["修改 LegalApp.lnk<br/>Target -> malware.exe"]
-    G --> J["系统重启后<br/>自动运行恶意程序"]
-    H --> J
-    I --> J
-    J --> K["持久化建立<br/>（每次重启都有效）"]
-```
-
-### 注册表自启项注册流程
-
-```
-1. 获得足够权限（用户权限即可添加 HKCU，需要管理员添加 HKLM）
-   ↓
-2. 将恶意程序复制到目标系统（如 C:\Windows\Temp\malware.exe）
-   ↓
-3. 在注册表中添加自启项：
-   reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "WindowsUpdate" /t REG_SZ /d "C:\Windows\Temp\malware.exe"
-   ↓
-4. 重启系统或注销后重新登录
-   ↓
-5. malware.exe 自动以当前用户权限启动
-   ↓
-6. 恶意程序连接 C2 建立控制
-```
-
-### 启动文件夹放置流程
-
-```
-1. 获得初始访问
-   ↓
-2. 创建恶意程序的快捷方式
-   ↓
-3. 将快捷方式复制到启动文件夹：
-   copy "C:\Users\victim\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\LegitApp.lnk"
-   ↓
-4. 用户下次登录时自动运行恶意程序
-   ↓
-5. 快捷方式可能伪装成用户安装的合法应用
+flowchart TD
+    A[获取权限] --> B{选择自启动位置}
+    B --> C[HKLM Run 键]
+    B --> D[HKCU Run 键]
+    B --> E[Startup 文件夹]
+    B --> F[Winlogon 键]
+    B --> G[系统服务]
+    B --> H[LaunchAgent]
+    C --> I[reg add 添加值]
+    D --> I
+    E --> J[放快捷方式]
+    F --> I
+    G --> K[sc create 注册服务]
+    H --> L[放 plist 文件]
+    I --> M[重启/登录触发]
+    J --> M
+    K --> M
+    L --> M
+    M --> N[持久化后门执行]
 ```
 
 ## 真实案例
 
-### 案例1：Emotet 木马使用注册表自启项持久化（持续活跃）
+### 案例1：APT28 用 Run 键持久化攻击欧洲政府
+- **时间**：2016-2019 年
+- **目标**：欧洲多国外交部、政府机构
+- **攻击组织**：APT28（俄罗斯 GRU 背景）
+- **手法**：鱼叉钓鱼投放 Sofacy 木马后，在 `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run` 添加值 `Microsoft Update = C:\Windows\Temp\msupdate.exe`，指向 X-Agent 后门。命名伪装成微软更新，每次登录自动执行。部分变种用 HKCU Run 键避免需要管理员权限
+- **数据来源**：ESET Research + FireEye 报告（一手厂商报告）
 
-- **时间**: 2018-2025年
-- **目标**: 全球各行业
-- **攻击组织**: Emotet
-- **手法**: Emotet 木马在感染后，在注册表 Run 项中添加自启条目确保持久化。Emotet 使用随机生成的服务名称和路径字符串，增加了签名检测的难度。例如在 `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` 中添加指向 `%AppData%\Roaming\randomstring\malware.exe` 的条目。Emotet 的自启配置在 2024 年被观察到使用基于时间的触发条件，避免在沙箱环境中注册启动项。
-- **影响**: 全球数百万台设备感染，多次波次爆发
-- **参考链接**: [CISA - Emotet Technical Analysis](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-001a)
+### 案例2：Rocke 组织用 systemd 实现 Linux 持久化
+- **时间**：2018-2019 年
+- **目标**：暴露 SSH 和 Web 服务的 Linux 服务器
+- **攻击组织**：Rocke（加密货币挖矿组织）
+- **手法**：创建 systemd 服务单元 `/etc/systemd/system/system-update.service`，内容为执行挖矿程序。`systemctl enable` 设置开机自启。命名伪装成系统更新服务，运维人员难以从服务列表中识别
+- **数据来源**：Trend Micro / Palo Alto Unit 42 报告（一手厂商报告）
 
-### 案例2：QakBot 使用快捷方式和注册表自启（2023-2024年）
-
-- **时间**: 2023-2024年
-- **目标**: 全球金融、制造等行业
-- **攻击组织**: QakBot (QBot)
-- **手法**: QakBot（QBot）木马在 2023 年使用多阶段自启动策略。初始阶段通过 phishing 邮件传播的 LNK 快捷方式文件触发，感染后将恶意 DLL 注册到注册表 Run 项中。2024 年 QakBot 变种开始使用 Windows 任务计划程序作为辅助自启机制，确保如果注册表自启被清理，恶意软件在下次系统启动时仍能通过计划任务重新安装。
-- **影响**: 金融机构遭受大量凭证窃取和数据泄露
-- **参考链接**: [Microsoft - QakBot Threats](https://www.microsoft.com/en-us/security/blog/2023/12/15/qakbot-threat-analysis/)
-
-### 案例3：Latrodectus 木马使用启动文件夹持久化（2024年）
-
-- **时间**: 2024年
-- **目标**: 北美和欧洲企业
-- **攻击组织**: Latrodectus
-- **手法**: Latrodectus 木马于 2024 年出现，作为 IcedID 的继承者。感染后在用户启动文件夹中放置恶意的 `.lnk` 快捷方式。该快捷方式指向 PowerShell 命令，PowerShell 从远程服务器下载并执行第二阶段 payload。这种技术利用了快捷方式可以配置图标和描述的特点，将恶意快捷方式伪装成 Microsoft Office 或 PDF 阅读器等合法应用。
-- **影响**: 北美和欧洲企业网络渗透
-- **参考链接**: [Proofpoint - Latrodectus Malware](https://www.proofpoint.com/us/blog/threat-insight/latrodectus-malware-analysis)
-
-### 案例4：Vidar Stealer 窃密木马使用注册表自启（持续活跃）
-
-- **时间**: 2022-2025年
-- **目标**: 全球个人用户和企业
-- **攻击组织**: Vidar
-- **手法**: Vidar 是专注于浏览器凭证和加密货币钱包的窃密木马。感染后在 `HKCU\Software\Microsoft\Windows\CurrentVersion\RunOnce` 中注册自启，RunOnce 确保在下次登录时执行一次。这种一次性自启机制与 Vidar 的作业型性质匹配——它只需要运行一次即可完成所有数据窃取，不需要长期持久化。
-- **影响**: 大量用户的浏览器密码和加密货币被盗
-- **参考链接**: [Malwarebytes - Vidar Stealer](https://www.malwarebytes.com/blog/threats/vidar-stealer)
+### 案例3：Lazarus 用 macOS LaunchAgent 持久化
+- **时间**：2020-2021 年
+- **目标**：加密货币交易所员工（通过虚假招聘）
+- **攻击组织**：Lazarus Group（朝鲜背景）
+- **手法**：投放伪装成招聘文档的恶意软件后，在 `~/Library/LaunchAgents/com.apple.update.plist` 创建 LaunchAgent，指向后门可执行文件。plist 文件命名伪装成 Apple 更新，macOS 登录时自动加载。还利用 `RunAtLoad` 键确保立即执行
+- **数据来源**：ESET Lazarus 报告 + Kaspersky 报告（一手厂商报告）
 
 ## 红队视角
 
-> ⚠️ **免责声明**：以下内容仅用于合法的安全测试、渗透测试和教育目的。未经授权对他人系统进行测试是违法行为。
+### 可持续利用性分析
 
-### 实战技巧
+| 维度 | 评估 | 说明 |
+|------|------|------|
+| 隐蔽性 | 中 | 自启动项可见但数量多，需白名单辅助识别 |
+| 持久性 | 极高 | 重启/登录必定触发 |
+| 可移植性 | 极高 | Windows/Linux/macOS 全平台 |
+| 检测难度 | 低 | 自启动项可枚举，但需基线对比 |
 
-1. **HKLM vs HKCU**
-   HKLM 自启项对所有用户生效（需要管理员权限），HKCU 只对当前用户生效（不需要管理员权限）。攻击低权限用户时使用 HKCU。
+### 红队可复制性
 
-2. **伪装合法应用名称**
-   在注册表中使用类似 "Microsoft Security Health"、"Windows Update Assistant" 的名称，避免被用户和管理员发现。
+```cmd
+:: HKLM Run 键（需管理员）
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "Microsoft Update" /t REG_SZ /d "C:\Windows\Temp\msupdate.exe" /f
 
-3. **使用启动文件夹而不是注册表**
-   启动文件夹同样可以实现自启，但不易被脚本化扫描发现。
+:: HKCU Run 键（无需管理员）
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "OneDriveSync" /t REG_SZ /d "%APPDATA%\Microsoft\sync.exe" /f
 
-4. **Run vs RunOnce**
-   Run 在每次登录时执行，RunOnce 只在下次登录时执行一次。RunOnce 更隐蔽（执行后自动删除），但不如 Run 持久。
+:: Startup 文件夹
+copy C:\temp\payload.lnk "%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\"
 
-### 常用工具
+:: Winlogon 辅助（需管理员）
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v "Userinit" /t REG_SZ /d "userinit.exe, C:\Windows\Temp\payload.exe" /f
+```
 
-| 工具名称 | 用途 | 平台 | 链接 |
-|----------|------|------|------|
-| reg.exe | Windows 注册表操作工具 | Windows | 系统内置 |
-| PowerShell | Set-ItemProperty 操作注册表 | Windows | 系统内置 |
-| Sysinternals AutoRuns | 查看所有自启配置 | Windows | [Microsoft](https://docs.microsoft.com/en-us/sysinternals/downloads/autoruns) |
-| PowerSploit | Persistence 模块 | Windows | [GitHub](https://github.com/PowerShellMafia/PowerSploit) |
+```bash
+# Linux：systemd 服务
+cat > /etc/systemd/system/system-update.service << 'EOF'
+[Unit]
+Description=System Update Service
+After=network.target
 
-### 注意事项
+[Service]
+Type=simple
+ExecStart=/usr/bin/systemd-update
+Restart=always
 
-- HKLM 自启需要管理员权限，但提权后使用 HKLM 可以保留更长时间
-- 启动文件夹中的文件可以定时清理，但注册表自启更隐蔽
-- 安全软件（如 Windows Defender）会监控 Run 和 RunOnce 的变化
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl enable system-update.service
+systemctl start system-update.service
+
+# macOS：LaunchAgent
+cat > ~/Library/LaunchAgents/com.apple.update.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.apple.update</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/user/.update/payload</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+</dict>
+</plist>
+EOF
+launchctl load ~/Library/LaunchAgents/com.apple.update.plist
+```
 
 ## 蓝队视角
 
-### 检测要点
+### 用人话说检测
 
-1. **注册表自启项异常添加**
-   - 日志来源：Sysmon 事件 ID 13、Windows 安全事件 4657
-   - 关注字段：`Run`/`RunOnce` 注册表项的新增或修改
-   - 异常特征：非标准名称的自启项、从可疑目录启动、启动项指向临时目录
+自启动检测的核心是**枚举和审计"所有自启动位置"**——Run 键、Startup 文件夹、Winlogon、systemd、LaunchAgent。这些位置在正常运行中变更频率低，任何新增都值得怀疑。Autoruns 工具能枚举 50+ 自启动位置，是最全面的审计工具。
 
-2. **启动文件夹异常文件**
-   - 日志来源：Sysmon 事件 ID 11
-   - 关注字段：%AppData%\Microsoft\Windows\Start Menu\Programs\Startup 目录的文件创建
-   - 异常特征：可疑的 .lnk 或 .exe 文件出现在启动文件夹
+### Sigma 规则
 
-### 监控建议
+```yaml
+title: 检测 Run/RunOnce 注册表键的可疑添加
+id: 1f5c8e7a-3b2d-4e9c-8f5a-3d7b4c2a1e8f
+status: stable
+description: 监控 Run/RunOnce 键的值添加
+logsource:
+    product: windows
+    category: registry_event
+detection:
+    selection_key:
+        TargetObject|contains:
+            - '\Software\Microsoft\Windows\CurrentVersion\Run\'
+            - '\Software\Microsoft\Windows\CurrentVersion\RunOnce\'
+            - '\Software\Microsoft\Windows NT\CurrentVersion\Winlogon\Userinit'
+            - '\Software\Microsoft\Windows NT\CurrentVersion\Winlogon\Shell'
+    filter_legitimate:
+        Details|contains:
+            - 'C:\Program Files\'
+            - 'C:\Windows\System32\'
+    condition: selection_key and not filter_legitimate
+falsepositives:
+    - 合法软件安装
+level: medium
+```
 
-- 使用 AutoRuns 或类似工具定期审计自启配置
-- 监控 Run、RunOnce、Startup 文件夹的变化
-- 启用 PowerShell 脚本块日志记录检测注册表修改
-- 使用 Windows Defender for Endpoint 监控自启动异常
+### Sysmon 配置
+
+```xml
+<RuleGroup name="Autostart Persistence" groupRelation="or">
+  <RegistryEvent onmatch="include">
+    <TargetObject name="technique_id=T1547,technique_name=Boot or Logon Autostart Execution" condition="contains">\CurrentVersion\Run</TargetObject>
+  </RegistryEvent>
+  <RegistryEvent onmatch="include">
+    <TargetObject condition="contains">\CurrentVersion\RunOnce</TargetObject>
+  </RegistryEvent>
+  <RegistryEvent onmatch="include">
+    <TargetObject condition="contains">\Winlogon\Userinit</TargetObject>
+  </RegistryEvent>
+  <RegistryEvent onmatch="include">
+    <TargetObject condition="contains">\Winlogon\Shell</TargetObject>
+  </RegistryEvent>
+  <FileCreate onmatch="include">
+    <TargetFilename condition="contains">\Start Menu\Programs\Startup\</TargetFilename>
+  </FileCreate>
+</RuleGroup>
+```
+
+### 命令行检测
+
+```powershell
+# 查询所有 Run 键
+reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /s
+reg query "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /s
+reg query "HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /s
+
+# 查询 Winlogon 键
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v Userinit
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v Shell
+
+# 列出 Startup 文件夹
+Get-ChildItem "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\"
+Get-ChildItem "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\"
+
+# 用 Autoruns 导出（最全面）
+& "C:\Sysinternals\Autorunsc.exe" -a * -c -nobanner > C:\temp\autoruns.csv
+```
+
+```bash
+# Linux：列出 systemd 服务
+systemctl list-unit-files --state=enabled
+systemctl list-timers --all
+
+# 检查 rc.local
+cat /etc/rc.local 2>/dev/null
+ls -la /etc/init.d/
+
+# 检查 cron @reboot
+crontab -l | grep @reboot
+for user in $(cut -f1 -d: /etc/passwd); do crontab -u $user -l 2>/dev/null | grep @reboot; done
+
+# macOS：列出 LaunchAgent/LaunchDaemon
+ls ~/Library/LaunchAgents/ /Library/LaunchAgents/ /Library/LaunchDaemons/
+launchctl list
+```
+
+### 关键检测维度
+
+| 维度 | 关注点 |
+|------|--------|
+| HKLM Run 键 | 非系统/已知软件的新增值 |
+| HKCU Run 键 | 用户级持久化，无需管理员 |
+| Winlogon 键 | Userinit/Shell 值被追加路径 |
+| Startup 文件夹 | 新增的 .lnk/.bat/.exe 文件 |
+| systemd 服务 | 命名伪装的新服务 |
+| LaunchAgent | com.apple.* 命名的非 Apple 项 |
+
+### 网络层检测
+- 自启动程序执行后的 C2 通信
+- 系统启动后立即出现的异常外连
+
+## 避坑指南
+
+| 坑 | 说明 | 正确做法 |
+|----|------|---------|
+| 只查 HKLM Run | HKCU Run 和 Startup 同样常用 | 覆盖所有自启动位置 |
+| 忽略 Wow6432Node | 32 位程序在 64 位系统有独立 Run 键 | 监控 Wow6432Node 路径 |
+| 忽略 macOS | LaunchAgent 是 macOS 主要持久化方式 | 覆盖 macOS LaunchAgent/LaunchDaemon |
+| 只看注册表不看文件 | Startup 文件夹放快捷方式同样有效 | 同时检查 Startup 文件夹 |
+| 忽略 RunOnce | RunOnce 执行后删除，更隐蔽 | RunOnce 也要监控 |
+| 不维护白名单 | 大量合法自启动项导致告警疲劳 | 建立合法自启动项白名单 |
 
 ## 检测建议
 
-### 网络层检测
+### 主机层
+- **Sysmon**：监控 Run/RunOnce/Winlogon 注册表和 Startup 文件夹
+- **Autoruns**：定期导出 50+ 自启动位置对比基线
+- **Windows 事件日志**：EventID 4657（注册表值修改）
+- **Linux**：监控 `/etc/systemd/system/`、`/etc/init.d/`、crontab
+- **macOS**：监控 `~/Library/LaunchAgents/`、`/Library/LaunchDaemons/`
 
-**检测方法：** 监控自启动进程的异常出站连接。
+### 应用层
+- 计划任务审计：`schtasks /query`
+- 服务审计：`sc query` / `systemctl list-units`
+- 自启动项白名单管理
 
-**具体规则/命令示例：**
-```
-# 检测启动文件夹中的异常程序出站
-alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (msg:"Startup folder process outbound"; flow:to_server,established; sid:1000011; rev:1;)
-```
-
-### 主机层检测
-
-**检测方法：** 监控自启配置变化。
-
-**Windows 事件ID：**
-- 事件 ID 13 (Sysmon)：注册表修改
-- 事件 ID 11 (Sysmon)：文件创建
-- 事件 ID 4657：注册表值修改
-
-**具体命令示例：**
-```powershell
-# 检查所有注册表自启项
-Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
-Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Run"
-
-# 检查启动文件夹
-Get-ChildItem "$env:AppData\Microsoft\Windows\Start Menu\Programs\Startup"
-```
-
-**用人话说：** 启动或登录自动启动执行是一大类持久化技术的总称，攻击者在系统启动或用户登录时自动执行恶意代码。包括注册表Run键、启动文件夹、Winlogon辅助DLL、内核模块加载、LSASS驱动等。这些机制的共同点是：每次系统启动或用户登录时，恶意代码自动以当前用户的权限或更高权限运行，无需攻击者手动干预。这就像在汽车的点火系统上加装了一个外挂装置——每次打火启动时，外挂自动开始工作。
-
-**Sigma规则示例：**
-```yaml
-title: Registry Run Key Modification
-status: experimental
-description: Detects suspicious registry run key modification
-logsource:
-    category: registry_event
-    product: windows
-detection:
-    selection:
-        EventID: 13
-        TargetObject|contains: 
-            - '\CurrentVersion\Run'
-            - '\CurrentVersion\RunOnce'
-        Image|contains:
-            - '\Temp\'
-            - '\Users\'
-    condition: selection
-level: high
-tags:
-    - attack.t1547
-    - attack.t1547.001
-```
+### 网络层
+- 系统启动后的异常外连
+- 自启动进程的网络活动
 
 ## 缓解措施
 
-### 优先级1：关键措施
-
-**措施名称：** 监控和审计自启动配置
-
-**具体实施步骤：**
-1. 建立自启动基线并每周审计差异
-2. 使用 AppLocker 控制启动文件夹和 Run 项的执行权限
-3. 配置 Sysmon 监控 Run/RunOnce 注册表变化
-
-### 优先级2：重要措施
-
-**措施名称：** 最小权限和用户培训
-
-**具体实施步骤：**
-1. 限制非管理员用户的软件安装权限
-2. 教育用户不轻易启动不明下载的程序
-3. 禁用 HKCU Run 项的自动执行（通过 GPO）
-
-### 优先级3：建议措施
-
-**措施名称：** 端点保护
-
-**具体实施步骤：**
-1. 部署 EDR 检测异常自启动
-2. 启用 Windows Defender 实时保护
-3. 使用 AutoRuns 定期审计自启动项目
-
-### MITRE ATT&CK 缓解措施映射
-
-| 缓解措施ID | 缓解措施名称 | 适用性 | 说明 |
-|------------|-------------|--------|------|
-| M1022 | Restrict File and Directory Permissions | 适用 | 保护启动文件夹 |
-| M1026 | Privileged Account Management | 适用 | 限制 Run 项的写入 |
-| M1038 | Execution Prevention | 适用 | AppLocker 控制执行权限 |
-| M1047 | Audit | 适用 | 审计自启配置变化 |
+| 措施 | 实施方式 | 效果 |
+|------|---------|------|
+| 自启动白名单 | 用 Autoruns + 基线对比 | 识别非授权自启动项 |
+| 注册表权限加固 | 限制 HKLM Run 键写权限 | 提高篡改门槛 |
+| AppLocker/WDAC | 限制可执行文件来源 | 阻止未签名程序自启动 |
+| systemd 服务审计 | 定期审计启用的服务 | 发现伪装服务 |
+| LaunchAgent 管理 | 用 MDM 管理 macOS 持久化 | 控制自启动项 |
+| 启动项告警 | 自启动项变更即时告警 | 快速响应 |
 
 ## 动手实验
 
-> ⚠️ **重要提示**：所有实验必须在隔离的实验室环境中进行，禁止对未授权的真实系统进行测试。
+### 实验1：观察 Run 键持久化
 
-### 实验环境准备
+```cmd
+:: 1. 创建测试脚本
+echo msgbox "Run键触发" > C:\temp\test.vbs
 
-**推荐靶场/实验平台：**
+:: 2. 添加到 HKCU Run 键
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v TestAutostart /t REG_SZ /d "wscript.exe C:\temp\test.vbs" /f
 
-| 平台名称 | 类型 | 难度 | 链接 |
-|----------|------|------|------|
-| Hack The Box | 虚拟靶场 | 初级 | https://www.hackthebox.com |
-| TryHackMe | 虚拟靶场 | 初级 | https://tryhackme.com |
+:: 3. 注销重新登录
+shutdown /l
 
-### 实验1：注册表自启项设置（初级）
+:: 4. 登录后弹出对话框
 
-**实验目标：** 学习添加和移除注册表自启项。
+:: 5. 清理
+reg delete "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v TestAutostart /f
+del C:\temp\test.vbs
+```
 
-**实验步骤：**
-1. 在 HKCU Run 中添加记事本自启：`reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "TestNote" /t REG_SZ /d "notepad.exe"`
-2. 重启或注销重新登录
-3. 确认记事本自动启动
-4. 移除自启项：`reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "TestNote" /f`
+**预期输出**：登录后弹出"Run键触发"对话框，证明 HKCU Run 键持久化生效。
 
-**预期结果：** 登录后记事本自动打开。
+### 实验2：用 Autoruns 枚举自启动项
 
-**学习要点：** 掌握注册表自启项的基本操作。
+```bash
+# 1. 下载 Autoruns
+# https://learn.microsoft.com/sysinternals/downloads/autoruns
 
-### 实验2：启动文件夹操作（初级）
+# 2. 命令行导出
+autorunsc.exe -a * -c -nobanner -o C:\temp\autoruns.csv
 
-**实验目标：** 学习使用启动文件夹实现自启。
+# 3. 建立基线（首次运行后保存）
+copy C:\temp\autoruns.csv C:\temp\autoruns_baseline.csv
 
-**实验步骤：**
-1. 创建记事本的快捷方式：`$WScriptShell = New-Object -ComObject WScript.Shell; $Shortcut = $WScriptShell.CreateShortcut("$env:AppData\Microsoft\Windows\Start Menu\Programs\Startup\Notepad.lnk"); $Shortcut.TargetPath = "notepad.exe"; $Shortcut.Save()`
-2. 注销重新登录
-3. 确认记事本自动启动
-4. 删除启动文件夹中的快捷方式
+# 4. 定期对比
+# 用 PowerShell 对比 CSV
+$baseline = Import-Csv C:\temp\autoruns_baseline.csv
+$current = Import-Csv C:\temp\autoruns.csv
+Compare-Object $baseline $current -Property 'Entry Location', 'Entry' -PassThru |
+  Where-Object {$_.SideIndicator -eq '=>'}
+```
 
-**预期结果：** 登录后记事本自动打开。
+**预期输出**：Autoruns 列出所有 50+ 自启动位置的项，定期对比发现新增项。
 
-**学习要点：** 掌握启动文件夹的持久化操作。
+### 专用工具
 
-### 实验3：检测和分析（初级）
-
-**实验目标：** 学习检测系统中的自启项。
-
-**实验步骤：**
-1. 使用 reg query 查看所有自启项
-2. 使用 Sysinternals AutoRuns 分析自启配置
-3. 对比现状与已知基线
-
-**预期结果：** 发现并识别系统中的自启动项。
-
-**学习要点：** 掌握自启项的检测和分析方法。
+| 工具 | 用途 | 特点 |
+|------|------|------|
+| Autoruns | Sysinternals 自启动枚举 | 覆盖 50+ 位置，最全面 |
+| AutoRuns Logon Profile | 自启动分析 | Logon 阶段专项 |
+| systemd-cgls | Linux 服务树查看 | systemd 服务可视化 |
+| KnockKnock | macOS 持久化项枚举 | macOS 专用 |
 
 ## 术语解释
 
-| 术语 | 英文原名 | 通俗解释 |
-|------|----------|----------|
-| 注册表 | Registry | Windows 的系统配置数据库，像大楼的总控制台——记录了所有设置和配置 |
-| Run 键 | Run Key | 注册表中指定登录时自动启动程序的配置项，像大楼的"自动启动开关列表" |
-| RunOnce 键 | RunOnce Key | 注册表中指定下次登录时运行一次的配置项，执行后自动删除，像"一次性定时任务" |
-| 启动文件夹 | Startup Folder | Windows 开始菜单中的一个特殊文件夹，放入的程序会在登录时自动启动 |
-| 快捷方式 | Shortcut (.lnk) | 指向程序或文件的快捷图标，像指向某个办公室的"路标" |
-| HKCU | HKEY_CURRENT_USER | 当前用户的注册表配置，只影响当前登录的用户 |
-| HKLM | HKEY_LOCAL_MACHINE | 所有用户的注册表配置，影响整个系统 |
-| 自动启动 | Autostart Execution | 系统启动或用户登录时自动运行程序的行为 |
+| 术语 | 通俗解释 |
+|------|---------|
+| 自启动 | 开机或登录时自动执行的程序 |
+| Run 键 | 注册表中经典的自启动位置 |
+| Startup 文件夹 | 开始菜单的"启动"文件夹 |
+| Winlogon | Windows 登录管理器 |
+| systemd | Linux 的系统和服务管理器 |
+| LaunchAgent | macOS 的用户登录自启动代理 |
+| LaunchDaemon | macOS 的系统启动守护进程 |
 
 ## 参考资料
 
-### 官方文档
+### 深入了解
+- 📚 [MITRE ATT&CK T1547](https://attack.mitre.org/techniques/T1547/) —— 官方技术页面
+- 📚 [MITRE ATT&CK T1547.001 Registry Run Keys](https://attack.mitre.org/techniques/T1547/001/)
+- 📚 [MITRE ATT&CK T1547.004 Winlogon Helper DLL](https://attack.mitre.org/techniques/T1547/004/)
 
-- [MITRE ATT&CK T1547 - Boot or Logon Autostart Execution](https://attack.mitre.org/techniques/T1547/)
-- [MITRE ATT&CK T1547.001 - Registry Run Keys](https://attack.mitre.org/techniques/T1547/001/)
-- [MITRE ATT&CK T1547.006 - Startup Folder](https://attack.mitre.org/techniques/T1547/006/)
-- [MITRE ATT&CK T1547.009 - Shortcut Modification](https://attack.mitre.org/techniques/T1547/009/)
+### 动手试试
+- 🔧 [Autoruns](https://learn.microsoft.com/sysinternals/downloads/autoruns) —— 自启动枚举工具
+- 🔧 [KnockKnock](https://objective-see.org/products/knockknock.html) —— macOS 持久化枚举
 
-### 安全报告
+### 真实攻击
+- 🎯 ESET APT28 报告 —— Run 键持久化
+- 🎯 Trend Micro Rocke 报告 —— systemd 服务持久化
+- 🎯 ESET Lazarus 报告 —— macOS LaunchAgent 持久化
 
-- [CISA - Emotet Technical Analysis](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-001a)
-- [Microsoft - QakBot Threat Analysis](https://www.microsoft.com/en-us/security/blog/2023/12/15/qakbot-threat-analysis/)
-- [Proofpoint - Latrodectus Malware](https://www.proofpoint.com/us/blog/threat-insight/latrodectus-malware-analysis)
-- [Malwarebytes - Vidar Stealer](https://www.malwarebytes.com/blog/threats/vidar-stealer)
+## 版本历史
 
-### 学习资料
-
-- [Microsoft - Run and RunOnce Registry Keys](https://docs.microsoft.com/en-us/windows/win32/setupapi/run-and-runonce-registry-keys)
-- [Sysinternals AutoRuns](https://docs.microsoft.com/en-us/sysinternals/downloads/autoruns)
-- [Atomic Red Team - T1547 Tests](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics/T1547)
-- [PowerSploit - Persistence Module](https://github.com/PowerShellMafia/PowerSploit)
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| v3.1 | 2026-07-10 | 重写为持久化战术正确内容，修复跨战术污染 |
+| v3.0 | 2026-06-15 | 初版 v3.0 风格 |

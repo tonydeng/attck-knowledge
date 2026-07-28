@@ -18,11 +18,21 @@
 
 ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 文件系统与存储基础
+- [ ] 数据压缩与归档基本概念
+- [ ] 邮件系统与协作平台工作原理
+
 ## 技术描述
 
 从信息仓库收集数据（T1213）是MITRE ATT&CK框架中收集战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要低估收集阶段的隐蔽性——攻击者收集数据时，不会一次性复制所有文件引起注意。而是像'精明的窃贼'一样：先确认最有价值的文件类型（.xlsx > .docx > 随机文件），然后用合法工具（如7zip、rar甚至是系统自带的compress-archive）打包，混在正常的网络流量中传输。
 几乎每家公司都有内部的"知识库"——Confluence用于写技术文档，SharePoint用于共享文件，GitLab/GitHub用于存放代码，Jira用于跟踪项目进度。这些系统里包含了公司的核心资产：技术方案、源代码、客户数据、产品设计、内部流程。攻击者一旦入侵了公司内部网络或窃取了某个员工的凭据，就可以登录这些信息仓库，像翻阅"敌情资料库"一样获取大量敏感信息。
 
 **技术原理：**
@@ -204,6 +214,10 @@ graph TD
 - 监控代码仓库的克隆操作，识别非预期的仓库克隆
 - 对信息仓库系统的API调用进行速率分析和异常检测
 
+## 避坑指南
+
+检测盲点：对合法压缩工具的滥用视而不见。
+
 ## 检测建议
 
 ### 网络层检测
@@ -366,7 +380,7 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1213](https://attack.mitre.org/techniques/T1213/)
 - [MITRE ATT&CK - T1213.001](https://attack.mitre.org/techniques/T1213/001/)
@@ -374,13 +388,13 @@ tags:
 - [MITRE ATT&CK - T1213.003](https://attack.mitre.org/techniques/T1213/003/)
 - [MITRE ATT&CK - T1213.004](https://attack.mitre.org/techniques/T1213/004/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Scattered Spider SaaS Attacks - CrowdStrike 2025](https://www.crowdstrike.com/blog/scattered-spider-targets-saas-applications/)
 - [Lapsus$ Cyber Attack Analysis - Mandiant](https://www.mandiant.com/resources/uncategorized/lapsus-attribution)
 - [APT29 Post-SolarWinds - Microsoft](https://www.microsoft.com/security/blog/2021/05/28/breaking-down-nobeliums-latest-activity/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Confluence REST API Documentation](https://developer.atlassian.com/cloud/confluence/rest/)
 - [Microsoft Graph API for SharePoint](https://learn.microsoft.com/en-us/graph/api/resources/sharepoint)

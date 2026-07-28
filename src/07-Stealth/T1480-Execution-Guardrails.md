@@ -4,15 +4,36 @@
 
 攻击者给恶意软件加了一道"安全锁"，确保它只在目标电脑上运行，如果发现是分析环境（沙箱或蜜罐）就自动退出，像特工只给接头人看密信，其他人打开是白纸。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 给恶意软件加环境检查条件，只在特定目标机器上执行，在分析环境自动退出 |
+| 为什么危险？ | 沙箱、自动化分析系统无法触发恶意行为，导致恶意软件被误判为安全 |
+| 谁需要关心？ | 恶意软件分析师、沙箱工程师、威胁情报分析师 |
+| 你的第一步防御 | 在沙箱中模拟真实用户环境（用户文档、浏览历史、特定软件），延长分析时间 |
+| 如果只做一件事 | 检测恶意软件中的环境检查API调用（GetUserName、GetComputerName、GetSystemTime） |
+
 ## 难度等级
 
 ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 安全软件工作原理（EDR/AV/SIEM基础）
+- [ ] 进程注入与API Hook基本概念
+- [ ] 编码/加密/混淆基础知识
 
 ## 技术描述
 
 执行护栏（T1480）是MITRE ATT&CK框架中隐蔽战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为隐蔽只是'把恶意软件藏起来'——真正的隐蔽是让恶意识别看起来像正常的系统行为。攻击者不是消失，而是伪装。他们会使用合法的管理工具、模仿正常的流量模式、在管理员的工作时间之外活动，把自己融入'噪音'之中。
 假设你设计了一个只有特定人才能打开的保险箱——指纹不对、日期不对、地点不对都不会打开。攻击者也会给自己的恶意软件加上类似的"检查点"：只有在目标电脑上、在特定时间、由特定用户运行时才执行恶意行为。如果安全分析人员把恶意软件放到沙箱里分析，沙箱环境不符合条件，恶意软件就表现得很正常，不会暴露恶意功能。
 
 **技术原理：**
@@ -115,6 +136,10 @@ graph TD
 - 关注异常的时间延迟执行模式
 - 分析进程行为链中的环境检查痕迹
 
+## 避坑指南
+
+常见混淆误区：认为Base64编码就能绕过检测。
+
 ## 检测建议
 
 ### 主机层检测
@@ -161,6 +186,10 @@ alert ip $HOME_NET any -> $EXTERNAL_NET any (msg:"T1480 - Potential Guardrail En
 **检测方法：** 通过进程行为分析、API调用监控和日志分析，检测执行护栏技术的应用层特征。
 
 **Sigma规则示例1 - 环境探测检测：**
+
+**用人话说：**隐蔽检测的难点在于攻击者会尽力让自己的行为看起来正常。关注那些『不太对』的信号——不正常的父进程链、被编码的命令行参数、频繁的进程注入尝试。检测隐蔽模块少依赖文件名和签名，多关注行为特征。
+
+**用人话说：**隐蔽检测少依赖文件名签名，多关注行为特征——异常的父进程链、编码的命令行、进程注入尝试。
 ```yaml
 title: Execution Guardrails - Environment Detection
 status: experimental
@@ -525,19 +554,19 @@ pip install psutil requests geoip2
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1480 Execution Guardrails](https://attack.mitre.org/techniques/T1480/)
 - [MITRE ATT&CK - T1480.001 Environment Keying](https://attack.mitre.org/techniques/T1480/001/)
 - [MITRE ATT&CK - T1480.002 Delayed Execution](https://attack.mitre.org/techniques/T1480/002/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CISA - #StopRansomware 2025 Advisory: Ransomware Geo-Fencing Techniques](https://www.cisa.gov/stopransomware) - CISA关于2025年勒索软件地理围栏技术的官方警报
 - [Mandiant - In Search of Execution Guardrails: Evasive Malware Behaviors](https://www.mandiant.com/resources/execution-guardrails-evasive-malware) - Mandiant对恶意软件执行护栏技术的深度分析
 - [SANS - Sandbox Evasion Techniques: A Deep Dive into Guardrail Implementation](https://www.sans.org/white-papers/sandbox-evasion/) - SANS白皮书关于沙箱规避和护栏实现的技术分析
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Atomic Red Team - T1480 Test Cases](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics/T1480) - Atomic Red Team提供的T1480可执行测试用例
 - [Sigma Rules Repository - Execution Guardrails](https://github.com/SigmaHQ/sigma/tree/master/rules/windows/process_creation) - SigmaHQ社区提供的执行护栏检测规则集

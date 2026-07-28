@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 软件发现（T1518）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 当攻击者入侵一台电脑后，首先会查看安装了哪些软件——不是出于好奇，而是有明确的动机：需要判断有没有杀毒软件（如果有就要绕过去），需要知道这台电脑是干什么用的（装了财务软件就是高价值目标），需要了解软件版本（旧版本可能有已知漏洞可以直接利用）。就像小偷潜入一栋楼后，先看看有没有报警系统、哪扇门可以撬开。
 
 **技术原理：**
@@ -188,6 +198,10 @@ graph TD
 - 审计PowerShell `Get-WmiObject Win32_Product` 的使用
 - 关注安全产品进程枚举后的异常行为
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -228,6 +242,31 @@ level: medium
 tags:
     - attack.t1518
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1518
+status: experimental
+description: Detects potential T1518 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1518
+
 
 ## 缓解措施
 
@@ -305,18 +344,18 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1518](https://attack.mitre.org/techniques/T1518/)
 - [MITRE ATT&CK - T1518.001](https://attack.mitre.org/techniques/T1518/001/)
 - [MITRE ATT&CK - T1518.002](https://attack.mitre.org/techniques/T1518/002/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [FireEye - APT29 Security Software Discovery](https://www.fireeye.com/blog/threat-research/2020/12/sunburst-additional-technical-details.html)
 - [CrowdStrike - TrickBot Security Product Evasion](https://www.crowdstrike.com/blog/trickbot-security-product-evasion/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [WMI AntiVirusProduct Class](https://learn.microsoft.com/en-us/windows/win32/wmisdk/antivirusproduct)
 - [PowerShell Get-WmiObject](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-wmiobject)

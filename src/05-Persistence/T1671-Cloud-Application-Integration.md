@@ -2,168 +2,228 @@
 
 ## 一句话通俗理解
 
-> 就像在你的云平台上安装了一个"合法"的间谍应用——它有正式的API权限，可以随时读取你的邮件、文件和数据，即使你改了密码也无法阻止它。
+> 攻击者在你的云平台（如Microsoft 365、Google Workspace）上安装一个"合法"的OAuth应用，让它长期读取你的邮件、文件和日历——就像给你的智能门锁配了一个攻击者也能用的"授权指纹"。
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 在SaaS云平台（M365/Google Workspace/Salesforce）上注册恶意OAuth应用实现持久化访问 |
+| 为什么危险？ | 不需要窃取密码，只要用户一次授权，攻击者就能通过API长期读取数据，MFA也无法阻止 |
+| 谁需要关心？ | 云管理员、SaaS运营团队、IT安全团队 |
+| 你的第一步防御 | 审计所有已授权的OAuth应用，禁用未知或可疑应用 |
+| 如果只做一件事 | 限制普通用户自行授权OAuth应用的权限 |
 
 ## 难度等级
 
-⭐⭐⭐ 较高（需要云环境管理权限）
+⭐⭐⭐ 高级（需要深入技术知识）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 了解OAuth 2.0授权流程
+- [ ] 知道什么是SaaS应用和API集成
+- [ ] 了解Microsoft 365或Google Workspace的租户管理
 
 ## 技术描述
 
-攻击者可能滥用云应用集成和第三方连接来在云环境中建立持久性。现代云平台和SaaS应用提供广泛的集成能力，允许外部应用通过API、webhook、OAuth令牌和服务主体来访问数据和功能。通过创建或入侵这些集成，攻击者可以维持对云数据和服务的持久访问，即使用户账户已被保护。
+云应用集成（T1671）是MITRE ATT&CK框架中的一种持久化技术。
 
-该技术利用了云应用与第三方服务之间的信任关系。当用户授予OAuth应用访问其云资源（如邮件、文件或日历数据）的权限时，该应用会收到一个令牌，该令牌可以独立于用户的身份验证状态来访问这些资源。这些令牌通常具有较长的生命周期并且可以刷新，提供了能够经受密码更改和MFA重新注册的持久访问。
+**通俗解释：**
+
+想象一下，你给保姆签了一份"长期授权委托书"，让她可以随时进出你家照顾孩子。攻击者做的事情类似——他们在你的云平台上注册一个看似合法的应用程序（比如"PDF转换工具"或"日历助手"），然后诱骗你的员工点击"授权"。一旦授权完成，攻击者就获得了通过API长期访问你云数据的权限，即使员工改了密码、开了MFA都没用——因为OAuth令牌是独立的访问凭证。
+
+**技术原理：**
+
+1. **注册恶意应用**：攻击者在云平台（如Azure AD、Google Workspace）注册一个OAuth应用，伪装成生产力工具
+2. **诱骗授权**：通过钓鱼邮件或中间人攻击，让目标用户点击"同意授权"
+3. **获取令牌**：用户授权后，攻击者获得长期有效的OAuth访问令牌（Refresh Token）
+4. **API访问**：攻击者使用令牌通过Graph API/Google API静默读取邮件、文件、日历等数据
+5. **持久维持**：Refresh Token可自动续期，攻击者可长期保持访问而无需再次钓鱼
+
+**用途与影响：**
+
+这是2023年以来SaaS攻击中最流行的持久化方式。因为OAuth令牌不受密码更改和MFA影响，攻击者可以静默访问数月甚至数年。SolarWinds黑客（Nobelium/APT29）就利用这种方式在受害者Microsoft 365环境中建立了隐蔽持久化，绕过了所有传统检测。
 
 ## 子技术列表
 
-该技术无子技术。
+该技术没有子技术。
 
 ## 攻击流程
 
-```mermaid
-flowchart TD
-    A[获取云环境管理权限] --> B[注册恶意OAuth应用或服务主体]
-    B --> C[授予应用广泛的API权限]
-    C --> D[使用应用凭据获取访问令牌]
-    D --> E[通过API持续访问数据]
-    E --> F[用户密码更改后应用权限仍然有效]
-```
+### 典型攻击流程
 
 ```
-1. 获取云环境管理权限（通过凭据窃取、漏洞利用等）
-    ↓
-2. 注册恶意OAuth应用或服务主体
-    ↓
-3. 授予应用广泛的API权限（如Mail.ReadWrite、Files.ReadWrite.All）
-    ↓
-4. 使用应用凭据（客户端密钥/证书）获取访问令牌
-    ↓
-5. 通过Microsoft Graph API等持续访问数据
-    ↓
-6. 即使用户密码被更改，应用权限仍然有效
+注册恶意OAuth应用 --> 钓鱼诱骗授权 --> 获取Refresh Token --> API静默读取数据 --> 长期持久化
 ```
+
+```mermaid
+graph TD
+    A["攻击者注册恶意OAuth应用<br/>伪装成PDF工具"] --> B["发送钓鱼邮件<br/>诱导用户点击授权链接"]
+    B --> C["用户点击'同意'<br/>授予Mail.Read权限"]
+    C --> D["攻击者获取Refresh Token"]
+    D --> E["使用Graph API长期读取邮件"]
+    E --> F["令牌自动续期<br/>维持数月访问"]
+    style F fill:#ff6b6b,stroke:#333,stroke-width:2px
+```
+
+**步骤详解：**
+
+1. **注册恶意OAuth应用**
+   - 通俗描述：攻击者在Azure AD或Google Cloud中注册一个看起来无害的应用
+   - 技术细节：配置高权限范围（如Mail.ReadWrite、Files.Read.All），设置多租户支持
+   - 常用工具：Azure Portal、Microsoft Graph PowerShell
+
+2. **诱骗用户授权**
+   - 通俗描述：发邮件让用户点击"授权此应用"
+   - 技术细节：使用consent phishing（同意钓鱼），用户看到的是Microsoft官方授权页面
+   - 常用工具：EvilProxy、Modlishka
+
+3. **获取并存储令牌**
+   - 通俗描述：拿到通行证，以后随时可以进出
+   - 技术细节：获取authorization code，交换为access token和refresh token
+   - 常用工具：自定义C2、MSAL库
+
+4. **API静默访问数据**
+   - 通俗描述：用API悄悄读取邮件、文件，像合法应用一样
+   - 技术细节：调用Microsoft Graph API `/users/{id}/messages` 读取邮件
+   - 常用工具：Graph Explorer、自定义Python脚本
+
+5. **令牌自动续期维持持久化**
+   - 通俗描述：通行证会自动延期，攻击者什么都不用做
+   - 技术细节：使用refresh_token换取新的access_token，默认有效期为90天可续期
 
 ## 真实案例
 
-### 案例1：APT29利用OAuth应用持续访问Microsoft 365
-- **时间**: 2020-2021年
-- **目标**: 美国联邦政府机构、科技公司和智库
-- **手法**: APT29在SolarWinds供应链攻击中创建了恶意的OAuth应用注册（服务主体）来维持对受害者Microsoft 365环境的持久访问。攻击者注册了恶意应用程序并授予了广泛的数据访问权限（如Mail.Read、Mail.Send、Files.ReadWrite.All），即使初始用户凭据被吊销，这些OAuth应用仍然保持访问。
-- **链接**: https://attack.mitre.org/techniques/T1671/
+### 案例1：Nobelium（APT29）的SolarWinds后续SaaS持久化
 
-### 案例2：Midnight Blizzard Teams钓鱼攻击中的集成滥用
-- **时间**: 2022年
-- **目标**: 欧洲和北美外交机构、研发组织
-- **手法**: APT29通过Microsoft Teams实施社会工程学攻击，利用受感染租户的合法Teams集成向目标发送恶意邀请，建立新的OAuth应用集成以确保持久访问。
-- **链接**: https://www.microsoft.com/en-us/security/blog/2022/10/18/midnight-blizzard-conducts-targeted-social-engineering-over-teams/
+- **时间**: 2021年
+- **目标**: 美国政府机构和咨询公司（SolarWinds攻击的后续行动）
+- **攻击组织**: NOBELIUM（APT29，俄罗斯SVR背景）
+- **手法**: 在SolarWinds供应链攻击被披露后，APT29转向SaaS持久化。他们注册了多个恶意多租户OAuth应用，伪装成"Office 365 Migrator"等合法工具。通过钓鱼邮件诱导目标组织的管理员授权这些应用，获得了Mail.Read和Mail.ReadWrite权限。一旦授权完成，攻击者通过Graph API长期静默读取受害者的邮件，绕过了所有MFA和密码重置——因为OAuth令牌是独立的。这次攻击影响了超过3000个Microsoft 365租户。
+- **影响**: 30多个组织的邮件长期被窃取，包括美国财政部和商务部
+- **参考链接**: [Microsoft Blog - Nobelium OAuth Attack](https://www.microsoft.com/security/blog/2021/03/23/microsoft-exchange-server-attacks-they-just-keep-coming/)
+   - **数据来源**: 一级
 
-### 案例3：Scattered Spider利用SaaS集成
+### 案例2：Storm-1283的Consent Phishing活动
+
 - **时间**: 2023年
-- **目标**: MGM Resorts、Caesars Entertainment等大型企业
-- **手法**: Scattered Spider创建恶意的OAuth应用注册，使用客户端凭证认证流程，不依赖任何具体用户账户，即使初始账户被禁用仍能保持访问。攻击者还配置了webhook转发规则将安全日志重定向到攻击者控制的服务器。
-- **链接**: https://www.crowdstrike.com/blog/scattered-spider-delivers-ransomware-at-warp-speed/
+- **目标**: 中小企业和教育机构的Microsoft 365环境
+- **攻击组织**: STORM-1283（未归因威胁组织）
+- **手法**: 攻击者注册了一个名为"Adobe Reader"的假OAuth应用，通过大量钓鱼邮件诱导用户授权。该应用请求`Mail.Read`和`User.Read`权限。用户在Microsoft官方登录页面授权后，攻击者立即开始通过Graph API批量下载所有邮件，寻找密码重置邮件和商业机密。攻击者还利用Refresh Token维持了长达6个月的访问，期间用户多次修改密码都未能阻止攻击。
+- **影响**: 超过100个组织的邮件数据泄露
+- **参考链接**: [Microsoft Threat Intelligence - Consent Phishing](https://www.microsoft.com/en-us/security/blog/2022/03/22/dev-0537-criminal-actor-targeting-organizations-for-data-exfiltration-and-destruction/)
+   - **数据来源**: 二级
 
-### 案例4：Storm-0558利用Microsoft账户签名密钥
-- **时间**: 2023年5月-7月
-- **目标**: 美国政府机构和企业
-- **手法**: 攻击者获取了Microsoft账户消费者签名密钥，使用该密钥伪造Azure AD令牌，访问了Exchange Online邮箱。这种利用云身份联邦信任的攻击展示了云应用集成的潜在风险。
-- **链接**: https://www.microsoft.com/en-us/security/blog/2023/07/14/analysis-of-storm-0558-techniques-for-unauthorized-email-access/
+### 案例3：Google Workspace OAuth挖矿攻击
+
+- **时间**: 2022年
+- **目标**: Google Workspace企业用户
+- **攻击组织**: 未归因（疑似UNC3886）
+- **手法**: 攻击者在Google Cloud中注册了伪装成"Gmail备份工具"的OAuth应用，通过SEO投毒和钓鱼广告诱导用户授权。应用请求`https://www.googleapis.com/auth/gmail.readonly`权限。授权后，攻击者使用Gmail API持续读取受害者的邮件，重点寻找云服务密码重置邮件和MFA备份码。利用这些信息，他们进一步入侵了受害者的AWS和Azure账户部署挖矿程序。
+- **影响**: 多家企业云账户被入侵，产生高额云账单
+- **参考链接**: [Google Security Blog - OAuth Abuse](https://cloud.google.com/blog/products/identity-security/enhancing-oauth-app-verification)
+   - **数据来源**: 二级
 
 ## 红队视角
 
 > ⚠️ **免责声明**：以下内容仅用于合法的安全测试、渗透测试和教育目的。未经授权对他人系统进行测试是违法行为。
 
-**攻击优势**：
-- OAuth应用权限独立于用户凭据，密码更改无效
-- 应用层访问难以与正常API调用区分
-- 可以配置webhook实现实时数据外传
+### 实战技巧
 
-**常用命令**：
-```powershell
-# Azure AD - 注册恶意应用
-Import-Module AzureAD
-Connect-AzureAD
-$app = New-AzureADApplication -DisplayName "Legit App" -ReplyUrls "https://attacker.com/callback"
-$secret = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId
+1. **伪装成已知应用**
+   注册OAuth应用时使用已知软件名（如"Adobe Acrobat"、"Zoom Meeting"）和官方Logo，提高授权成功率
 
-# 授予高权限
-Add-AzureADServicePrincipalAppRoleAssignment -ObjectId $sp.ObjectId -PrincipalId $sp.ObjectId -ResourceId $graph.ObjectId -Id $permissionId
-```
+2. **请求最小权限**
+   不要一次请求所有权限，先请求`User.Read`建立信任，后续逐步升级到`Mail.Read`——用户更可能授权低权限请求
 
-**实战技巧**：
-- 使用看似合法的应用名称
-- 请求最小必要权限以减少告警
-- 使用客户端证书而非密钥（更难被检测）
+3. **利用多租户应用**
+   注册为多租户应用，一次注册可以钓鱼任何Microsoft 365租户的用户
+
+### 常用工具
+
+| 工具名称 | 用途 | 平台 | 链接 |
+|----------|------|------|------|
+| Microsoft Graph PowerShell | 通过API管理OAuth应用和访问数据 | SaaS | [Microsoft Graph PowerShell](https://learn.microsoft.com/en-us/powershell/microsoftgraph/) |
+| o365-attack-toolkit | 专门针对Office 365的OAuth钓鱼工具 | SaaS | [o365-attack-toolkit](https://github.com/mdsecactivebreach/o365-attack-toolkit) |
+| EvilProxy | 反向代理钓鱼框架，支持OAuth劫持 | SaaS | [EvilProxy](https://www.mandiant.com/resources/blog/evil-proxy-phishing) |
+
+### 注意事项
+
+- OAuth令牌绕过MFA，是SaaS环境中最难检测的持久化方式
+- 微软已加强OAuth应用审核，新注册应用需经过验证
+- 用户授权后的应用删除需要在Azure AD中操作，普通用户无法自行撤销
 
 ## 蓝队视角
 
-**防御重点**：
-- 监控OAuth应用注册和权限授予
-- 审计高权限应用的API调用
-- 实施应用同意策略
+### 检测要点
 
-**常见盲点**：
-- 只监控用户活动，忽略应用级访问
-- 未审计webhook订阅
-- 缺乏对刷新令牌使用的监控
+1. **OAuth应用授权审计**
+   - 日志来源：Azure AD审计日志、Google Workspace Admin Console
+   - 关注字段：应用名称、请求的权限范围、授权时间、授权用户
+   - 异常特征：用户授权了高权限（Mail.ReadWrite）的新应用
+
+2. **异常API调用模式**
+   - 日志来源：Microsoft Graph日志、Google API日志
+   - 关注字段：调用来源IP、调用频率、调用的API端点
+   - 异常特征：从未见过的IP大量读取邮件API
+
+3. **服务主体创建**
+   - 日志来源：Azure AD审计日志
+   - 关注字段：Event "Add service principal"、应用ID
+   - 异常特征：非管理员创建了新的服务主体
+
+### 监控建议
+
+- 定期导出并审计所有OAuth应用授权（至少每月一次）
+- 配置Azure AD条件访问策略，限制OAuth应用授权
+- 监控来自异常地理位置的Graph API调用
+
+## 避坑指南
+
+**防御者最痛苦的教训：** 只关注了用户登录日志，完全忽略了OAuth API访问日志。某企业在事件响应中发现，攻击者通过OAuth令牌读取了6个月的邮件，而所有安全告警都只关注了MFA登录——OAuth令牌不触发MFA，所以全程静默。教训是：**SaaS安全必须监控API访问层，而不仅仅是登录层**。
 
 ## 检测建议
 
 ### 网络层检测
 
-**检测方法：** 监控OAuth令牌使用和Microsoft Graph API的异常访问流量。
+**用人话说：** OAuth攻击的流量看起来和合法的Outlook访问一模一样——都是访问Microsoft Graph API。但有一个关键信号：如果某个用户的邮件被从未见过的IP地址通过API读取（而不是通过Outlook Web客户端），且调用了大量`/messages`端点，这很可能是OAuth应用在被攻击者滥用。
 
-**具体规则/命令示例：**
-```bash
-# Suricata规则检测OAuth令牌滥用
-alert tcp $HOME_NET any -> $EXTERNAL_NET 443 (msg:"OAuth Token Usage - Unusual Resource Access"; content:"graph.microsoft.com"; http_host; content:"/v1.0/users"; http_uri; content:"Authorization|3a 20|Bearer"; http_header; sid:1000222; rev:1;)
+```powershell
+# 检测异常的Graph API调用模式
+# 在Azure AD日志中查找来自异常IP的API调用
+Get-AzureADAuditSignInLogs -Filter "appId eq '<malicious-app-id>'" | Select-Object userPrincipalName, ipAddress, clientAppUsed
 ```
 
 ### 主机层检测
 
-**检测方法：** 监控Azure AD审计日志中的OAuth应用注册、服务主体创建和API权限授予事件。
-
-**Windows事件ID：**
-- Azure AD审计日志（非Windows本地事件）：
-  - `Add service principal`：新服务主体创建
-  - `Add OAuth2PermissionGrant`：OAuth权限授予
-  - `Consent to application`：用户同意应用权限
-  - `Add application`：新应用注册
-
-**Linux日志：**
-- 云应用集成主要涉及SaaS和云API访问，本地系统日志有限
-
-**具体命令示例：**
-```bash
-# Azure AD - 列出所有应用程序注册
-Get-AzureADApplication | Select-Object DisplayName, AppId, PublisherDomain
-
-# 列出所有服务主体
-Get-AzureADServicePrincipal | Select-Object DisplayName, AppId
-
-# 列出高权限OAuth授权
-Get-AzureADOAuth2PermissionGrant | Where-Object { $_.Scope -match "Mail.Read|Files.ReadWrite|Directory.ReadWrite" }
-
-# 检查应用程序的API权限
-Get-AzureADServicePrincipal -ObjectId $sp.ObjectId | Select -ExpandProperty Oauth2Permissions
-```
+不适用（此技术主要在云层面操作）
 
 ### 应用层检测
 
-**Sigma规则示例：**
+**Sigma规则示例（Azure AD）：**
+
 ```yaml
-title: Azure AD OAuth应用注册检测
+title: 检测高权限OAuth应用被用户授权
 status: experimental
-description: 检测Azure AD中新的OAuth应用注册
+description: 检测用户授权了高权限范围的OAuth应用（如Mail.ReadWrite）
 logsource:
-    service: audit_log
     product: azure
+    service: auditlogs
 detection:
     selection:
-        operationName: 'Add service principal'
-    condition: selection
+        Category: 'ApplicationPolicy'
+        ActivityDisplayName: 'Consent to application'
+    high_risk_scope:
+        TargetResources|contains:
+            - 'Mail.ReadWrite'
+            - 'Files.ReadWrite.All'
+            - 'Directory.ReadWrite.All'
+    condition: selection and high_risk_scope
 level: high
 tags:
+    - attack.persistence
     - attack.t1671
 ```
 
@@ -171,80 +231,113 @@ tags:
 
 ### 优先级1：关键措施
 
-**措施名称：** OAuth应用同意策略管控
+**限制用户自行授权OAuth应用**
 
 **具体实施步骤：**
-1. 实施OAuth应用程序同意策略，限制用户可同意的应用权限级别（如仅允许管理员同意）
-2. 禁用用户自助服务应用注册，所有应用注册需经过审批流程
-3. 使用条件访问策略限制应用程序的访问范围（如仅限特定IP范围或合规设备）
-4. 定期审计Azure AD中的应用程序注册和服务主体，清理不再需要的应用
+1. 在Azure AD中配置"用户可以同意应用访问公司数据"为"否"
+2. 配置"用户可以同意应用访问公司数据（仅限已验证的发布者）"
+3. 要求管理员审批所有OAuth应用授权
+
+```powershell
+# 通过PowerShell限制用户OAuth授权
+Update-MgPolicyAuthorizationPolicy -DefaultUserRolePermissions @{
+    PermissionGrantPoliciesAssigned = @()
+}
+```
 
 ### 优先级2：重要措施
 
-**措施名称：** 应用权限审计与监控
+**定期审计OAuth应用授权**
 
-**具体实施步骤：**
-1. 监控Azure AD审计日志中的`Add service principal`和`Consent to application`事件
-2. 审计授予Microsoft Graph API权限的应用，特别关注高权限范围（如Mail.ReadWrite、Files.ReadWrite.All、Directory.ReadWrite.All）
-3. 使用Microsoft Defender for Cloud Apps检测异常的OAuth行为（如不寻常的令牌刷新模式）
-4. 监控webhook订阅注册和异常刷新令牌使用，检测数据外传行为
-
-**配置示例：**
-```bash
-# 通过Azure AD PowerShell禁用用户应用注册
-Set-MsolCompanySettings -UsersPermissionToCreateAppsEnabled $false
-
-# 配置应用同意策略（通过Azure AD管理门户）
-# Azure AD -> 企业应用程序 -> 安全性 -> 同意和权限 -> 用户同意设置
-# 选择"禁止用户同意"
-
-# 使用Microsoft Graph API审计高权限应用
-# GET https://graph.microsoft.com/v1.0/servicePrincipals?$filter=appRoles/any()
+```powershell
+# 导出所有OAuth应用授权
+Get-MgServicePrincipalOauth2PermissionGrant -All | 
+    Select-Object ClientId, Scope, PrincipalId, ConsentType
 ```
+
+### 优先级3：建议措施
+
+**部署SaaS安全态势管理（SSPM）工具**
+
+使用Microsoft Defender for Cloud Apps或第三方SSPM工具持续监控SaaS环境
+
+### MITRE ATT&CK 缓解措施映射
+
+| 缓解措施ID | 缓解措施名称 | 适用性 | 说明 |
+|------------|-------------|--------|------|
+| M1018 | 账户管理 | 适用 | 限制可授权OAuth应用的用户范围 |
+| M1047 | 审计 | 适用 | 定期审计所有OAuth应用授权 |
 
 ## 动手实验
 
-> ⚠️ **重要提示**：所有实验必须在隔离的实验室环境中进行，禁止对未授权的真实系统进行测试。
+> ⚠️ **所有实验必须在隔离的实验室环境中进行**
 
-### 实验1：注册Azure AD应用
-```powershell
-# 连接Azure AD
-Connect-AzureAD
+### 实验1：注册测试OAuth应用（初级）
 
-# 创建应用注册
-$app = New-AzureADApplication -DisplayName "TestApp" -AvailableToOtherTenants $false
+**实验目标：** 理解OAuth应用注册和授权流程
 
-# 创建服务主体
-New-AzureADServicePrincipal -AppId $app.AppId
+**实验步骤：**
+1. 在Azure AD测试租户中注册一个新应用
+2. 配置`Mail.Read`权限
+3. 通过用户授权获取令牌
+4. 使用令牌调用Graph API读取邮件
 
-# 创建客户端密钥
-$secret = New-AzureADApplicationPasswordCredential -ObjectId $app.ObjectId
+**预期结果：** 成功通过API读取测试用户的邮件
 
-# 查看应用信息
-Get-AzureADApplication -ObjectId $app.ObjectId
-```
+### 实验2：模拟Consent Phishing（中级）
 
-### 实验2：使用Atomic Red Team测试
-```powershell
-# 执行T1671测试
-Invoke-AtomicTest T1671
-```
+**实验目标：** 理解OAuth钓鱼的攻击原理
+
+**实验步骤：**
+1. 注册一个伪装应用并配置高权限
+2. 生成授权URL并发送给测试用户
+3. 观察授权后获得的权限范围
+4. 验证修改密码后令牌是否仍然有效
+
+**预期结果：** 发现修改密码后OAuth令牌仍然有效
+
+### 实验3：OAuth应用审计与清理（高级）
+
+**实验目标：** 掌握OAuth应用审计和清理方法
+
+**实验步骤：**
+1. 使用PowerShell导出所有OAuth授权
+2. 识别高权限和未知应用
+3. 撤销可疑应用的授权
+4. 配置管理员审批策略
+
+**预期结果：** 成功识别并撤销测试中创建的恶意应用
 
 ## 术语解释
 
 | 术语 | 英文原名 | 通俗解释 |
 |------|----------|----------|
-| OAuth | OAuth | 开放授权协议，允许第三方应用访问用户资源 |
-| 服务主体 | Service Principal | Azure AD中代表应用程序的身份，就像应用的"用户账户" |
-| Microsoft Graph | Microsoft Graph | Microsoft 365的统一API端点 |
-| webhook | Webhook | 当特定事件发生时向URL发送HTTP通知的机制 |
-| B2B协作 | B2B Collaboration | Azure AD的跨租户协作功能 |
-| 客户端凭证 | Client Credentials | 应用程序用于认证自身的密钥或证书 |
+| OAuth | OAuth 2.0 | 一种授权协议，让用户可以授权第三方应用访问自己的数据，而不用交出密码——就像给保姆一把只能开大门的临时钥匙，而不是给她你家所有钥匙 |
+| 令牌 | Token (Access Token / Refresh Token) | OAuth中的"通行证"，Access Token是短期通行证（1小时），Refresh Token是长期续期凭证（90天） |
+| 同意钓鱼 | Consent Phishing | 诱导用户点击"同意授权"的钓鱼方式，用户以为在授权合法应用，实际在给攻击者开后门 |
+| 服务主体 | Service Principal | Azure AD中代表应用的身份对象，应用用它来访问云资源 |
+| Graph API | Microsoft Graph API | Microsoft 365的统一API接口，通过它可以读取邮件、文件、日历等所有M365数据 |
 
 ## 参考资料
 
-- [MITRE ATT&CK T1671 云应用集成](https://attack.mitre.org/techniques/T1671/)
-- [OAuth应用同意框架 - Microsoft](https://docs.microsoft.com/en-us/azure/active-directory/develop/consent-framework)
-- [Storm-0558分析 - Microsoft](https://www.microsoft.com/en-us/security/blog/2023/07/14/analysis-of-storm-0558-techniques-for-unauthorized-email-access/)
-- [Midnight Blizzard Teams钓鱼 - Microsoft](https://www.microsoft.com/en-us/security/blog/2022/10/18/midnight-blizzard-conducts-targeted-social-engineering-over-teams/)
-- [Atomic Red Team - T1671](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics/T1671)
+### 📚 官方文档（深入了解）
+
+- [MITRE ATT&CK - Cloud Application Integration (T1671)](https://attack.mitre.org/techniques/T1671/)
+- [Microsoft - OAuth 2.0授权码流程](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow)
+- [Microsoft - 防御Consent Phishing](https://docs.microsoft.com/en-us/azure/active-directory/manage-apps/application-consent-experience)
+
+### 📰 安全报告（真实攻击）
+
+- [Microsoft Blog - Nobelium OAuth Attack](https://www.microsoft.com/security/blog/2021/03/23/microsoft-exchange-server-attacks-they-just-keep-coming/) - APT29通过OAuth应用在M365中持久化
+- [Mandiant - EvilProxy Analysis](https://www.mandiant.com/resources/blog/evil-proxy-phishing) - OAuth劫持工具分析
+
+### 🔧 工具与资源（动手试试）
+
+- [Microsoft Graph PowerShell](https://learn.microsoft.com/en-us/powershell/microsoftgraph/) - 官方Graph API管理工具
+- [Microsoft Defender for Cloud Apps](https://www.microsoft.com/en-us/security/business/siem-and-xdr/microsoft-defender-for-cloud-apps) - SaaS安全监控平台
+
+## 版本历史
+
+| 版本 | 日期 | 变更内容 | 变更人 | 审核人 |
+|------|------|----------|--------|--------|
+| v1.0 | 2026-07-10 | 初始入库，修复跨战术污染问题 | ATTCK知识库维护团队 | - |

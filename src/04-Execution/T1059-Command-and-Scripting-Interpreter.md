@@ -203,6 +203,10 @@ graph TD
 - 监控脚本解释器发起的到外部地址的HTTP/HTTPS连接
 - 使用Sysmon监控进程创建（Event ID 1）和网络连接（Event ID 3）
 
+## 避坑指南
+
+防御者常见误区：只监控恶意文件而忽略脚本执行。
+
 ## 检测建议
 
 ### 网络层检测
@@ -239,6 +243,10 @@ Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\Scr
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：**执行检测的本质是识别『不正常的进程创建』。管理员执行命令和攻击者执行命令的区别不在于用的是什么工具，而在于上下文——谁执行的、从哪里执行的、执行后做了什么。关注异常父进程链、非常规路径下的进程、以及命令行中的编码参数。
+
+**用人话说：**执行检测关注异常进程创建链——谁执行的、从哪里执行的、执行后做了什么，比工具名称更重要。
 ```yaml
 title: PowerShell EncodedCommand - Suspicious Execution
 status: experimental

@@ -18,11 +18,21 @@
 
 - ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows认证体系（NTLM/Kerberos/LSASS）
+- [ ] 哈希基础（NTLM Hash/SHA）
+- [ ] 网络认证协议（SMB/LDAP/Kerberos）
+
 ## 技术描述
 
 暴力破解（T1110）是MITRE ATT&CK框架中凭证访问战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误解凭证访问只是'窃取密码'——在现代企业中，凭证存在于内存、磁盘、网络流量和云API等多个位置。攻击者关注的不是密码本身，而是'能用它做什么'：一个服务账号的哈希就能横向移动到数十台服务器，OAuth令牌可以访问整个SaaS租户的数据。
 攻击者用程序自动尝试大量用户名和密码组合，直到找到能登录的那一对。就像小偷拿着一大串钥匙，一把一把试开一栋楼的每扇门。虽然每把钥匙打开门的概率很小，但如果试一万把，总有几扇门是用最常见的密码锁（比如"123456"、"password"）的。
 
 **技术原理：**
@@ -181,6 +191,10 @@ graph TD
 - 对Azure AD/Office 365登录日志启用风险检测
 - 部署RDP/SSH暴力破解检测规则
 
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
+
 ## 检测建议
 
 ### 网络层检测
@@ -208,9 +222,6 @@ Get-WinEvent -FilterHashtable @{LogName='Security';ID=4625} |
     Select-Object TimeCreated, @{N='User';E={$_.Properties[5].Value}},
     @{N='SourceIP';E={$_.Properties[19].Value}}
 ```
-
-
-
 
 **用人话说：** 这条规则在监控是否有大量的登录失败事件。暴力破解是攻击者用自动化工具不断尝试密码。正常情况下用户偶尔输错密码是正常的，但如果同一个账户或同一组IP在短时间内出现大量登录失败，那很可能是在进行暴力破解攻击。
 
@@ -320,23 +331,37 @@ tags:
 | 哈希 | Hash | 密码的"数字指纹"，不可逆的加密结果 |
 | GPU破解 | GPU Cracking | 用显卡（而不是CPU）来加速密码破解，速度可以快几百倍 |
 
+## 认知偏误分析
+
+### 锚定效应（Anchoring）
+
+分析师在检测暴力破解攻击时，容易将检测锚定在"短时间内大量登录失败"这个特征上，认为只要监控登录失败频率就能捕获所有暴力破解。然而，密码喷射（Password Spraying）攻击的特点是每个账户只尝试 1-2 个密码，间隔时间可能长达 30 分钟以上，完全不会触发传统的"大量失败"检测规则。锚定在"高频失败"模式上会导致对密码喷射这类低频、分布式攻击的漏检。
+
+### 可得性启发（Availability Heuristic）
+
+由于 Midnight Blizzard 攻击微软和 Snowflake 数据泄露等重大事件被广泛报道，分析师容易高估国家背景 APT 组织使用暴力破解的频率。实际上，根据 Verizon 2025 年 DBIR 报告，绝大多数凭证攻击来自自动化工具和普通犯罪团伙，而非 APT 组织。过度关注 APT 级别的攻击手法可能导致对更常见的凭证填充（Credential Stuffing）和自动化扫描攻击的忽视。
+
+### 基率忽视（Base Rate Neglect）
+
+企业环境中每天有大量合法的登录失败事件（用户输错密码、过期密码尝试、服务账户密码轮换等），其中真正的暴力破解攻击占比极低（基率极低）。分析师在面对"登录失败"告警时，容易忽视这一基率，将每个异常登录失败模式都判定为攻击。这种倾向会导致大量误报，使 SOC 团队难以区分真正的暴力破解和正常的用户操作失误。
+
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1110](https://attack.mitre.org/techniques/T1110/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Microsoft - 密码喷射攻击检测](https://www.microsoft.com/en-us/security/blog/2020/04/23/protecting-organization-password-spray-attacks/)
 - [Microsoft - Midnight Blizzard攻击分析](https://www.microsoft.com/en-us/security/blog/2024/01/19/microsoft-actions-following-attack-by-nation-state-actor-midnight-blizzard/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [OWASP - 凭证填充攻击](https://owasp.org/www-community/attacks/Credential_stuffing)
 - [SecLists密码字典集合](https://github.com/danielmiessler/SecLists) - 常用密码字典
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Recorded Future - 2025凭证威胁报告](https://www.recordedfuture.com/blog/identity-trend-report-march-blog) - 2025年凭证威胁态势
 - [Check Point - 2025凭证泄露分析](https://blog.checkpoint.com/security/the-alarming-surge-in-compromised-credentials-in-2025/) - 2025年凭证泄露增长160%

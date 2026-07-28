@@ -8,21 +8,31 @@
 
 | 维度 | 你需要知道的 |
 |------|-------------|
-| 这是什么？ | 数据篡改（T1565）是攻击者用来破坏目标系统或数据的技术 |
-| 为什么危险？ | 攻击者可以对目标造成不可逆的破坏，影响组织正常运营 |
-| 谁需要关心？ | 安全运维团队、系统管理员、业务负责人 |
-| 你的第一步防御 | 定期备份数据并测试恢复流程，确保备份与生产环境隔离 |
-| 如果只做一件事 | 监控异常的数据删除或修改行为，设置关键文件完整性告警 |
+| 这是什么？ | 攻击者悄悄修改存储或传输中的数据，使系统使用"假数据"做决策 |
+| 为什么危险？ | 数据完整性被破坏，决策基于错误数据，损害难以发现且影响深远 |
+| 谁需要关心？ | 数据治理团队、安全运维团队、业务分析师 |
+| 你的第一步防御 | 对关键数据实施完整性校验和数字签名 |
+| 如果只做一件事 | 监控数据库关键表的异常修改，设置数据完整性基线告警 |
 
 ## 难度等级
 
 ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 备份与灾备基本原理
+- [ ] 加密算法基础
+- [ ] 系统恢复功能（VSS/启动修复）
 
 ## 技术描述
 
 数据篡改（T1565）是MITRE ATT&CK框架中影响战术的一种技术。攻击者在未经授权的情况下插入、删除或修改数据，以产生预期效果或掩盖其他活动。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为影响战术只是'破坏数据'——在勒索攻击中，加密数据只是最后一步。在此之前，攻击者会系统地：禁用备份系统、删除卷影副本、关闭安全告警、窃取敏感数据（双重勒索）。破坏的后果不只是宕机，还包括数据泄露、品牌声誉损失和监管罚款。
 想象有人潜入公司，不是偷走财务报表，也不是销毁它——而是悄悄把上面的数字改了几个零。你第二天正常上班，完全不知道数据被篡改了，拿着这份被改过的报表做决策。数据篡改就是这样——攻击者不破坏数据本身，而是改动其中的关键信息，让你做出错误的判断或操作。这是影响战术中最高级、最隐蔽的方式之一。
 
 **技术原理：**
@@ -193,6 +203,10 @@ graph TD
 - 实施文件完整性监控（FIM），覆盖关键配置文件和系统文件
 - 对ICS网络实施深度包检测（DPI），建立控制指令的基线
 
+## 避坑指南
+
+防御者最痛苦教训：备份不在离线状态。3-2-1备份策略是底线。
+
 ## 检测建议
 
 ### 网络层检测
@@ -350,27 +364,27 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Data Manipulation](https://attack.mitre.org/techniques/T1565/)
 - [MITRE - Stored Data Manipulation (T1565.001)](https://attack.mitre.org/techniques/T1565/001/)
 - [MITRE - Transmitted Data Manipulation (T1565.002)](https://attack.mitre.org/techniques/T1565/002/)
 - [MITRE - RTOS Data Manipulation (T1565.003)](https://attack.mitre.org/techniques/T1565/003/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Stuxnet Analysis - Langner](https://www.langner.com/wp-content/uploads/2017/03/to-kill-a-centrifuge.pdf)
 - [XZ Utils Backdoor Analysis - Akamai](https://www.akamai.com/blog/security-research/critical-linux-backdoor-xz-utils-discovered-what-to-know)
 - [FrostyGoop ICS Malware Report - Dragos](https://www.dragos.com/blog/protect-against-frostygoop-ics-malware-targeting-operational-technology)
 - [Triton/Trisis Analysis - Mandiant](https://www.mandiant.com/resources/triton-malware-what-it-targets-and-how-to-defend)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Ettercap](https://www.ettercap-project.org/) - 中间人攻击测试工具
 - [Bettercap](https://www.bettercap.org/) - 网络攻击和监控框架
 - [GRASSMARLIN](https://github.com/nsacyber/GRASSMARLIN) - ICS网络分析工具
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [OWASP - Data Integrity](https://owasp.org/www-project-data-integrity/) - 数据完整性安全
 - [CISA - ICS Security](https://www.cisa.gov/topics/industrial-control-systems) - 工业控制系统安全

@@ -4,15 +4,36 @@
 
 就像小偷不从前门走，而是爬窗户——攻击者把C2通信放在非标准端口上（比如SSH跑在2222端口而不是22），绕过只检查标准端口的防火墙。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者使用非标准端口（如4444/8443/1337）进行C2通信绕过端口过滤 |
+| 为什么危险？ | 防火墙通常只封锁已知端口，非标准端口可以绕过默认规则 |
+| 谁需要关心？ | 网络安全团队、防火墙管理员 |
+| 你的第一步防御 | 实施默认拒绝策略，只允许必要的出站端口 |
+| 如果只做一件事 | 监控非标准端口上的出站连接和协议不匹配情况 |
+
 ## 难度等级
 
 - ⭐ 初级（新手可学）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络协议基础（TCP/IP/DNS/HTTP）
+- [ ] C2通信模式
+- [ ] 加密通信基本原理
 
 ## 技术描述
 
 非标准端口（Non-Standard Port）是 MITRE ATT&CK 框架中命令与控制战术下的一种基础技术，编号为 T1571。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为C2只是'恶意软件发心跳包'——现代C2基础设施堪比小型互联网公司。攻击者使用CDN隐藏真实服务器、用Domain Fronting伪装流量目的地、借助合法云服务（如GitHub Issues、Slack API）作为通信通道。攻击者的C2流量与正常流量混杂在一起，传统IoC检测几乎无效。
 网络防火墙和安全设备通常只检查标准端口上的流量——80端口看HTTP、443看HTTPS、22看SSH等。如果攻击者在8443端口上跑HTTPS、或者在2222端口上跑SSH，很多安全设备就不会检查这个端口上的内容。就像酒店的保安只盯着正门检查身份，小偷从侧门溜进去了。
 
 **技术原理：**
@@ -99,6 +120,10 @@ graph TD
    - 日志来源：防火墙日志
    - 异常特征：非标准端口上的TLS握手
 
+## 避坑指南
+
+SOC常见误区：只检测已知恶意域名和IP。
+
 ## 检测建议
 
 ### 网络层检测
@@ -113,6 +138,10 @@ alert tcp $EXTERNAL_NET any -> $HOME_NET !80,!443 (flow:from_client,established;
 ### Sigma规则示例
 
 **Sigma规则示例：**
+
+**用人话说：**C2检测关注通信行为特征而非IP黑名单——固定间隔心跳、非常规DNS查询、小数据包频繁发送比内容分析更有效。
+
+**用人话说：**C2检测关注通信行为特征而非IP黑名单——固定间隔心跳包、非常规DNS查询、小数据包频繁发送比内容分析更有效。
 ```yaml
 title: 非标准端口协议失配检测
 status: experimental
@@ -133,6 +162,30 @@ tags:
     - attack.t1571
     - attack.command_and_control
 ```
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1571
+status: experimental
+description: Detects potential T1571 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1571
+
 
 ## 缓解措施
 
@@ -174,6 +227,6 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1571](https://attack.mitre.org/techniques/T1571/)

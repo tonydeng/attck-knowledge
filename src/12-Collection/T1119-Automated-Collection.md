@@ -18,11 +18,21 @@
 
 ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 文件系统与存储基础
+- [ ] 数据压缩与归档基本概念
+- [ ] 邮件系统与协作平台工作原理
+
 ## 技术描述
 
 自动化收集（T1119）是MITRE ATT&CK框架中收集战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要低估收集阶段的隐蔽性——攻击者收集数据时，不会一次性复制所有文件引起注意。而是像'精明的窃贼'一样：先确认最有价值的文件类型（.xlsx > .docx > 随机文件），然后用合法工具（如7zip、rar甚至是系统自带的compress-archive）打包，混在正常的网络流量中传输。
 想象一下，你的电脑上装了一个"自动小偷"——它不是偷一次就收手，而是每隔固定时间自动搜索并复制你电脑上新出现的敏感文件。今天你刚下载了一个合同文档，它悄悄备份了一份；明天你新建了一个密码表格，它也自动复制了一份。这就是自动化收集：攻击者在你的系统上部署一个脚本或程序，定时自动寻找并收集有价值的数据。
 
 **技术原理：**
@@ -177,6 +187,10 @@ graph TD
 - 检测短时间内大量文档文件被访问的行为模式
 - 监控异常的计划任务创建，特别是以短间隔（如30分钟）重复执行的脚本任务
 - 检测临时目录中大量压缩包文件的创建
+
+## 避坑指南
+
+检测盲点：对合法压缩工具的滥用视而不见。
 
 ## 检测建议
 
@@ -341,17 +355,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1119](https://attack.mitre.org/techniques/T1119/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [DragonForce APT Analysis - SOCRadar 2025](https://socradar.io/dragonforce-apt-threat-actor-profile/)
 - [APT10 Operation Cloud Hopper - Accenture](https://www.accenture.com/us-en/blogs/security/apt10-operation-cloud-hopper)
 - [Tick Group Analysis](https://www.cybersecurity.ie/case-study/tick-group-analysis/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [PowerShell Get-ChildItem](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/get-childitem) - 文件搜索cmdlet
 - [PowerShell Compress-Archive](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.archive/compress-archive) - 压缩模块

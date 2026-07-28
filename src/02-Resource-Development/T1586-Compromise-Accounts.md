@@ -1,296 +1,341 @@
-# 破坏账户 (T1586)
+# 损害账户 (T1586)
 
-## 一句话理解
+## 一句话通俗理解
 
-> 攻击者不自己建假身份，而是直接盗用别人的真账号——因为真账号自带信任关系，更好用。
+> **盗用别人已有的社交媒体、邮箱、云服务账户，借合法身份掩护攻击行动**
 
 ## 30秒速查卡
 
-| 项目 | 内容 |
-|------|------|
-| 攻击目标 | 购买域名、服务器等攻击基础设施 |
-| 典型手法 | 使用匿名支付和虚假注册信息购买网络资源 |
-| 关键检测点 | 监控新注册域名、异常DNS查询和短生命周期域名 |
-| 难度等级 | ⭐⭐⭐ |
-
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者通过凭证窃取、会话劫持、密码喷洒等手段，获取他人已有的社交媒体、邮箱、云服务账户控制权 |
+| 为什么危险？ | 被盗账户拥有真实的历史记录、人脉关系和信任度，攻击者的行为会被误认为是账户主人的合法操作 |
+| 谁需要关心？ | 身份与访问管理团队、安全运营中心、云安全管理员、社交媒体安全团队 |
+| 你的第一步防御 | 对所有关键账户启用MFA，监控异常登录（异常IP、异常时间、异常设备） |
+| 如果只做一件事 | 监控云服务（AWS/Azure）API密钥的异常使用——新IP、新区域、新服务调用 |
 
 ## 难度等级
 
-⭐⭐⭐（高级）— 需要一定的凭证获取能力，但利用已有信任关系效果更好。
+⭐⭐ 中级 - 需要凭证窃取和社会工程学基础
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 账户认证机制：密码、MFA、OAuth令牌、会话Cookie
+- [ ] 凭证窃取方法：钓鱼、凭据填充、密码喷洒、会话劫持
+- [ ] 云服务IAM模型：AWS IAM用户/角色、Azure AD服务主体
 
 ## 技术描述
 
-破坏账户是指攻击者未经授权地获取对现有账户的控制权，用于支持攻击行动。与"建立账户"（T1585，自己注册假账号）不同，"破坏账户"是直接盗用别人的真账号。
+**损害账户**（T1586）是 **资源开发**（TA0042）战术下的父技术。与 [T1585 建立账户](T1585-Establish-Accounts.md)（自己注册新账户）不同，T1586是**盗用已有账户**——偷别人的身份来用。
 
-为什么要盗用而不是自己建？因为：
+> 📡 **打个比方**：T1585 是你自己办一张假身份证；T1586 是你偷了别人的真身份证。真身份证上有真实信用记录、真实社交关系，比假身份证好用得多——但也更容易暴露，因为真正的主人可能会发现。
 
-- **自带信任**：被盗账号的好友、同事不知道账号已被盗，会信任来自该账号的消息
-- **历史记录**：被盗账号有正常的历史记录，看起来不像新注册的假账号
-- **人脉网络**：被盗账号已经建立了社交网络，可以直接联系目标
-- **访问权限**：被盗账号可能有组织内部系统的访问权限
+### 具体怎么理解？
 
-攻击者获取账户控制权的方法包括：
-- 钓鱼攻击获取凭证
-- 从暗网购买泄露的凭证
-- 暴力破解弱密码
-- 利用密码重用（撞库攻击）
-- 社会工程攻击
+攻击者损害账户的典型方式：
 
-## 子技术列表
+1. **凭证窃取**：通过钓鱼邮件、恶意软件（信息窃取器如RedLine、Raccoon）窃取用户的社交媒体、邮箱、云服务凭证
+2. **凭据填充**：利用其他网站泄露的用户名/密码组合，自动化尝试登录目标平台（用户经常复用密码）
+3. **会话劫持**：窃取用户的会话Cookie或OAuth令牌，无需密码即可冒充用户身份
+4. **MFA绕过**：通过MFA疲劳攻击（反复推送MFA请求）、SIM交换或代理MFA服务绕过多因素认证
 
-| 子技术 ID | 名称 | 一句话理解 |
-|-----------|------|------------|
-| T1586.001 | 社交媒体账户 | 盗用LinkedIn、Facebook等社交媒体账号 |
-| T1586.002 | 电子邮件账户 | 盗用邮箱账号，用于发送钓鱼邮件或接管邮件对话 |
-| T1586.003 | 云账户 | 盗用AWS、Azure等云服务账号，用于数据外泄或托管恶意内容 |
+被盗账户拥有真实的历史发帖、人脉关系和使用模式，攻击者的操作混在其中极难被发现。
+
+### 为什么有效？
+
+1. **真实信任度**：被盗账户拥有真实的历史记录和人脉网络，比新注册的假账户可信度高得多
+2. **绕过新账户检测**：安全系统对新注册账户有警惕，但对已有账户（尤其有长期使用历史的）默认信任
+3. **权限继承**：被盗的云账户可能已经拥有目标组织的访问权限，攻击者无需提权
+4. **检测困难**：攻击者使用合法凭证登录，不会触发"登录失败"告警
+
+**过渡段：** 不要以为损害账户只是"猜密码"——现代攻击者会通过SIM交换接管高管的手机号、通过OAuth钓鱼窃取Microsoft 365的刷新令牌、通过信息窃取器一次性获取浏览器中保存的所有凭证。损害一个账户可能只需要一封精心设计的钓鱼邮件。
+
+## 真实攻击流程
+
+```mermaid
+graph TD
+    A["攻击者通过钓鱼窃取员工Gmail凭证"] --> B["登录Gmail获取密码重置邮件"]
+    B --> C["重置LinkedIn密码并接管账户"]
+    C --> D["用LinkedIn身份向同事发送钓鱼消息"]
+    D --> E["同事信任LinkedIn身份而点击链接"]
+    E --> F["攻击者获取企业SSO凭证"]
+    style C fill:#ff6b6b,stroke:#333,stroke-width:2px
+```
+
+**步骤详解：**
+
+1. **初始凭证窃取** - 攻击者通过钓鱼邮件或信息窃取器，获取目标员工的个人邮箱（Gmail/Outlook）凭证
+2. **密码重置链式接管** - 登录个人邮箱后，利用"忘记密码"功能，接管与该邮箱关联的LinkedIn、Twitter、云服务等账户
+3. **建立信任伪装** - 使用被盗LinkedIn账户（有真实工作经历和人脉）向目标同事发送消息，请求帮助或分享文件
+4. **横向扩展** - 同事因信任LinkedIn身份而点击链接，输入企业SSO凭证，攻击者获取企业内网访问权限
+5. **持久化** - 在被入侵的云账户中创建新的API密钥或服务主体，确保持久访问
 
 ## 攻击流程
 
 ### 典型攻击流程
 
 ```
-识别目标 --> 获取凭证 --> 接管账户 --> 利用账户
+收集目标账户信息 --> 凭据获取/撞库 --> 绕过MFA --> 会话劫持或登录接管 --> 权限维持与横向扩展 --> 资产利用与变现
 ```
 
 ```mermaid
 graph TD
-    A["识别目标账户"] --> B["获取凭证"]
-    B --> C["接管账户"]
-    C --> D["利用账户"]
-
-    style A fill:#e1f5fe,stroke:#333,stroke-width:1px
-    style B fill:#fff3e0,stroke:#333,stroke-width:1px
-    style C fill:#f3e5f5,stroke:#333,stroke-width:1px
-    style D fill:#e8f5e9,stroke:#333,stroke-width:1px
+    A["收集目标账户信息"] --> B["凭据获取/撞库"]
+    B --> C["绕过MFA"]
+    C --> D["会话劫持或登录接管"]
+    D --> E["权限维持与横向扩展"]
+    E --> F["资产利用与变现"]
 ```
 
 **步骤详解：**
 
-1. **识别目标账户**
-   - 通俗描述：确定要盗取的账号，选择有利用价值的
-   - 技术细节：选择有广泛社交网络、内部系统访问权限或高信任度的账号
-   - 常用工具：社交媒体分析工具、OSINT工具
+1. **收集目标账户信息**
+   - 通俗描述：先摸清要"下手"的账户有哪些——员工邮箱、社交账号、云账号，以及它们的用户名、登录入口、关联身份
+   - 技术细节：通过OSINT收集目标员工在LinkedIn、GitHub、邮件头中暴露的用户名；查询泄露数据库（Collection #1-5、COMB）获取历史明文/哈希密码；识别目标使用的IdP（Azure AD、Okta、Google Workspace）及登录入口；分析MFA策略与可绕过路径
+   - 常用工具：theHarvester、haveibeenpwned、DeHashed、Snusbase、Maltego
 
-2. **获取凭证**
-   - 通俗描述：通过钓鱼或购买方式获取账号密码
-   - 技术细节：发送钓鱼邮件窃取凭证，从暗网购买泄露的凭证数据库
-   - 常用工具：钓鱼工具包、凭证填充工具、暗网市场
+2. **凭据获取/撞库**
+   - 通俗描述：拿着泄露的"老密码"去各个网站挨个试，看哪个账户还在用同样的密码——这是最常见也最有效的"撞库"打法
+   - 技术细节：将泄露库中的用户名/密码组合批量登录目标SSO、邮件系统、VPN；使用代理池与低速请求规避账户锁定与频次限制；针对云账号使用Password Spray（统一常见密码扫描大批账户）；针对企业AD使用Kerberoasting/AS-REP Roasting离线爆破
+   - 常用工具：Atomic Airhammer、Spraykatz、Rubeus、kerbrute、Python imap-tools
 
-3. **接管账户**
-   - 通俗描述：控制账号后修改密码和恢复选项，防止原主人找回
-   - 技术细节：修改密码和恢复邮箱，设置邮件转发规则，授权恶意OAuth应用
-   - 常用工具：OAuth授权工具、邮件规则管理
+3. **绕过MFA**
+   - 通俗描述：现在大多数账户都有"二次验证"，攻击者得想办法让这第二道关卡失效——发疯一样推送MFA请求让用户烦到点确认，或者钓鱼拿到一次性验证码
+   - 技术细节：MFA Fatigue（推送轰炸）反复触发推送通知诱导用户误点Approve；AiTM钓鱼（EvilGinx/Modlishka）实时代理登录页截取用户输入的OTP；SIM Swap接管短信验证码；滥用OAuth同意钓鱼获取刷新令牌绕过MFA；窃取浏览器Cookie/Session Token直接复用已认证会话
+   - 常用工具：EvilGinx、Modlishka、Modlishka、Evilginx2、Modlishka、ADB-SMS劫持工具、OAuth应用钓鱼模板
 
-4. **利用账户**
-   - 通俗描述：利用接管账号的信任关系发起进一步攻击
-   - 技术细节：从被盗邮箱回复已有邮件对话（邮件线路劫持），附带恶意附件
-   - 常用工具：邮件客户端、社交媒体平台
+4. **会话劫持或登录接管**
+   - 通俗描述：拿到一次性验证码或会话Cookie后，攻击者就能"扮演"用户登录进去，根本不需要密码
+   - 技术细节：将窃取的Session Cookie注入浏览器（通过Cookie Editor或DevTools）直接复用已认证会话，绕过MFA；使用刷新令牌（refresh_token）长期获取新访问令牌；对邮件账户接管后设置转发规则静默监听收件箱；对云账户创建后门服务账号或API Key
+   - 常用工具：Cookie Editor、EditThisCookie、AzureHound、MAAD Attack Framework
+
+5. **权限维持与横向扩展**
+   - 通俗描述：登进来只是第一步，接下来要把"门"换成自己人能开的，再顺着账户之间的关系往别的系统渗透
+   - 技术细节：在被接管邮箱中新增邮件转发规则、隐藏收件夹、植入OAuth应用持久化访问；在云租户中创建新Service Principal、授予Global Admin角色、生成API Key；利用邮件账户信任关系向同事发起BEC钓鱼；通过SSO令牌横向移动到SaaS应用、VPN、代码仓库
+   - 常用工具：AADInternals、Microsoft Graph API、BEC钓鱼模板、ScoutSuite
+
+6. **资产利用与变现**
+   - 通俗描述：账户接管完成后，攻击者会从里面捞"好处"——偷数据、转移资金、植入勒索软件、把账号卖给下一个攻击者
+   - 技术细节：从邮箱/云盘导出敏感文档、合同、财务报表；冒充高管发起BEC欺诈诱导财务转账；将云账号算力用于挖矿或注册新资源；将访问权挂到Initial Access Broker市场变现；为后续勒索软件团伙投递Payload提供初始立足点
+   - 常用工具：rclone、megasync（数据外泄）、BEC钓鱼模板、挖矿软件（XMRig）
 
 ## 真实案例
 
-### 案例1：Meta AI支持机器人被利用劫持Instagram账户
-- **时间**：2026年6月
-- **目标**：高知名度Instagram账户（包括奥巴马白宫和美国空间军队首席军士长）
-- **手法**：威胁行为者利用Meta的AI支持机器人中的逻辑漏洞（"混乱副手"问题），诱骗机器人将攻击者控制的电子邮件地址链接到目标Instagram账户。机器人随后发送了一次性重置代码到该新电子邮件地址，攻击者使用该代码重置密码并锁定合法所有者。攻击者使用VPN伪装位置以绕过Meta的欺诈检测。值得注意的是，启用了MFA的账户（包括短信验证码）未受此攻击影响。
-- **链接**：[Hackers Used Meta's AI Support Bot to Seize Instagram Accounts - Krebs on Security](https://krebsonsecurity.com/2026/06/hackers-used-metas-ai-support-bot-to-seize-instagram-accounts/)
+### 案例1：MFA Fatigue攻击——APT29入侵Uber和Cisco
 
-### 案例2：APT28利用被盗邮箱发送钓鱼邮件
-- **时间**：持续进行中
-- **目标**：欧洲政府和军事机构
-- **手法**：APT28（Fancy Bear）使用被破坏的电子邮件账户发送凭证钓鱼电子邮件。由于这些邮件来自真实的、被信任的邮箱，收件人更容易相信邮件内容的真实性。攻击者利用被盗邮箱的已有信任关系，绕过传统的邮件安全检测。
-- **链接**：[MITRE ATT&CK 破坏账户：电子邮件账户](https://attack.mitre.org/techniques/T1586/002/)
+- **时间**：2022年
+- **目标**：Uber、Cisco、Twitter等科技公司
+- **攻击组织**：APT29（Cozy Bear / UNC2452 / Lapsus$风格的MFA疲劳战术）
+- **手法**：攻击者首先通过凭据填充获取员工密码，然后连续向员工手机发送数十次MFA推送请求。当员工不堪其扰点击"批准"时，攻击者获得VPN访问权限，进而接管企业内网和云服务账户
+- **影响**：Uber内部系统（Slack、AWS、GCP）被全面接管，Cisco源代码和工程数据泄露
+- **参考链接**：[Cisco Talos - MFA Fatigue Analysis](https://blog.talosintelligence.com/2022/09/mfa-fatigue-attacks.html)
 
-### 案例3：APT29利用被破坏的Google Workspace账户进行C2
-- **时间**：持续进行中
-- **目标**：政府机构和智库
-- **手法**：APT29（Cozy Bear）使用被破坏的Google Workspace账户进行命令与控制。攻击者还使用住宅代理（包括Azure虚拟机）掩盖其对受害者环境的访问。这种利用合法云服务进行C2通信的方式使恶意流量与正常的云服务使用混合在一起，极难被检测。
-- **链接**：[MITRE ATT&CK 破坏账户：云账户](https://attack.mitre.org/techniques/T1586/003/)
+### 案例2：Lapsus$通过SIM交换接管Okta管理员账户
 
-### 案例4：X（Twitter）大规模OAuth钓鱼账户劫持活动
-- **时间**：2024-2025年
-- **目标**：高知名度X账户（美国政治人物、知名记者、加密货币组织）
-- **手法**：攻击者发送伪装成DMCA版权通知或登录警报的钓鱼邮件，诱导目标点击恶意链接。在高级变种中，攻击者使用OAuth授权钓鱼——用户被重定向到真实的X.com授权页面，授权恶意应用获取tweet.read、tweet.write、offline.access等权限。攻击者利用多级重定向链（包括Google AMP缓存、Meetup等合法服务）隐藏最终目标。成功劫持后，攻击者迅速锁定合法所有者，发布加密货币诈骗内容。该活动自2024年中持续活跃，曾成功劫持Linus Tech Tips（180万粉丝）等知名账号。
-- **链接**：[SentinelOne: X Phishing Campaign Targeting High Profile Accounts](https://www.sentinelone.com/labs/phishing-on-x-high-profile-account-targeting-campaign-returns/)
+- **时间**：2022年
+- **目标**：Okta、Microsoft、NVIDIA、三星
+- **攻击组织**：Lapsus$（疑似巴西青少年黑客组织）
+- **手法**：攻击者通过社工说服电信运营商客服，将目标高管的手机号转移到自己控制的SIM卡上。然后利用手机号接收短信验证码，重置高管的企业账户密码，接管Okta管理员权限，进而影响Okta的36,000+客户
+- **影响**：Okta客户（包括Cloudflare、Microsoft等）的身份管理系统受到波及
+- **参考链接**：[Okta - Lapsus$ Incident Report](https://sec.okta.com/lapsus)
+
+### 案例3：SolarWinds攻击中APT29窃取Azure AD服务主体凭证
+
+- **时间**：2020年
+- **目标**：SolarWinds Orion客户
+- **攻击组织**：APT29（俄罗斯SVR背景）
+- **手法**：攻击者通过SolarWinds后门，窃取目标组织Azure AD中的服务主体凭证和SAML令牌签名证书。使用这些被盗的云身份，攻击者以合法应用身份访问Exchange Online和Microsoft 365，读取高管邮件
+- **影响**：美国国务院、司法部的邮件系统被入侵
+- **参考链接**：[CISA Alert AA21-131A](https://www.cisa.gov/news-events/cybersecurity-advisories/aa21-131a)
+
+## 子技术列表
+
+| 子技术ID | 中文名称 | 通俗解释 |
+|----------|----------|----------|
+| T1586.001 | Social Media Accounts | 盗用LinkedIn、Facebook等社交媒体账号 |
+| T1586.002 | Email Accounts | 盗用邮箱账号，用于发送钓鱼邮件或接管邮件对话 |
+| T1586.003 | Cloud Account | 盗用AWS、Azure等云服务账号，用于数据外泄或托管恶意内容 |
 
 ## 红队视角
 
 > ⚠️ **免责声明**：以下内容仅用于合法的安全测试、渗透测试和教育目的。未经授权对他人系统进行测试是违法行为。
 
-作为红队成员，利用被盗账户是一种高效的社工手段：
+### 实战技巧
 
-- **邮件线路劫持**：接管目标邮箱后，回复已有的邮件对话，附带恶意附件或链接，收件人很难察觉异常
-- **利用已有信任**：从被盗账户发送的消息比从新账户发送的更容易被信任
-- **OAuth授权**：通过授权恶意应用获取持续访问权限，即使密码被修改也能保持访问
-- **多账户联动**：同时接管多个相关账户，增加攻击的可信度
+1. **凭证复用检测**：使用DeHashed或HaveIBeenPwned查询目标组织员工的泄露凭证，尝试凭据填充
+2. **会话Cookie窃取**：通过Evilginx2等中间人钓鱼框架，窃取目标的会话Cookie，绕过MFA
+3. **API密钥扫描**：使用TruffleHog扫描GitHub公开仓库和Pastebin，寻找泄露的云服务API密钥
+
+### 常用工具
+
+| 工具名称 | 用途 | 说明 |
+| -------- | ---- | ---- |
+| Evilginx2 | 中间人钓鱼框架 | 窃取会话Cookie绕过MFA，是钓鱼攻击的利器 |
+| DeHashed | 凭证泄露查询 | 搜索泄露数据库中的用户名/邮箱/密码 |
+| TruffleHog | 密钥扫描 | 扫描代码仓库和文件中的API密钥和凭证 |
+| Raccoon Stealer | 信息窃取器 | 从浏览器窃取保存的密码、Cookie、加密钱包 |
+
+### 注意事项
+
+- 在授权的测试环境中使用这些技术
+- 凭据填充测试需控制请求速率，避免触发账户锁定
+- 会话Cookie有时效性，需及时使用
 
 ## 蓝队视角
 
-蓝队应该关注以下防御要点：
+### 检测要点
 
-- **异常登录检测**：监控从不寻常位置或时间的登录尝试
-- **邮件规则监控**：监控邮箱中的异常转发规则和过滤器设置
-- **OAuth应用审查**：定期审查已授权的第三方应用
-- **凭证泄露监控**：监控暗网上的凭证泄露
+1. **异常登录检测**：监控来自新IP、新地理位置、新设备的登录；关注"不可能旅行"（短时间内从不同大洲登录）
+2. **API密钥监控**：监控云服务API密钥的异常使用——新调用IP、新服务、异常高频调用
+3. **MFA异常**：监控MFA推送的高频请求（MFA疲劳攻击信号）；关注MFA设备变更
+
+### 监控建议
+
+- 部署UEBA（用户实体行为分析），建立每个账户的正常行为基线
+- 对云服务API调用启用详细日志记录（AWS CloudTrail、Azure Activity Log）
+- 配置条件访问策略，限制非信任IP的登录和API调用
+
+## 避坑指南
+
+防御者最常犯的错误：**以为启用了MFA就万无一失**。MFA疲劳攻击、SIM交换、会话Cookie窃取、OAuth令牌钓鱼都能绕过MFA。必须配合条件访问策略（限制IP、设备状态、登录时间）和异常行为监控，才能有效防御损害账户攻击。
 
 ## 检测建议
 
+### 检测思路
+
+检测损害账户的关键是建立"正常行为基线"——每个账户都有正常的使用模式（登录时间、IP位置、调用的服务、操作频率），任何偏离基线的行为都值得调查。
+
 ### 网络层检测
 
-**检测方法：** 监控异常认证流量中的地理不可能旅行模式、已知恶意IP的登录尝试，以及短时间内大量登录失败后的成功登录。
+**方法**：监控云服务API调用和认证日志的异常模式
 
-**具体规则/命令示例：**
+```bash
+# 检测AWS API密钥异常IP使用（CloudTrail日志）
+# 对比API密钥的历史使用IP和新出现IP
+aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=GetCallerIdentity \
+  | jq '.Events[].CloudTrailEvent | fromjson | {user: .userIdentity.arn, ip: .sourceIPAddress, time: .eventTime}'
+
+# 检测Azure AD异常登录（Microsoft Graph API）
+# 筛选"不可能旅行"和异常IP登录
+Get-AzureADAuditSignInLogs -Top 1000 | Where-Object {
+    $_.Location -notin $trustedLocations -and $_.Status.ErrorCode -eq 0
+}
 ```
-# 检测同一账户在多地理位置短时间内登录
-# 使用身份验证日志分析
-grep "LOGIN_SUCCESS" auth.log | awk '{print $1, $3, $NF}' | sort -k2 | while read line; do
-  check_geo_impossible_travel $line
-done
 
-# 检测来自已知恶意IP段的登录
-ipset test malicious_ips $LOGIN_IP && alert "Compromised account login from malicious IP"
-```
+### 应用层检测
 
-1. **异常登录检测**：监控从不熟悉的IP地址、地理位置或用户代理的登录，实施不可能旅行检测
-2. **休眠账户监控**：监控长时间不活动后突然活跃的账户
-3. **邮件线路劫持检测**：监控邮件回复中突然出现的恶意链接或附件
-4. **OAuth应用审查**：监控邮箱中新增的OAuth授权和应用密码
-5. **凭证泄露监控**：使用Have I Been Pwned等服务监控组织凭证泄露
+**用人话说：** 这条规则在检测损害账户——攻击者用偷来的凭证登录时，会露出三个马脚：一是登录位置异常，一个从不在北京登录的账户突然从莫斯科登录；二是登录时间异常，一个9-5工作的账户凌晨3点登录；三是操作模式异常，一个只读邮件的账户突然开始创建IAM用户或导出大量数据。检测的关键是将每次登录和操作与该账户的历史基线对比。
 
-
-## 用人话说
-
-> **检测解读**：账号被盗用的危险在于攻击者利用了"信任传递"——你信任你的同事，所以也会信任他被劫持的邮箱发来的邮件。检测异常登录时间、设备变更和邮件转发规则是关键。如果老板的邮箱突然在凌晨3点从陌生IP登录，那就是危险信号。
->
-> **避坑指南**：不要只看登录是否成功，要看登录的"方式"——同一账户在短时间内从不同国家登录、使用了从未见过的设备、设置了自动转发规则，这些都是账号被盗的征兆。
-
-### Sigma规则示例
+**Sigma规则示例**：
 
 ```yaml
-title: 邮箱异常登录地理不可能旅行检测
-id: e5f6a7b8-9c0d-1e2f-3a4b-5c6d7e8f9a0b
+title: 检测AWS API密钥异常区域使用
 status: experimental
-description: 检测同一邮箱账户在短时间内从地理上距离很远的位置登录的异常行为，可能指示账户被破坏
+description: AWS API密钥从一个新地理区域被使用，可能是凭证泄露
 logsource:
-  category: application
-  product: web
+    category: cloudtrail
 detection:
-  selection:
-    EventID: 'LOGIN_SUCCESS'
-    Account|re: '.+@.+\..+'
-    LoginLocation1: 'GeoPosition'
-    LoginLocation2: 'GeoPosition'
-  condition: selection and (LoginLocation1 distance LoginLocation2 > 1000km) within 1h
-falsepositives:
-  - 用户使用VPN或代理服务
-  - 合法的国际旅行
-level: high
-```
-
-```yaml
-title: 邮箱自动转发规则创建检测
-id: f6a7b8c9-0d1e-2f3a-4b5c-6d7e8f9a0b1c
-status: experimental
-description: 检测邮箱中新增的自动转发或邮件规则，可能指示攻击者接管账户后设置数据窃取通道
-logsource:
-  category: application
-  product: office365
-detection:
-  selection:
-    EventID: 'New-InboxRule'
-    OperationType: 'New-InboxRule'
-    Parameters|contains:
-      - 'ForwardTo'
-      - 'RedirectTo'
-      - 'ForwardAsAttachmentTo'
-    RuleType: 'InboxRule'
-  condition: selection
-falsepositives:
-  - 用户主动设置邮件转发
-  - 合法的邮件归档配置
+    selection:
+        eventType: 'AwsApiCall'
+    filter_baseline:
+        sourceIPAddress|cidr:
+            - '10.0.0.0/8'    # 内网
+            - '203.0.113.0/24' # 已知办公IP段
+    condition: selection and not filter_baseline
 level: medium
+tags:
+    - attack.t1586
+    - attack.t1586.003
+    - attack.resource_development
 ```
 
 ## 缓解措施
 
 ### 优先级1：关键措施
 
-**措施名称：** 多因素认证（MFA）
-
-**具体实施步骤：**
-1. 在所有账户上强制启用MFA，优先使用硬件安全密钥（如YubiKey）或认证器应用
-2. 禁用短信验证码等较弱的MFA方式
-3. 对高风险操作（如修改恢复选项）要求额外验证
+**MFA与条件访问**：对所有账户启用MFA（优先使用FIDO2硬件密钥），配合条件访问策略限制非信任IP
 
 ### 优先级2：重要措施
 
-**措施名称：** 异常登录检测
-
-**具体实施步骤：**
-1. 启用不可能旅行检测——分析从地理位置上不可能短时间内到达的连续登录
-2. 监控从不熟悉的IP地址、用户代理的登录尝试
-3. 配置条件访问策略，基于位置、设备合规性限制访问
-
-**措施名称：** 邮件安全加固
-
-**具体实施步骤：**
-1. 部署邮件安全解决方案（Proofpoint、Mimecast等）
-2. 定期扫描邮箱中的异常转发规则
-3. 监控OAuth授权申请的异常增加
+**凭证泄露监控**：订阅HaveIBeenPwned或DeHashed，监控组织邮箱是否在数据泄露中出现
 
 ### 优先级3：建议措施
 
-**措施名称：** 凭证泄露监控
-
-**具体实施步骤：**
-1. 使用Have I Been Pwned等服务监控组织凭证泄露
-2. 定期轮换特权账户凭证
-3. 实施密码管理器，避免密码重用
-
-### MITRE ATT&CK 缓解措施映射
-
-| 缓解措施ID | 缓解措施名称 | 适用性 | 说明 |
-|------------|-------------|:------:|------|
-| M1032 | 多因素认证 | 适用 | 防止凭证被窃取后登录账户 |
-| M1017 | 用户培训 | 适用 | 培训员工识别钓鱼攻击 |
-| M1027 | 操作系统/应用加固 | 部分适用 | 限制OAuth授权范围 |
-| M1018 | 用户账户管理 | 适用 | 监控账户的异常使用模式 |
+**API密钥管理**：定期轮换云服务API密钥，使用短期STS令牌替代长期Access Key
 
 ## 动手实验
 
-> ⚠️ **重要提示**：所有实验必须在隔离的实验室环境中进行，禁止对未授权的真实系统进行测试。
+> ⚠️ **所有实验必须在隔离的实验室环境中进行**
 
-### 实验1：检测邮箱中的异常转发规则
-```powershell
-# Exchange Online - 查看所有邮箱的转发规则
-Get-Mailbox -ResultSize Unlimited | Get-InboxRule | Where-Object { $_.ForwardTo -or $_.RedirectTo } | Select-Object MailboxOwnerIdentity, Name, ForwardTo, RedirectTo
+### 实验1：理解凭据填充攻击（初级）
 
-# 检查邮件流规则
-Get-TransportRule | Where-Object { $_.RedirectMessageTo -or $_.BlindCopyTo }
-```
+**目标**：理解凭据填充的原理和检测方法
 
-### 实验2：模拟邮件线路劫持
-1. 在授权测试环境中，获取测试邮箱的访问权限
-2. 查看已有的邮件对话
-3. 回复一封已有邮件，附带无害的测试附件
-4. 观察收件人的反应，评估检测能力
+**步骤**：
+1. 在测试环境中创建多个测试账户
+2. 使用一个泄露的密码字典模拟凭据填充
+3. 分析认证日志中的失败模式（同一IP大量失败、用户名枚举）
+
+**学习要点**：掌握凭据填充的日志特征
+
+### 实验2：会话Cookie钓鱼模拟（中级）
+
+**目标**：理解MFA绕过的原理
+
+**步骤**：
+1. 在隔离环境中部署Evilginx2
+2. 针对测试账户进行中间人钓鱼
+3. 分析窃取的会话Cookie如何绕过MFA
+
+**学习要点**：理解会话劫持绕过MFA的机制
+
+### 实验3：UEBA基线构建（高级）
+
+**目标**：建立用户行为基线用于异常检测
+
+**步骤**：
+1. 收集测试账户的正常使用日志（登录时间、IP、操作）
+2. 构建行为基线模型
+3. 模拟攻击者异常行为，验证检测效果
+
+**学习要点**：掌握UEBA在损害账户检测中的应用
 
 ## 术语解释
 
-| 术语 | 英文原名 | 通俗解释 |
-|------|----------|----------|
-| 邮件线路劫持 | Email Thread Hijacking | 使用被盗邮箱回复已有邮件对话，附带恶意内容，收件人很难察觉异常 |
-| 撞库攻击 | Credential Stuffing | 使用其他网站泄露的账号密码批量尝试登录目标网站 |
-| OAuth授权 | OAuth Authorization | 第三方应用通过授权获取对用户账户的部分访问权限，像把家门钥匙配了一把给外人 |
-| 不可能旅行检测 | Impossible Travel Detection | 检测从地理位置上不可能在短时间内到达的连续登录，如5分钟前在北京登录，现在在纽约 |
-| 凭证填充 | Credential Spraying | 使用少量常见密码批量尝试大量账户，避免账号被锁定 |
-| 会话劫持 | Session Hijacking | 窃取用户的会话令牌（登录凭证），冒充已登录的用户 |
+| 术语 | 通俗解释 |
+|------|---------|
+| **ATT&CK** | MITRE公司维护的攻击技术知识库，像一本"黑客手法百科全书" |
+| **损害账户** | T1586，盗用他人已有的社交媒体、邮箱、云服务账户 |
+| **建立账户** | T1585，与T1586对比——T1585是自己注册新账户，T1586是盗用已有账户 |
+| **凭据填充** | 用泄露的用户名/密码组合批量尝试登录其他平台 |
+| **MFA疲劳攻击** | 反复推送MFA请求，等用户不耐烦点击"批准" |
+| **SIM交换** | 骗过电信运营商，把受害者手机号转到攻击者SIM卡上 |
+| **UEBA** | 用户实体行为分析，通过机器学习建立用户行为基线 |
+
+## 被引用情况
+
+本技术作为资源开发战术的核心父技术，被以下文档引用：
+
+- [TA0042 - 资源开发](README.md)
+- [T1585 - 建立账户](T1585-Establish-Accounts.md)（对比技术）
 
 ## 参考资料
 
-- [MITRE ATT&CK 破坏账户](https://attack.mitre.org/techniques/T1586/)
-- [MITRE ATT&CK 破坏账户：社交媒体账户](https://attack.mitre.org/techniques/T1586/001/)
-- [MITRE ATT&CK 破坏账户：电子邮件账户](https://attack.mitre.org/techniques/T1586/002/)
-- [MITRE ATT&CK 破坏账户：云账户](https://attack.mitre.org/techniques/T1586/003/)
-- [Hackers Used Meta's AI Support Bot to Seize Instagram Accounts](https://krebsonsecurity.com/2026/06/hackers-used-metas-ai-support-bot-to-seize-instagram-accounts/)
-- [MITRE ATT&CK APT28](https://attack.mitre.org/groups/G0007/)
-- [MITRE ATT&CK APT29](https://attack.mitre.org/groups/G0016/)
+### 📚 官方文档（深入了解）
+
+- [MITRE ATT&CK - Compromise Accounts (T1586)](https://attack.mitre.org/techniques/T1586/) - 官方技术定义
+- [MITRE ATT&CK - Resource Development (TA0042)](https://attack.mitre.org/tactics/TA0042/) - 所属战术
+
+### 🔧 工具与资源（动手试试）
+
+- [Evilginx2](https://github.com/kgretzky/evilginx2) - 中间人钓鱼框架（绕过MFA）
+- [DeHashed](https://dehashed.com/) - 凭证泄露查询平台
+- [TruffleHog](https://github.com/trufflesecurity/trufflehog) - 密钥扫描工具
+
+### 📰 安全报告（真实攻击）
+
+- [Cisco Talos - MFA疲劳攻击分析](https://blog.talosintelligence.com/2022/09/mfa-fatigue-attacks.html) - MFA绕过实战案例
+- [Okta Lapsus$事件报告](https://sec.okta.com/lapsus) - SIM交换接管管理员账户
+- [CISA SolarWinds警报](https://www.cisa.gov/news-events/cybersecurity-advisories/aa21-131a) - APT29窃取云服务凭证

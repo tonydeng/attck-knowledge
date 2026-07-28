@@ -4,15 +4,36 @@
 
 就像间谍在公共留言板上用隐形墨水发消息——攻击者利用谷歌文档、博客评论区等Web服务隐藏C2指令，让防御者以为只是普通的上网流量。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者利用GitHub/Twitter/Telegram等合法Web服务作为C2中转站 |
+| 为什么危险？ | C2流量混入合法Web服务流量中，几乎无法通过URL黑名单拦截 |
+| 谁需要关心？ | SOC分析师、网络安全团队 |
+| 你的第一步防御 | 监控内部主机对GitHub/Twitter/Telegram等服务的异常频率访问 |
+| 如果只做一件事 | 建立合法Web服务使用基线，监控偏离基线的异常API调用 |
+
 ## 难度等级
 
 - ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络协议基础（TCP/IP/DNS/HTTP）
+- [ ] C2通信模式
+- [ ] 加密通信基本原理
 
 ## 技术描述
 
 Web服务（Web Service）是 MITRE ATT&CK 框架中命令与控制战术下的一种技术，编号为 T1102。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为C2只是'恶意软件发心跳包'——现代C2基础设施堪比小型互联网公司。攻击者使用CDN隐藏真实服务器、用Domain Fronting伪装流量目的地、借助合法云服务（如GitHub Issues、Slack API）作为通信通道。攻击者的C2流量与正常流量混杂在一起，传统IoC检测几乎无效。
 攻击者不自己搭建C2服务器，而是把C2指令藏在"第三方Web服务"中——比如在Google Docs里写一篇文档、在Twitter上发一条推文、在博客评论区留一条评论。被黑的电脑定期去读取这些公开的Web服务内容，从中提取C2指令。因为流量指向的都是日常使用的知名Web服务，防火墙几乎不可能封锁。
 
 **技术原理：**
@@ -148,6 +169,10 @@ graph TD
 - 监控 Web 代理日志中的异常 API 调用
 - 建立正常服务使用基线
 
+## 避坑指南
+
+SOC常见误区：只检测已知恶意域名和IP。
+
 ## 检测建议
 
 ### 网络层检测
@@ -174,6 +199,34 @@ level: medium
 tags:
     - attack.t1102
 ```
+
+
+**用人话说：**C2检测关注通信行为特征而非IP黑名单——固定间隔心跳、非常规DNS查询、小数据包频繁发送比内容分析更有效。
+
+**用人话说：**C2检测关注通信行为特征而非IP黑名单——固定间隔心跳包、非常规DNS查询、小数据包频繁发送比内容分析更有效。
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1102
+status: experimental
+description: Detects potential T1102 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1102
+
 
 ## 缓解措施
 
@@ -214,11 +267,11 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1102](https://attack.mitre.org/techniques/T1102/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [PT Security - Goffee Group (2025)](https://global.ptsecurity.com/en/research/pt-esc-threat-intelligence/fortune-telling-on-goffee-grounds/)
 - [Unit 42 - PASS-Driven (2025)](https://unit42.paloaltonetworks.com/pass-driven-malware/)

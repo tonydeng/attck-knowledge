@@ -4,13 +4,34 @@
 
 > **收集受害者身份信息就像小偷在动手前先打听房主的姓名、电话和日常习惯，方便后续伪装成熟人骗开大门。**
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者收集目标组织员工的姓名、邮箱、凭证等身份信息，为鱼叉式钓鱼和凭证攻击做准备 |
+| 为什么危险？ | 拿到员工身份信息后，攻击者可以制作高度定制的钓鱼邮件或冒充员工进行社会工程学攻击 |
+| 谁需要关心？ | 安全团队、HR部门、IT运维人员 |
+| 你的第一步防御 | 审查公司官网和LinkedIn上公开的员工信息量，最小化暴露 |
+| 如果只做一件事 | 订阅凭证泄露监控服务，在员工凭证出现在暗网时第一时间获知 |
+
 ## 难度等级
 
 ⭐⭐ 中级 - 需要一定的社会工程学技巧和信息检索能力
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 社交媒体OSINT基础（LinkedIn、Twitter信息搜集）
+- [ ] 企业邮箱命名规则（firstname.lastname@company.com等格式）
+- [ ] 数据泄露数据库概念（Have I Been Pwned、Dehashed等）
+
 ## 技术描述
 
 **通俗解释：**
+
+**过渡段：** 不要误以为收集身份信息只是简单地"在LinkedIn上搜一下名字"——专业的攻击者会将社交媒体、暗网泄露数据、GitHub代码仓库中的硬编码凭证等多源信息交叉验证，拼出完整的员工数字画像，包括姓名、邮箱、职位、甚至密码。
 想象你要骗一个人开门，首先得知道他叫什么、在哪上班、平时几点回家。攻击者在发动网络攻击前，也需要先摸清目标组织里有哪些人、他们的邮箱是什么、职位是什么，这样才能设计出更有针对性的骗局。
 
 **技术原理：**
@@ -51,7 +72,6 @@
 - [T1589.001 - 凭证收集](./T1589/T1589.001-Credential-Collection.md) — 收集目标的用户名和密码，就像拿到别人家的钥匙
 - [T1589.002 - 电子邮件地址收集](./T1589/T1589.002-Email-Address-Collection.md) — 找到目标员工的工作邮箱，就像拿到别人的门牌号
 - [T1589.003 - 员工姓名收集](./T1589/T1589.003-Employee-Name-Collection.md) — 了解目标公司谁是谁，就像摸清一个小区里哪家住谁
-
 
 ## 攻击流程
 
@@ -183,6 +203,10 @@ graph TD
 - 定期审计公开代码仓库中的敏感信息
 - 监控邮箱服务的异常认证请求模式
 
+## 避坑指南
+
+新手常犯的错误：只关注工作邮箱而忽略个人邮箱。攻击者会同时收集员工的个人邮箱，因为个人邮箱的密码可能与工作邮箱相同（密码复用），且个人邮箱通常不受企业MFA保护。
+
 ## 检测建议
 
 ### 网络层检测
@@ -221,6 +245,8 @@ journalctl -u sshd | grep "Failed password" | wc -l
 
 **Sigma规则示例：**
 
+
+**用人话说：** 收集身份信息本身不产生网络流量（LinkedIn搜索、暗网查询都是合法操作），所以很难在收集阶段就发现。但攻击者拿到信息后会留下痕迹——比如大量尝试用同一个密码登录不同账号（密码喷洒），或者从同一个IP对邮箱服务器做SMTP VRFY/EXPN枚举（探测哪些用户名存在）。检测的重点是发现"拿到信息后的验证行为"，而不是收集行为本身。
 ```yaml
 title: Password Spray Attempt
 status: experimental
@@ -358,25 +384,25 @@ sudo apt update && sudo apt install theharvester
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - 收集受害者身份信息 (T1589)](https://attack.mitre.org/techniques/T1589/)
 - [MITRE ATT&CK - 凭证收集 (T1589.001)](https://attack.mitre.org/techniques/T1589/001)
 - [MITRE ATT&CK - 电子邮件地址收集 (T1589.002)](https://attack.mitre.org/techniques/T1589/002)
 - [MITRE ATT&CK - 员工姓名收集 (T1589.003)](https://attack.mitre.org/techniques/T1589/003)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Snowflake安全事件通报](https://www.snowflake.com/blog/security-actions-protect-customers/) - 2024年大规模凭证泄露事件
 - [Microsoft: Staying Ahead of Threat Actors in the Age of AI](https://www.microsoft.com/en-us/security/blog/2024/02/14/staying-ahead-of-threat-actors-in-the-age-of-ai/)
 - [CrowdStrike 2026 Global Threat Report](https://www.crowdstrike.com/global-threat-report/) - AI增强攻击趋势
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [theHarvester](https://github.com/laramies/theHarvester) - 开源情报收集工具
 - [Hunter.io](https://hunter.io/) - 企业邮箱发现平台
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [CISA: T1589 信息页](https://www.cisa.gov/eviction-strategies-tool/info-attack/T1589)
 - [Startup Defense: T1589 Analysis](https://www.startupdefense.io/mitre-attack-techniques/t1589-gather-victim-identity-information/)

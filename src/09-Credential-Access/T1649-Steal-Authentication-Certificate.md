@@ -18,11 +18,21 @@
 
 - ⭐⭐⭐ 高级（需要深入技术知识）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows认证体系（NTLM/Kerberos/LSASS）
+- [ ] 哈希基础（NTLM Hash/SHA）
+- [ ] 网络认证协议（SMB/LDAP/Kerberos）
+
 ## 技术描述
 
 窃取或伪造认证证书（T1649）是MITRE ATT&CK框架中凭证访问战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要误解凭证访问只是'窃取密码'——在现代企业中，凭证存在于内存、磁盘、网络流量和云API等多个位置。攻击者关注的不是密码本身，而是'能用它做什么'：一个服务账号的哈希就能横向移动到数十台服务器，OAuth令牌可以访问整个SaaS租户的数据。
 数字证书（Digital Certificate）是互联网世界的"身份证"——它包含一个公钥和一个私钥。公钥像你的姓名和照片，可以公开；私钥像你的签名，只有你才有。证书的作用很重要：网站用它证明自己的身份（HTTPS小锁图标）、程序员用它签名软件（证明软件是作者写的）、企业用它做单点登录（SAML令牌签名）。如果攻击者偷到了证书的私钥，就可以冒充网站、签署恶意软件、或者伪造企业登录令牌。而且私钥一旦被偷，除非吊销证书，否则攻击者可以一直使用。
 
 **技术原理：**
@@ -163,6 +173,10 @@ graph TD
 - 定期审计证书存储中的证书，确认每张证书的来源和用途
 - 实施HSM监控，审计所有密钥导出和签名操作
 
+## 避坑指南
+
+组织中最危险盲区：认为强密码就足够安全。
+
 ## 检测建议
 
 ### 网络层检测
@@ -203,9 +217,6 @@ Get-WinEvent -FilterHashtable @{LogName='Security';ID=4690} -MaxEvents 100 |
 # 检测证书存储中的所有可导出私钥证书
 Get-ChildItem -Path Cert:\LocalMachine\My | Where-Object {$_.HasPrivateKey}
 ```
-
-
-
 
 **用人话说：** 这条规则在监控是否有进程在读取或导出数字证书的私钥。私钥是数字证书的核心，正常情况下只有证书管理工具和对应的Web服务会访问它。如果有陌生进程试图读取证书存储或导出.pfx、.pem文件，那就是攻击者在偷数字证书的私钥，准备冒充合法身份。
 
@@ -340,25 +351,25 @@ Set-AdfsCertificate -CertificateType Token-Signing -Thumbprint <thumbprint> -IsP
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1649 Steal or Forge Authentication Certificates](https://attack.mitre.org/techniques/T1649/)
 - [MITRE ATT&CK - T1587.001 Develop Capabilities: Digital Certificates](https://attack.mitre.org/techniques/T1587/001/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Mandiant - Golden SAML and Golden Certificates](https://www.mandiant.com/resources/blog/golden-saml-and-golden-certificates) - AD FS证书窃取与SAML伪造
 - [CISA - 保护代码签名证书](https://www.cisa.gov/news-events/alerts/2019/08/29/protecting-code-signing-certificates) - 代码签名证书安全指南
 - [Microsoft - AD FS安全最佳实践](https://learn.microsoft.com/en-us/windows-server/identity/ad-fs/deployment/best-practices-securing-ad-fs)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [mimikatz - Windows凭证和证书提取](https://github.com/gentilkiwi/mimikatz)
 - [ADFSDump - AD FS配置提取](https://github.com/mandiant/ADFSDump)
 - [SharpDPAPI - DPAPI数据解密](https://github.com/GhostPack/SharpDPAPI)
 - [OpenSSL - 证书格式转换工具](https://www.openssl.org/)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [NIST SP 800-57 - 密钥管理指南](https://csrc.nist.gov/publications/detail/sp/800-57-part-1/rev-5/final)
 - [Microsoft - 证书服务文档](https://learn.microsoft.com/en-us/windows/security/identity-protection/active-directory-certificate-services/)

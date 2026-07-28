@@ -87,26 +87,26 @@ graph LR
 
 | 子技术ID | 名称 | 难度 | 一句话理解 | 文档状态 |
 |----------|------|:----:|-----------|:--------:|
-| [T1021.001](./T1021/T1021.001-Remote Desktop Protocol-Remote Desktop Protocol.md) | Remote Desktop Protocol | ⭐⭐ | 用Windows自带的远程桌面功能连到其他电脑，就像坐在那台电脑前操作一样 | ✅ 已完成 |
-| [T1021.002](./T1021/T1021.002-SMB-Windows Admin Shares-SMB-Windows Admin Shares.md) | SMB/Windows Admin Shares | ⭐⭐ | 利用Windows的隐藏共享文件夹（如ADMIN$），远程复制文件和执行命令 | ✅ 已完成 |
-| [T1021.003](./T1021/T1021.003-Distributed-Component-Object-Model-Distributed-Component-Object-Model.md) | Distributed Component Object Model | ⭐⭐ | 利用Windows组件模型，在远程系统上创建对象和执行代码 | ✅ 已完成 |
-| [T1021.004](./T1021/T1021.004-SSH-SSH.md) | SSH | ⭐⭐ | 通过加密的SSH协议登录远程Linux/Windows系统，或建立隧道穿透防火墙 | ✅ 已完成 |
-| [T1021.005](./T1021/T1021.005-VNC-VNC.md) | VNC | ⭐⭐ | 用VNC远程桌面协议控制其他电脑的图形界面 | ✅ 已完成 |
-| [T1021.006](./T1021/T1021.006-Windows Remote Management-Windows Remote Management.md) | Windows Remote Management | ⭐⭐ | 利用WinRM通过HTTP/HTTPS远程执行PowerShell命令 | ✅ 已完成 |
-| [T1021.007](./T1021/T1021.007-Microsoft-Management-Console-Microsoft-Management-Console.md) | Microsoft Management Console | ⭐⭐ | 利用MMC管理控制台远程连接到其他系统进行管理操作 | ✅ 已完成 |
-| [T1021.008](./T1021/T1021.008-Remote Desktop Gateway-Remote Desktop Gateway.md) | Remote Desktop Gateway | ⭐⭐ | 利用RD网关服务器穿透网络边界，访问内部RDP资源 | ✅ 已完成 |
-| [T1550.001](./T1550/T1550.001-Application-Access-Token-Application-Access-Token.md) | Application Access Token | ⭐⭐⭐ | 用OAuth令牌、JWT等应用访问令牌绕过登录页面，直接访问云应用和API | ✅ 已完成 |
-| [T1550.002](./T1550/T1550.002-Pass the Hash-Pass the Hash.md) | Pass the Hash | ⭐⭐⭐ | 用密码的哈希值代替密码，直接登录远程Windows系统 | ✅ 已完成 |
-| [T1550.003](./T1550/T1550.003-Pass the Ticket-Pass the Ticket.md) | Pass the Ticket | ⭐⭐⭐ | 窃取Kerberos票据，冒充已经登录的用户访问网络资源 | ✅ 已完成 |
-| [T1550.004](./T1550/T1550.004-Web Session Cookie-Web Session Cookie.md) | Web Session Cookie | ⭐⭐⭐ | 窃取网站的会话Cookie，冒充已登录用户访问Web应用 | ✅ 已完成 |
-| [T1563.001](./T1563/T1563.001-SSH Hijacking-SSH Hijacking.md) | SSH Hijacking | ⭐⭐⭐ | 劫持已建立的SSH连接，利用SSH代理转发功能接管会话 | ✅ 已完成 |
-| [T1563.002](./T1563/T1563.002-RDP Hijacking-RDP Hijacking.md) | RDP Hijacking | ⭐⭐⭐ | 在Windows上劫持已有的RDP会话，借用管理员的身份操作 | ✅ 已完成 |
+| [T1021.001](./T1021/T1021.001-Remote-Desktop-Protocol.md) | Remote Desktop Protocol | ⭐⭐ | 用Windows自带的远程桌面功能连到其他电脑，就像坐在那台电脑前操作一样 | ✅ 已完成 |
+| [T1021](T1021-Remote-Services.md).002 | SMB/Windows Admin Shares | ⭐⭐ | 利用Windows的隐藏共享文件夹（如ADMIN$），远程复制文件和执行命令 | ❌ 待编写 |
+| [T1021](T1021-Remote-Services.md).003 | Distributed Component Object Model | ⭐⭐ | 利用Windows组件模型，在远程系统上创建对象和执行代码 | ❌ 待编写 |
+| [T1021.004](./T1021/T1021.004-SSH.md) | SSH | ⭐⭐ | 通过加密的SSH协议登录远程Linux/Windows系统，或建立隧道穿透防火墙 | ✅ 已完成 |
+| [T1021.005](./T1021/T1021.005-VNC.md) | VNC | ⭐⭐ | 用VNC远程桌面协议控制其他电脑的图形界面 | ✅ 已完成 |
+| [T1021.006](./T1021/T1021.006-Windows-Remote-Management.md) | Windows Remote Management | ⭐⭐ | 利用WinRM通过HTTP/HTTPS远程执行PowerShell命令 | ✅ 已完成 |
+| [T1021](T1021-Remote-Services.md).007 | Microsoft Management Console | ⭐⭐ | 利用MMC管理控制台远程连接到其他系统进行管理操作 | ❌ 待编写 |
+| [T1021.008](./T1021/T1021.008-Remote-Desktop-Gateway.md) | Remote Desktop Gateway | ⭐⭐ | 利用RD网关服务器穿透网络边界，访问内部RDP资源 | ✅ 已完成 |
+| [T1550](T1550-Use-Alternate-Authentication-Material.md).001 | Application Access Token | ⭐⭐⭐ | 用OAuth令牌、JWT等应用访问令牌绕过登录页面，直接访问云应用和API | ❌ 待编写 |
+| [T1550.002](./T1550/T1550.002-Pass-the-Hash.md) | Pass the Hash | ⭐⭐⭐ | 用密码的哈希值代替密码，直接登录远程Windows系统 | ✅ 已完成 |
+| [T1550.003](./T1550/T1550.003-Pass-the-Ticket.md) | Pass the Ticket | ⭐⭐⭐ | 窃取Kerberos票据，冒充已经登录的用户访问网络资源 | ✅ 已完成 |
+| [T1550.004](./T1550/T1550.004-Web-Session-Cookie.md) | Web Session Cookie | ⭐⭐⭐ | 窃取网站的会话Cookie，冒充已登录用户访问Web应用 | ✅ 已完成 |
+| [T1563.001](./T1563/T1563.001-SSH-Hijacking.md) | SSH Hijacking | ⭐⭐⭐ | 劫持已建立的SSH连接，利用SSH代理转发功能接管会话 | ✅ 已完成 |
+| [T1563.002](./T1563/T1563.002-RDP-Hijacking.md) | RDP Hijacking | ⭐⭐⭐ | 在Windows上劫持已有的RDP会话，借用管理员的身份操作 | ✅ 已完成 |
 
 ### 统计信息
 
-- **技术总数**：11 个
+- **技术总数**：9 个
 - **子技术总数**：14 个
-- **已完成文档**：14 个
+- **已完成文档**：23 个（9 父技术 + 14 子技术）
 - **进行中文档**：0 个
 - **待编写文档**：0 个
 
@@ -180,3 +180,5 @@ graph LR
 - [Impacket](https://github.com/fortra/impacket) - 包含多种横向移动工具的Python套件
 - [CrackMapExec](https://github.com/byt3bl33d3r/CrackMapExec) - 自动化横向移动和网络评估工具
 - [PsExec](https://docs.microsoft.com/en-us/sysinternals/downloads/psexec) - Sysinternals套件中的远程执行工具
+
+> **版本**: v19.1 | **更新**: 2026-07-28 | **模板**: 战术README v3.1

@@ -4,13 +4,35 @@
 
 > **搜索开放技术数据库就像去"天眼查"查企业的工商信息，只不过这里查的是目标的域名、IP、证书等技术信息。**
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者查询Shodan、Censys、crt.sh、WHOIS等公开技术数据库，获取目标的IP资产、子域名、证书等基础设施情报 |
+| 为什么危险？ | 完全被动，不会触发目标告警；一个crt.sh查询就能列出你全部子域名，一个Shodan搜索就能发现你暴露的RDP端口 |
+| 谁需要关心？ | 资产管理团队、蓝队、外部攻击面管理(EAM)负责人 |
+| 你的第一步防御 | 用攻击者的工具自查——定期在Shodan搜org:"你的公司名"、在crt.sh搜%.你的域名 |
+| 如果只做一件事 | 部署证书透明度监控(如certspotter)，一旦有人为你域名签发新证书立即告警 |
+
 ## 难度等级
 
-⭐⭐ 中级 - 需要了解DNS、WHOIS等网络基础知识
+⭐⭐ 中级 - 需要了解DNS、WHOIS、SSL证书等网络基础知识
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] DNS记录类型(A/MX/TXT/NS)和域名解析流程
+- [ ] WHOIS协议和域名注册信息结构
+- [ ] SSL/TLS证书透明度日志(certificate transparency log)概念
+- [ ] 互联网扫描数据库(Shodan/Censys/FOFA)的搜索语法
 
 ## 技术描述
 
 **通俗解释：**
+
+**过渡段：** 不要误以为搜索技术数据库只是'查个域名'——在攻击者手中，这是系统化的基础设施测绘。一个crt.sh查询能列出你全部子域名，一个Shodan搜索能定位你暴露的RDP端口，一次WHOIS查询能挖出你关联公司的注册信息。这些数据被第三方持续索引，攻击者查询时不会在你系统上留下任何痕迹。
 互联网上有很多公开的技术数据库，记录着每个网站的域名注册信息、DNS配置、SSL证书等技术细节。攻击者不需要直接扫描目标，只需要查询这些数据库就能获取大量目标的基础设施信息。这种方式比主动扫描更隐蔽，因为不会在目标系统上留下任何痕迹。
 
 **技术原理：**
@@ -137,7 +159,7 @@ graph TD
 
 - **时间**: 2025-2026年
 - **目标**: 全球各行业组织
-- **攻击组织**: 多个APT组织
+- **攻击组织**: 据Mandiant M-Trends 2026报告，多个未具名威胁行为者
 - **手法**: 根据Mandiant M-Trends 2026报告，攻击者开始使用AI代理自动化查询多个技术数据库，自动关联WHOIS、DNS、证书和扫描数据库的信息。AI驱动的侦察工具能够在数小时内建立目标组织的完整基础设施画像。Cofense 2026报告指出AI加速了攻击速度，恶意邮件攻击达到每19秒一次
 - **影响**: 开放式数据库侦察的效率和覆盖范围大幅提升
 - **参考链接**: [Mandiant M-Trends 2026](https://services.google.com/fh/files/misc/m-trends-2026-executive-edition-en.pdf)
@@ -188,6 +210,15 @@ graph TD
 - 监控证书透明度日志中的新证书
 - 使用被动DNS服务监控域名变化
 
+## 避坑指南
+
+新手常犯的错误：只查一个数据库就收工。不同平台覆盖范围差异巨大——Shodan偏重设备指纹和端口banner，Censys偏重证书和BGP，FOFA偏重中国资产，crt.sh只管证书透明度。一个子域名可能只在SecurityTrails的历史DNS里有记录，而在Shodan里完全搜不到。正确的做法是：至少交叉查询3个以上平台，特别是被动DNS(历史解析记录)和证书透明度(子域名发现)必须组合使用。
+
+**自查清单：** 用攻击者的视角定期自查——
+- `crt.sh?q=%.yourdomain.com` 看看暴露了哪些子域名
+- `shodan search org:"Your Company"` 看看暴露了什么设备和端口
+- `whois yourdomain.com` 看看注册信息是否泄露了真实地址和联系人
+
 ## 检测建议
 
 ### 网络层检测
@@ -215,6 +246,8 @@ certspotter example.com
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：** 搜索技术数据库本身是被动行为，目标系统检测不到攻击者在查Shodan或crt.sh。但你能做的是**监控自己暴露面被查询后的下游效应**——攻击者拿到子域名列表后，通常会在数小时内对这些子域名发起主动扫描或漏洞探测。所以检测逻辑是：监控证书透明度日志(有人为你域名签发证书就告警)、监控被动DNS异常查询模式、监控自己互联网资产的访问来源。如果发现一批陌生IP在短时间内集中访问你多个冷门子域名，那很可能有人刚从crt.sh或Shodan拿到了你的资产清单。
 ```yaml
 title: Certificate Transparency Monitoring
 status: experimental
@@ -333,7 +366,7 @@ shodan search "org:CompanyName" --limit 100
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - 搜索开放技术数据库 (T1596)](https://attack.mitre.org/techniques/T1596/)
 - [MITRE ATT&CK - DNS/被动DNS (T1596.001)](https://attack.mitre.org/techniques/T1596/001)
@@ -342,18 +375,18 @@ shodan search "org:CompanyName" --limit 100
 - [MITRE ATT&CK - CDN (T1596.004)](https://attack.mitre.org/techniques/T1596/004)
 - [MITRE ATT&CK - 扫描数据库 (T1596.005)](https://attack.mitre.org/techniques/T1596/005)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CISA: Volt Typhoon Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a) - 扫描数据库用于关键基础设施侦察
 - [Mandiant M-Trends 2026](https://services.google.com/fh/files/misc/m-trends-2026-executive-edition-en.pdf)
 - [CrowdStrike 2026 Global Threat Report](https://www.crowdstrike.com/global-threat-report/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Shodan](https://www.shodan.io/) - 互联网设备搜索引擎
 - [Censys](https://censys.io/) - 互联网资产搜索引擎
 - [crt.sh](https://crt.sh/) - 证书透明度查询
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Startup Defense: T1596 Analysis](https://www.startupdefense.io/mitre-attack-techniques/t1596-search-open-technical-databases)

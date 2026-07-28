@@ -4,15 +4,36 @@
 
 就像在电路中加装了一个"连环开关"——当指定的"事件"（如用户登录、程序启动、U盘插入）发生时，自动触发恶意代码运行。攻击者利用系统的各种触发机制，在特定条件下自动执行恶意代码。
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者利用系统事件触发机制（WMI订阅、屏幕保护、文件关联、辅助功能）在特定事件发生时自动执行恶意代码 |
+| 为什么危险？ | 触发机制持久且隐蔽，恶意代码在合法系统事件掩护下自动运行，难以通过进程监控发现 |
+| 谁需要关心？ | 系统管理员、安全运维团队、EDR规则开发人员 |
+| 你的第一步防御 | 监控WMI事件订阅、注册表Image File Execution Options、辅助功能键的修改 |
+| 如果只做一件事 | 建立注册表关键触发点的基线，对WMI事件订阅(__EVENTFILTER/__EVENTCONSUMER)新增进行告警 |
+
 ## 难度等级
 
 ⭐⭐ **中级** - 攻击手法种类繁多，但每种手法的具体技术门槛不高，关键在于选择合适的触发机制。
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] Windows注册表结构（HKLM/HKCU根键、Run键、Image File Execution Options）
+- [ ] WMI事件订阅模型（__EventFilter/__EventConsumer/__FilterToConsumerBinding）
+- [ ] 系统事件触发机制（屏幕保护、文件关联、辅助功能、Shell配置文件）
 
 ## 技术描述
 
 操作系统提供了丰富的"事件触发"机制——当特定事件发生时，系统可以自动执行指定的程序。这些机制本意是用于合法用途（如软件更新、驱动程序加载），但攻击者可以将这些机制武器化。
 
 **通俗解释：**
+
+**过渡段：** 事件触发执行不是"找漏洞提权"，而是"借系统合法机制搭便车"——攻击者注册的是系统本身就支持的事件回调（WMI订阅、屏幕保护、辅助功能），这些机制在触发时通常以SYSTEM或高权限运行，因此恶意代码也继承了高权限。理解这一点，你就知道为什么单纯的进程监控无法发现——需要监控的是触发配置本身（注册表键、WMI订阅、配置文件）的修改。
 就像家里装了各种"智能传感器"——门开了自动亮灯、有人经过自动开摄像头。攻击者做的事情是一样的：在系统中安装"传感器"（修改注册表或配置），当某个事件发生时（比如用户登录、U盘插入），自动触发恶意程序。这样攻击者不需要一直盯着系统，恶意代码会在最合适的时机自动执行。
 
 **技术原理：**
@@ -207,6 +228,10 @@ graph TD
 - 定期审计 `HKLM\SYSTEM\CurrentControlSet\Control\Lsa\Security Packages` 中的值
 - 启用 CIM 事件审计记录 WMI 持久化
 
+## 避坑指南
+
+红队新手常见错误：一上来就找内核漏洞提权。
+
 ## 检测建议
 
 ### 网络层检测
@@ -259,6 +284,31 @@ tags:
     - attack.t1546
     - attack.t1546.006
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：** 重点监控WMI事件订阅的新增（__EventFilter/__EventConsumer/__FilterToConsumerBinding的创建）、注册表Image File Execution Options和辅助功能键（sethc.exe/utilman.exe）的修改、屏幕保护程序路径指向非系统目录、文件关联被改为指向非默认程序。Sysmon事件ID 19/20/21可监控WMI事件订阅，事件ID 13可监控注册表值设置。
+
+
+yaml
+title: Detected Suspicious Activity - T1546
+status: experimental
+description: Detects potential T1546 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1546
+
 
 ## 缓解措施
 
@@ -367,21 +417,21 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK T1546 - Event Triggered Execution](https://attack.mitre.org/techniques/T1546/)
 - [MITRE ATT&CK T1546.003 - WMI Event Subscription](https://attack.mitre.org/techniques/T1546/003/)
 - [MITRE ATT&CK T1546.006 - Accessibility Features](https://attack.mitre.org/techniques/T1546/006/)
 - [MITRE ATT&CK T1546.012 - Security Support Provider](https://attack.mitre.org/techniques/T1546/012/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Mandiant - NOBELIUM WMI Persistence](https://www.mandiant.com/resources/blog/nobelium-wmi-persistence)
 - [CISA - LockBit Advisory](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-123a)
 - [Microsoft Digital Defense Report 2023](https://www.microsoft.com/en-us/security/blog/)
 - [MITRE ATT&CK - Scattered Spider](https://attack.mitre.org/groups/G1015/)
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Microsoft - WMI Event Subscription](https://docs.microsoft.com/en-us/windows/win32/wmisdk/subscribing-to-events)
 - [Microsoft - Security Support Providers](https://docs.microsoft.com/en-us/windows/win32/secauthn/ssp)

@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 虚拟机发现（T1673）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 安全分析师经常把恶意软件放在虚拟机里分析（因为虚拟机可以快速恢复）。攻击者不想被分析，所以会检查自己是否在虚拟机中——检查是否有VMware Tools、检查MAC地址是否以00:50:56开头（VMware特征）、检查BIOS信息、检查特定的虚拟化驱动程序。如果发现自己在虚拟机中，恶意软件就装示弱或停止运行，让分析师白忙一场。
 
 **技术原理：**
@@ -170,6 +180,10 @@ graph TD
 - 关注虚拟化环境中的异常 `Get-VM` 执行
 - 监控ESXi主机上的可疑命令执行
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -210,6 +224,31 @@ level: low
 tags:
     - attack.t1673
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1673
+status: experimental
+description: Detects potential T1673 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1673
+
 
 ## 缓解措施
 
@@ -289,20 +328,20 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1673](https://attack.mitre.org/techniques/T1673/)
 - [VMware PowerCLI Documentation](https://developer.vmware.com/powercli)
 - [Microsoft Hyper-V PowerShell](https://learn.microsoft.com/en-us/powershell/module/hyper-v/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [MITRE - REvil](https://attack.mitre.org/software/S0673/)
 - [MITRE - Conti](https://attack.mitre.org/groups/G0130/)
 - [MITRE - APT29](https://attack.mitre.org/groups/G0143/)
 - [MITRE - Ryuk](https://attack.mitre.org/software/S0446/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [VMware PowerCLI](https://developer.vmware.com/powercli)
 - [Hyper-V Best Practices](https://learn.microsoft.com/en.com/virtualization/hyper-v-on-windows/about/security-best-practices)

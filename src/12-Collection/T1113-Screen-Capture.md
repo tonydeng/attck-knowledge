@@ -9,20 +9,30 @@
 | 维度 | 你需要知道的 |
 |------|-------------|
 | 这是什么？ | 攻击者偷偷给你的电脑屏幕截图或录像，就像有人在你背后偷偷拍下你电脑上显示的内容。 |
-| 为什么危险？ | 屏幕捕获让攻击者能够"亲眼看到"受害者屏幕上的内容，绕过所有基于文本的监控措施。即使数据在显示时被加密（如只读网页），截 |
+| 为什么危险？ | 屏幕捕获让攻击者能够"亲眼看到"受害者屏幕上的内容，绕过所有基于文本的监控措施。即使数据在显示时被加密（如只读网页），截屏也能拿到手。 |
 | 谁需要关心？ | 数据安全团队、SOC分析师 |
 | 你的第一步防御 | GDI API异常调用 |
-| 如果只做一件事 | 想象一下你正在电脑上处理机密文件，而桌面上有一个你看不见的"间谍"在不断地按截屏键——你看到的每一个 |
+| 如果只做一件事 | 想象一下你正在电脑上处理机密文件，而桌面上有一个你看不见的"间谍"在不断地按截屏键——你看到的每一个像素都在泄露。 |
 
 ## 难度等级
 
 ⭐⭐ 中级（需要一定基础）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 文件系统与存储基础
+- [ ] 数据压缩与归档基本概念
+- [ ] 邮件系统与协作平台工作原理
 
 ## 技术描述
 
 屏幕捕获（T1113）是MITRE ATT&CK框架中收集战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要低估收集阶段的隐蔽性——攻击者收集数据时，不会一次性复制所有文件引起注意。而是像'精明的窃贼'一样：先确认最有价值的文件类型（.xlsx > .docx > 随机文件），然后用合法工具（如7zip、rar甚至是系统自带的compress-archive）打包，混在正常的网络流量中传输。
 想象一下你正在电脑上处理机密文件，而桌面上有一个你看不见的"间谍"在不断地按截屏键——你看到的每一个页面、输入的每一行字都被拍了下来。这就是屏幕捕获攻击：攻击者通过恶意软件在后台偷偷截取你的屏幕内容，把截获的图片传回给攻击者。无论是你正在查看的内部系统、即时通讯聊天记录还是邮件内容，都能被完整记录下来。
 
 **技术原理：**
@@ -172,6 +182,10 @@ graph TD
 - 监控`BitBlt` API在非预期进程中的调用
 - 检测`CopyFromScreen`方法在PowerShell脚本中的使用
 - 对非交互式会话中出现的屏幕分辨率查询行为进行告警
+
+## 避坑指南
+
+检测盲点：对合法压缩工具的滥用视而不见。
 
 ## 检测建议
 
@@ -330,17 +344,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1113](https://attack.mitre.org/techniques/T1113/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [SolarMarker Backdoor Analysis - Red Canary](https://redcanary.com/blog/solarmarker/)
 - [DarkHotel APT Analysis - MITRE](https://attack.mitre.org/groups/G0019/)
 - [Lazarus Group AppleJeus - Welivesecurity](https://www.welivesecurity.com/2020/04/06/lazarus-human-operator.html)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [PowerShell Screen Capture](https://docs.microsoft.com/en-us/dotnet/api/system.drawing.graphics.copyfromscreen) - .NET截图API文档
 - [Desktop Duplication API](https://docs.microsoft.com/en-us/windows/win32/direct3ddxgi/desktop-dup-api) - Windows桌面复制API

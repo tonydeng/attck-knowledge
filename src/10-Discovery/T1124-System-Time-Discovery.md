@@ -18,15 +18,25 @@
 
 - ⭐ 初级（新手可学）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络枚举基础（IP/端口/协议）
+- [ ] 系统信息查询命令
+- [ ] Active Directory基本概念
+
 ## 技术描述
 
 系统时间发现（T1124）是MITRE ATT&CK框架中的一种发现技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为信息发现只是'看看系统里有什么'——这是攻击者绘制'内部地图'的关键阶段。从系统信息到网络拓扑，从用户列表到安全策略配置，每一条信息都被拼接到攻击者的'全景图'中，为后续的横向移动和权限提升铺路。
 生活中我们经常看手表或手机确认时间。攻击者入侵系统后也一样——用 `date`、`time`、`net time` 等命令查看系统当前时间。知道时间有什么用？攻击者可以判断系统在哪个时区（推测地理位置），计算系统运行了多久（判断是否刚重启或长期在线），以及检查时间同步设置（发现是否存在审计盲区）。
 
 **技术原理：**
-1. 在Windows中使用 `net time \\\\&lt;computername&gt;` 查看远程系统时间，或 `time /t` 查看本地时间
+1. 在Windows中使用 `net time \\\\<computername>` 查看远程系统时间，或 `time /t` 查看本地时间
 2. 使用 `w32tm /query /status` 检查Windows时间服务的同步状态和NTP配置
 3. 使用PowerShell的 `Get-Date` 获取精确时间戳
 4. 在Linux中使用 `date`、`timedatectl` 查看系统时间和时区
@@ -124,7 +134,7 @@ graph TD
 ### 实战技巧
 
 1. **远程查询系统时间**
-   使用 `net time \\\\&lt;target&gt;` 可以远程查询其他系统的当前时间，比本地命令更隐蔽。
+   使用 `net time \\\\<target>` 可以远程查询其他系统的当前时间，比本地命令更隐蔽。
 
 2. **通过WMI获取时间**
    `wmic os get localdatetime` 可以获取精确的系统时间戳，格式为YYYYMMDDHHMMSS。
@@ -167,6 +177,10 @@ graph TD
 - 关联分析时间查询与后续的横向移动行为
 - 在SIEM中建立时间查询活动的基线
 
+## 避坑指南
+
+检测难点：发现阶段命令很多是合法管理操作。
+
 ## 检测建议
 
 ### 网络层检测
@@ -205,6 +219,31 @@ level: low
 tags:
     - attack.t1124
 ```
+
+
+
+### 应用层检测
+
+**Sigma规则示例：**
+
+**用人话说：**在实际环境中，需要结合上下文判断异常行为。建议针对本技术的特征指标设置告警阈值，并关联多个数据源进行交叉验证。
+
+
+yaml
+title: Detected Suspicious Activity - T1124
+status: experimental
+description: Detects potential T1124 related suspicious behavior
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection:
+    EventID: 4688
+  condition: selection
+level: medium
+tags:
+  - attack.T1124
+
 
 ## 缓解措施
 
@@ -285,17 +324,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1124](https://attack.mitre.org/techniques/T1124/)
 - [Microsoft - w32tm](https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-tools-and-settings)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [MITRE - Cobalt Strike](https://attack.mitre.org/software/S0154/)
 - [MITRE - TA505](https://attack.mitre.org/groups/G0092/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [PowerShell Get-Date](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/get-date)
 - [Windows Time Service](https://learn.microsoft.com/en-us/windows-server/networking/windows-time-service/windows-time-service-overview)

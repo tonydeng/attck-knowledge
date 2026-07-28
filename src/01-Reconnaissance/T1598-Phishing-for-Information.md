@@ -4,13 +4,35 @@
 
 > **钓鱼获取信息就像骗子假装成银行客服打电话问你的密码，目的不是偷钱，而是先套取你的个人信息。**
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者通过钓鱼邮件/短信/电话伪装成可信身份，骗取目标主动交出密码、MFA码、内部信息等凭证——注意这是侦察阶段的"钓信息"，不是交付恶意软件 |
+| 为什么危险？ | 不需要技术漏洞，利用人的信任和恐惧就能拿到登录凭证；一旦拿到凭证，攻击者就能以合法身份进入系统，绕过大部分技术防御 |
+| 谁需要关心？ | 全员(每个人都可能被钓)、安全意识培训团队、邮件安全网关管理员 |
+| 你的第一步防御 | 部署邮件安全网关(DMARC/DKIM/SPF)拦截仿冒邮件，对员工做定期钓鱼演练 |
+| 如果只做一件事 | 强制全员开启MFA(优先用硬件密钥FIDO2，不要用短信MFA——可被SIM交换绕过) |
+
 ## 难度等级
 
 ⭐⭐ 中级 - 需要社会工程学技巧和钓鱼工具使用经验
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 社会工程学基础(信任建立、紧迫感制造、权威伪装)
+- [ ] 钓鱼邮件技术(SPF/DKIM/DMARC、域名仿冒、显示名欺骗)
+- [ ] 凭证收集机制(伪造登录页、evilginx中间人代理、MFA疲劳攻击)
+- [ ] 鱼叉钓鱼与群发钓鱼的区别(定向 vs 广撒)
+
 ## 技术描述
 
 **通俗解释：**
+
+**过渡段：** 不要误以为钓鱼获取信息只是'发个假邮件骗密码'——在攻击者手中，这是精心设计的社会工程学攻击。攻击者会先在LinkedIn研究目标公司的高管名单和组织架构，在GitHub找到员工的技术栈和项目代码，然后伪造一封来自"IT部门"的邮件，主题是"你的GitLab访问令牌即将过期，请点击验证"。员工点击后跳转到与公司SSO登录页一模一样的伪造页面，输入的凭证和MFA码被实时捕获。这种定向鱼叉钓鱼比广撒网的群发钓鱼成功率高出10倍以上。
 你可能收到过这样的短信："您的银行账户异常，请点击链接验证身份"。这就是钓鱼。攻击者通过发送看似可信的邮件、短信或电话，诱使目标主动交出密码、个人信息等敏感数据。与直接入侵系统相比，钓鱼获取信息是一种"攻心"战术，利用人的信任和恐惧来获取情报。
 
 **技术原理：**
@@ -188,6 +210,15 @@ graph TD
 - 使用URL重写和沙箱检查邮件中的链接
 - 监控异常的登录尝试和凭证使用模式
 
+## 避坑指南
+
+新手常犯的错误：只关注邮件附件是否含恶意软件，忽略了"纯信息收集型"钓鱼。T1598与T1566(钓鱼交付)的区别在于——T1598的钓鱼目的是**骗信息**，不一定要带恶意载荷。一封"请确认你的薪资信息"邮件里可能只有一个看似无害的链接指向伪造的HR门户，员工填完表格后就把SSO凭证交了出去。正确做法是：对全员做定期鱼叉钓鱼演练(KnowBe4/GoPhish)，统计点击率并针对高点击率群体加强培训；同时部署邮件认证(DMARC=reject策略)拦截仿冒域名。
+
+**自查清单：**
+- 检查DMARC策略是否设为`p=reject`(很多组织只设了`p=none`仅监控不拦截)
+- 用GoPhish做一次内部鱼叉钓鱼演练，统计点击率和凭证提交率
+- 监控公司域名下是否有人注册了相似域名(如y0urcompany.com)用于仿冒
+
 ## 检测建议
 
 ### 网络层检测
@@ -215,6 +246,8 @@ dig +short phishing-domain.com A
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：** 钓鱼获取信息的检测核心是**识别"问凭证"的通信**——正常IT部门不会在邮件里要你的密码，正常HR不会在短信里发链接让你验证SSO。检测逻辑分三层：1)邮件层——监控显示名欺骗(sender name是"IT Support"但发件域名是@gmail.com)、新注册域名(钓鱼域名通常在攻击前1-7天注册)、DMARC验证失败的入站邮件；2)端点层——监控用户访问已知钓鱼URL(威胁情报feed)或新注册域名+登录表单的组合；3)身份层——监控异常登录(陌生IP/地理位置/新设备+MFA推送疲劳特征，如同一账户5分钟内被推送10次MFA)。如果员工报告"收到奇怪邮件"且邮件里有指向外部登录页的链接，立即触发凭证重置。
 ```yaml
 title: Suspicious Login After Phishing
 status: experimental
@@ -338,7 +371,7 @@ _dmarc.example.com TXT "v=DMARC1; p=reject; rua=mailto:dmarc@example.com"
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - 钓鱼获取信息 (T1598)](https://attack.mitre.org/techniques/T1598/)
 - [MITRE ATT&CK - 服务型钓鱼 (T1598.001)](https://attack.mitre.org/techniques/T1598/001)
@@ -346,18 +379,18 @@ _dmarc.example.com TXT "v=DMARC1; p=reject; rua=mailto:dmarc@example.com"
 - [MITRE ATT&CK - 链接型钓鱼 (T1598.003)](https://attack.mitre.org/techniques/T1598/003)
 - [MITRE ATT&CK - 语音型钓鱼 (T1598.004)](https://attack.mitre.org/techniques/T1598/004)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CrowdStrike: Scattered Spider](https://www.crowdstrike.com/blog/scattered-spider-attempts-to-avoid-detection/)
 - [Cofense 2026 Report](https://cofense.com/Blog/Cofense-Report-Reveals-AI-Powered-Phishing-Accelerated-to-One-Attack-Every-19-Seconds) - AI驱动的钓鱼攻击趋势
 - [Mandiant M-Trends 2026](https://services.google.com/fh/files/misc/m-trends-2026-executive-edition-en.pdf) - 语音钓鱼成为第二大入侵向量
 - [CrowdStrike 2026 Global Threat Report](https://www.crowdstrike.com/global-threat-report/)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Gophish](https://github.com/gophish/gophish) - 钓鱼模拟平台
 - [Evilginx2](https://github.com/kgretzky/evilginx2) - 中间人钓鱼框架
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [CISA: Phishing Guidance](https://www.cisa.gov/stopransomware/phishing-guidance)

@@ -8,7 +8,7 @@
 
 | 维度 | 你需要知道的 |
 |------|-------------|
-| 这是什么？ | 攻击者利用百度网盘、GitHub、Pastebin等正规网络服务，把窃取的数据伪装成正常用户行为上传到云端，再从外部下载 |
+| 这是什么？ | 攻击者利用合法的Web服务（云存储、代码仓库、文本分享网站、Webhook）来传输窃取的数据，将恶意流量伪装成正常的云服务API调用 |
 | 为什么危险？ | 流量流向的是"受信任"的域名（如 microsoft.com、github.com），传统黑名单防火墙和DLP系统无法区分正常使用和恶意上传 |
 | 谁需要关心？ | 安全运维团队、云安全工程师、DLP管理员 |
 | 你的第一步防御 | 对云服务API调用实施严格的频率和流量基线监控，限制非授权的云存储应用 |
@@ -18,11 +18,21 @@
 
 - ⭐⭐ 中级（需要一定基础）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 网络流量分析与数据传输
+- [ ] 数据编码与压缩基础知识
+- [ ] 云服务API（S3/Blob Storage等）
+
 ## 技术描述
 
 通过Web服务渗漏（T1567）是MITRE ATT&CK框架中渗漏战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要以为数据渗出就是'把文件发到外部邮箱'——现代攻击者会用DNS隧道逐字节地拆分流式地传输文件，或将数据编码后隐藏在HTTP请求的Cookie中，甚至利用合法的云存储API与正常业务流量混合。渗出的流量看起来可能只是正常的API调用。
 攻击者利用合法的Web服务（如百度网盘、GitHub、Pastebin、企业微信等）来传输窃取的数据。因为这些服务是日常业务中常用的，所以网络防火墙一般不会拦截它们的流量。攻击者把偷到的数据上传到这些平台，然后再从外部网络下载下来，整个过程看起来就像是普通员工在使用云服务。
 
 **技术原理：**
@@ -208,6 +218,10 @@ graph TD
 - 部署CASB（云访问安全代理）监控和控制对云服务的访问
 - 监控GitHub/GitLab仓库的非工作时间commit活动和异常提交量
 
+## 避坑指南
+
+检测最大盲点：出站流量不等于恶意流量。
+
 ## 检测建议
 
 ### 网络层检测
@@ -384,7 +398,7 @@ rclone config
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1567](https://attack.mitre.org/techniques/T1567/)
 - [MITRE ATT&CK - T1567.001 云存储](https://attack.mitre.org/techniques/T1567/001/)
@@ -392,16 +406,16 @@ rclone config
 - [MITRE ATT&CK - T1567.003 文本分享网站](https://attack.mitre.org/techniques/T1567/003/)
 - [MITRE ATT&CK - T1567.004 Webhook](https://attack.mitre.org/techniques/T1567/004/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Google Cloud - APT41 Arisen from Dust](https://cloud.google.com/blog/topics/threat-intelligence/apt41-arisen-from-dust) - APT41利用OneDrive渗漏分析
 - [SecurityScorecard - Operation Phantom Circuit](https://securityscorecard.com/blog/operation-phantom-circuit-north-koreas-global-data-exfiltration-campaign/) - Lazarus Group利用Dropbox渗漏分析
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [rclone](https://rclone.org/) - 云存储文件同步命令行工具
 - [Cobalt Strike](https://www.cobaltstrike.com/) - 渗透测试框架
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [MITRE ATT&CK - T1567 官方页面](https://attack.mitre.org/techniques/T1567/) - 官方技术文档

@@ -18,11 +18,21 @@
 
 ⭐⭐⭐ 高级（需要一定经验）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 文件系统与存储基础
+- [ ] 数据压缩与归档基本概念
+- [ ] 邮件系统与协作平台工作原理
+
 ## 技术描述
 
 音频捕获（T1123）是MITRE ATT&CK框架中收集战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要低估收集阶段的隐蔽性——攻击者收集数据时，不会一次性复制所有文件引起注意。而是像'精明的窃贼'一样：先确认最有价值的文件类型（.xlsx > .docx > 随机文件），然后用合法工具（如7zip、rar甚至是系统自带的compress-archive）打包，混在正常的网络流量中传输。
 你的电脑、手机和平板上都有麦克风——这是用于视频会议、语音输入和语音助手的。但如果恶意软件接管了麦克风权限，它就可以在没有指示灯提示的情况下开始录音。你开会谈论的商业机密、和客户讲的价格策略、甚至在家里说的私事，全都被录下来发给攻击者。这不是科幻电影的情节，而是真实存在的攻击手段。
 
 **技术原理：**
@@ -174,6 +184,10 @@ graph TD
 - 检测非预期的音频数据上传行为
 - 使用麦克风访问日志（Windows Privacy Settings）检查异常麦克风使用
 - 利用端点音频采样率监控检测异常的持续录音
+
+## 避坑指南
+
+检测盲点：对合法压缩工具的滥用视而不见。
 
 ## 检测建议
 
@@ -331,17 +345,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1123](https://attack.mitre.org/techniques/T1123/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [CrystalRAT Analysis - Kaspersky 2026](https://securelist.com/crystalrat-analysis/)
 - [InvisiRing Malware Analysis - AhnLab 2025](https://asec.ahnlab.com/en/70449/)
 - [APT28 Hotel WiFi Attack - The Guardian](https://www.theguardian.com/technology/2018/feb/16/hotel-wi-fi-attack-russian-spies-apt28)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Windows WASAPI Documentation](https://docs.microsoft.com/en-us/windows/win32/coreaudio/wasapi) - Windows音频API
 - [FFmpeg Audio Capture](https://trac.ffmpeg.org/wiki/Capture/Desktop) - FFmpeg音频录制

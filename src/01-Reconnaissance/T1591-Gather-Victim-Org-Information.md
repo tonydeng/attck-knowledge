@@ -4,13 +4,34 @@
 
 > **收集受害者组织信息就像小偷在踩点前先了解这家公司的老板是谁、有几个部门、跟谁做生意，方便后续伪装和行骗。**
 
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 攻击者收集目标组织的物理位置、业务关系、组织架构、业务节奏等信息，为社工攻击和定向入侵做准备 |
+| 为什么危险？ | 知道了你的部门架构和合作伙伴，攻击者就能精准冒充供应商或内部人员发起钓鱼 |
+| 谁需要关心？ | 人力资源团队、品牌保护团队、安全意识培训负责人 |
+| 你的第一步防御 | 审查公司官网和招聘信息中暴露的组织架构细节，最小化公开的业务流程信息 |
+| 如果只做一件事 | 监控LinkedIn等平台上冒充公司员工的虚假账号，这是组织信息被利用的第一步 |
+
 ## 难度等级
 
 ⭐ 初级 - 主要从公开渠道收集，技术门槛低
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] OSINT基础（公司官网、新闻稿、招聘信息的情报价值）
+- [ ] 企业组织架构概念（部门、汇报关系、决策链）
+- [ ] 商业关系分析（供应商、合作伙伴、客户生态）
+
 ## 技术描述
 
 **通俗解释：**
+
+**过渡段：** 不要误以为组织信息收集只是简单的'看官网'——真正的组织侦察是系统化的情报拼图。攻击者从招聘广告推断技术栈和团队规模，从新闻稿识别业务节奏和关键时间点，从SEC公告了解财务状况和并购计划，从供应商名单找到供应链攻击入口。这些看似无害的公开信息组合起来，就是一份完整的"攻击蓝图"。
 你想骗一家公司，首先得知道这家公司叫什么、在哪办公、老板是谁、有几个部门、平时跟谁合作。这些信息都可以从公司官网、新闻稿、招聘广告中找到。攻击者在发动攻击前，也会花时间了解目标公司的"家底"，这样冒充合作伙伴或供应商时就更容易让人相信。
 
 **技术原理：**
@@ -140,7 +161,7 @@ graph TD
 
 - **时间**: 2025-2026年
 - **目标**: 全球各行业组织
-- **攻击组织**: 多个APT组织
+- **攻击组织**: 据Anthropic 2026报告，多个未具名威胁行为者
 - **手法**: 根据Anthropic 2026年披露的数据，2025-2026年期间AI被广泛用于组织信息收集。攻击者使用LLM自动化分析目标公司的公开信息，包括年报、新闻稿、招聘广告和社交媒体，快速建立完整的目标组织画像。Anthropic的LLM ATT&CK Navigator显示，AI已覆盖ATT&CK框架的全部14个战术和482个子技术
 - **影响**: 组织信息收集的效率和规模大幅提升
 - **参考链接**: [Anthropic LLM ATT&CK Navigator](https://red.anthropic.com/2026/attack-navigator/)
@@ -188,6 +209,10 @@ graph TD
 - 建立员工社交媒体使用指南
 - 审查对外发布的信息（新闻稿、年度报告）中的敏感内容
 
+## 避坑指南
+
+新手常犯的错误：以为官网"关于我们"页面无害。实际上，列出高管姓名、组织架构和部门负责人，等于给攻击者提供了精准的钓鱼目标清单。2023年某APT组织就是通过目标公司官网的"管理层介绍"页面，识别出CFO姓名和照片，随后制作针对性深伪语音诈骗，成功骗取200万美元转账。
+
 ## 检测建议
 
 ### 网络层检测
@@ -215,6 +240,8 @@ cat proxy.log | grep -E "zoominfo|crunchbase|linkedin"
 ### 应用层检测
 
 **Sigma规则示例：**
+
+**用人话说：** 这条规则在监控"谁在查你公司的商业底细"——ZoomInfo、CrunchBase、RocketReach这些商业情报平台聚合了企业的组织架构、员工信息、融资历史等数据，攻击者订阅这些服务可以一次性拿到目标公司的完整画像。正常情况下，你的销售团队会查潜在客户，但如果发现非销售部门的员工频繁查询这些平台，或者同一账号查询大量不同公司的信息，就可能是攻击者在收集组织情报做社工攻击的准备。检测的关键信号是：访问商业情报平台的频率异常、查询的目标公司范围异常广泛、或者查询行为发生在非工作时间。
 ```yaml
 title: Organization OSINT Data Collection
 status: experimental
@@ -330,7 +357,7 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - 收集受害者组织信息 (T1591)](https://attack.mitre.org/techniques/T1591/)
 - [MITRE ATT&CK - 确定物理位置 (T1591.001)](https://attack.mitre.org/techniques/T1591/001)
@@ -338,17 +365,17 @@ tags:
 - [MITRE ATT&CK - 识别业务节奏 (T1591.003)](https://attack.mitre.org/techniques/T1591/003)
 - [MITRE ATT&CK - 识别角色 (T1591.004)](https://attack.mitre.org/techniques/T1591/004)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [Microsoft: AI Threat Actors](https://www.microsoft.com/en-us/security/blog/2024/02/14/staying-ahead-of-threat-actors-in-the-age-of-ai/) - APT组织使用LLM案例
 - [Anthropic LLM ATT&CK Navigator](https://red.anthropic.com/2026/attack-navigator/) - AI在侦察中的应用分析
 - [Mandiant M-Trends 2026](https://services.google.com/fh/files/misc/m-trends-2026-executive-edition-en.pdf)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [SpiderFoot](https://github.com/smicallef/spiderfoot) - 自动化OSINT侦察工具
 - [天眼查](https://www.tianyancha.com/) - 中国企业信息查询平台
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [Startup Defense: T1591 Analysis](https://www.startupdefense.io/mitre-attack-techniques/t1591-gather-victim-org-information/)

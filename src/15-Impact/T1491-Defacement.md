@@ -8,21 +8,31 @@
 
 | 维度 | 你需要知道的 |
 |------|-------------|
-| 这是什么？ | 网页篡改（T1491）是攻击者用来破坏目标系统或数据的技术 |
-| 为什么危险？ | 攻击者可以对目标造成不可逆的破坏，影响组织正常运营 |
-| 谁需要关心？ | 安全运维团队、系统管理员、业务负责人 |
-| 你的第一步防御 | 定期备份数据并测试恢复流程，确保备份与生产环境隔离 |
-| 如果只做一件事 | 监控异常的数据删除或修改行为，设置关键文件完整性告警 |
+| 这是什么？ | 攻击者修改网站内容或内部页面，植入政治标语、恶意代码或虚假信息 |
+| 为什么危险？ | 损害品牌声誉，传播虚假信息，植入恶意代码可进一步攻击访问者 |
+| 谁需要关心？ | Web运维团队、安全运维团队、品牌公关团队 |
+| 你的第一步防御 | 定期检查网页文件完整性，使用WAF监控内容篡改 |
+| 如果只做一件事 | 部署文件完整性监控（FIM），对Web根目录文件变更设置实时告警 |
 
 ## 难度等级
 
 ⭐ 初级（新手可学）
+
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 备份与灾备基本原理
+- [ ] 加密算法基础
+- [ ] 系统恢复功能（VSS/启动修复）
 
 ## 技术描述
 
 网页篡改（T1491）是MITRE ATT&CK框架中影响战术的一种技术。攻击者修改目标组织面向公众或内部的Web内容，以传播信息、造成声誉损害或干扰业务运营。
 
 **通俗解释：**
+
+**过渡段：** 不要误以为影响战术只是'破坏数据'——在勒索攻击中，加密数据只是最后一步。在此之前，攻击者会系统地：禁用备份系统、删除卷影副本、关闭安全告警、窃取敏感数据（双重勒索）。破坏的后果不只是宕机，还包括数据泄露、品牌声誉损失和监管罚款。
 想象你是一家公司的官网，某天早上客户打开你的网站，发现首页变成了一张讽刺漫画配上一句"你们公司被黑了！"——这就是网页篡改。攻击者通过入侵你的Web服务器，把网站文件（比如首页的HTML文件）替换成了他们自己做的内容。这就像有人在你家店门口贴了一张大字报。
 
 **技术原理：**
@@ -190,6 +200,10 @@ graph TD
 - 使用内容分发网络（CDN）的缓存层作为保护，即使源站被篡改，CDN缓存仍可提供正常内容
 - 设置网站内容变更告警，一旦首页哈希值变化即发出通知
 
+## 避坑指南
+
+防御者最痛苦教训：备份不在离线状态。3-2-1备份策略是底线。
+
 ## 检测建议
 
 ### 网络层检测
@@ -353,24 +367,24 @@ docker run --rm -it -p 80:80 vulnerables/web-dvwa
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - Defacement](https://attack.mitre.org/techniques/T1491/)
 - [MITRE ATT&CK - Internal Defacement (T1491.001)](https://attack.mitre.org/techniques/T1491/001/)
 - [MITRE ATT&CK - External Defacement (T1491.002)](https://attack.mitre.org/techniques/T1491/002/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [BBC - Anonymous黑客行动](https://www.bbc.com/news/technology-60520504)
 - [叙利亚电子军分析 - Mandiant](https://www.mandiant.com/resources/syrian-electronic-army-continues-attacks)
 - [Iran Cyber Army - CISA](https://www.cisa.gov/news-events/analysis-reports/ar22-099a)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [Zone-H](https://zone-h.org/) - 网页篡改存档和监控
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Web安全十大风险
 
-### 学习资料
+### 📚 学习资料（深入了解）
 
 - [PortSwigger Web Security Academy](https://portswigger.net/web-security) - 免费Web安全学习平台
 - [OWASP - Web安全测试指南](https://owasp.org/www-project-web-security-testing-guide/)

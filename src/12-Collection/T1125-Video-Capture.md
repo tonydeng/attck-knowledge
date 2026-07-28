@@ -18,11 +18,21 @@
 
 ⭐⭐⭐ 高级（需要一定经验）
 
+## 前置知识检查
+
+**读这个文件需要什么？**
+
+- [ ] 文件系统与存储基础
+- [ ] 数据压缩与归档基本概念
+- [ ] 邮件系统与协作平台工作原理
+
 ## 技术描述
 
 视频捕获（T1125）是MITRE ATT&CK框架中收集战术的一种技术。
 
 **通俗解释：**
+
+**过渡段：** 不要低估收集阶段的隐蔽性——攻击者收集数据时，不会一次性复制所有文件引起注意。而是像'精明的窃贼'一样：先确认最有价值的文件类型（.xlsx > .docx > 随机文件），然后用合法工具（如7zip、rar甚至是系统自带的compress-archive）打包，混在正常的网络流量中传输。
 你笔记本上的摄像头除了用来开视频会议，也可能成为攻击者的"眼睛"。恶意软件可以在不点亮摄像头指示灯的情况下（在某些硬件上）打开摄像头，录制你工作、开会甚至在家中的视频画面。攻击者可以看到你的脸、你周围的环境、你桌子上文件的内容、甚至你的键盘操作。有些恶意软件还会结合音频捕获，同时录制视频和声音，实现完整的视听监控。
 
 **技术原理：**
@@ -171,6 +181,10 @@ graph TD
 - 监控非预期进程对摄像头驱动程序的访问
 - 检测异常的视频编码库加载（如`qedit.dll`被非多媒体软件加载）
 - 配置网络流量分析规则，检测RTP或实时视频流特征
+
+## 避坑指南
+
+检测盲点：对合法压缩工具的滥用视而不见。
 
 ## 检测建议
 
@@ -324,17 +338,17 @@ tags:
 
 ## 参考资料
 
-### 官方文档
+### 📚 官方文档（深入了解）
 
 - [MITRE ATT&CK - T1125](https://attack.mitre.org/techniques/T1125/)
 
-### 安全报告
+### 📰 安全报告（真实攻击）
 
 - [njRAT Analysis - Malpedia](https://malpedia.caad.fkie.fraunhofer.de/details/win.njrat)
 - [DarkComet RAT Analysis](https://www.sentinelone.com/blog/darkcomet-rat-analysis/)
 - [BlackShades RAT Takeover - FBI](https://www.fbi.gov/news/stories/Operation-Gameover)
 
-### 工具与资源
+### 🔧 工具与资源（动手试试）
 
 - [FFmpeg Documentation](https://ffmpeg.org/documentation.html) - 视频处理工具
 - [DirectShow Capture Documentation](https://docs.microsoft.com/en-us/windows/win32/directshow/video-capture) - Windows视频捕获

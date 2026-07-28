@@ -15,7 +15,7 @@
 收集是攻击者实现最终目标的必经之路——无论是窃密、勒索还是间谍活动，都需要先把目标数据收集到攻击者可控的位置。没有收集阶段，前面所有的入侵和横向移动工作都失去了意义。
 
 **包含的技术类型：**
-1. **文件收集**：从本地系统([T1005](T1005-Data-from-Local-System.md))、可移动介质([T1025](T1025-Data-from-Removable-Media.md))、网络共享([T1039](T1039-Data-from-Network-Shared-Drive.md)/[T1602](T1602-Data-from-Network-Shared-Drive.md))中复制敏感文件
+1. **文件收集**：从本地系统([T1005](T1005-Data-from-Local-System.md))、可移动介质([T1025](T1025-Data-from-Removable-Media.md))、网络共享([T1039](T1039-Data-from-Network-Shared-Drive.md)/[T1602](T1602-Data-from-Configuration-Repository.md))中复制敏感文件
 2. **屏幕/音视频捕获**：截屏([T1113](T1113-Screen-Capture.md))、录像([T1125](T1125-Video-Capture.md))、录音([T1123](T1123-Audio-Capture.md))
 3. **输入捕获**：键盘记录([T1056](T1056-Input-Capture.md))、剪贴板监控([T1115](T1115-Clipboard-Data.md))
 4. **应用数据收集**：邮件([T1114](T1114-Email-Collection.md))、信息库([T1213](T1213-Data-from-Information-Repositories.md))、云存储([T1530](T1530-Data-from-Cloud-Storage.md))
@@ -90,34 +90,34 @@ graph LR
 
 | 子技术ID | 名称 | 难度 | 一句话理解 | 文档状态 |
 |----------|------|:----:|-----------|:--------:|
-| [T1056.001](./T1056/T1056.001-Keylogging-键盘记录 Keylogging.md) | 键盘记录 Keylogging | ⭐⭐ | 记录用户在键盘上的每次击键，最基础的输入捕获方式 | ✅ 已完成 |
-| [T1056.002](./T1056/T1056.002-GUI Input Capture-GUI输入捕获.md) | GUI输入捕获 | ⭐⭐ | 通过伪造登录界面捕获用户在界面组件中的输入 | ✅ 已完成 |
-| [T1056.003](./T1056/T1056.003-Web Portal Capture-Web门户捕获.md) | Web门户捕获 | ⭐⭐ | 在被入侵的Web服务器上注入代码，捕获所有表单提交数据 | ✅ 已完成 |
-| [T1056.004](./T1056/T1056.004-Credential API Hooking-凭证API钩取.md) | 凭证API钩取 | ⭐⭐ | 钩取操作系统凭据输入API，拦截通过API提交的凭据 | ✅ 已完成 |
-| [T1074.001](./T1074/T1074.001-Local Data Staging-本地数据分段.md) | 本地数据分段 | ⭐ | 在本地文件系统创建临时目录，把数据集中存放在本地 | ✅ 已完成 |
-| [T1074.002](./T1074/T1074.002-Remote Data Staging-远程数据分段.md) | 远程数据分段 | ⭐ | 在远程系统或网络共享上创建分段目录，跨主机集中数据 | ✅ 已完成 |
-| [T1114.001](./T1114/T1114.001-Local Email Collection-本地邮件收集.md) | 本地邮件收集 | ⭐⭐ | 直接读取Outlook等邮件客户端在电脑上缓存的邮件文件 | ✅ 已完成 |
-| [T1114.002](./T1114/T1114.002-Remote Email Collection-远程邮件收集.md) | 远程邮件收集 | ⭐⭐ | 通过网络（IMAP/POP3）直接连接邮件服务器下载邮件 | ✅ 已完成 |
-| [T1114.003](./T1114/T1114.003-Email API Collection-邮件API收集.md) | 邮件API收集 | ⭐⭐ | 通过微软Graph API、Gmail API等接口程序化获取邮件 | ✅ 已完成 |
-| [T1114.004](./T1114/T1114.004-Email Forwarding Rule-自动邮件转发.md) | 自动邮件转发 | ⭐⭐ | 设置邮件转发规则，让服务器自动把邮件转发给攻击者 | ✅ 已完成 |
-| [T1213.001](./T1213/T1213.001-Confluence-Wiki Data-从Confluence-Wiki收集.md) | 从Confluence/Wiki收集 | ⭐⭐ | 从Confluence或企业Wiki中搜索和导出知识库文档 | ✅ 已完成 |
-| [T1213.002](./T1213/T1213.002-SharePoint Data-从SharePoint收集.md) | 从SharePoint收集 | ⭐⭐ | 从Microsoft SharePoint或OneDrive中下载共享文件和文档 | ✅ 已完成 |
-| [T1213.003](./T1213/T1213.003-Code Repository Data-从代码仓库收集.md) | 从代码仓库收集 | ⭐⭐ | 从GitHub、GitLab、Bitbucket等代码仓库克隆代码库 | ✅ 已完成 |
-| [T1213.004](./T1213/T1213.004-Jira Data-从Jira收集.md) | 从Jira收集 | ⭐⭐ | 从Jira等项目管理工具中获取项目信息和关联文档 | ✅ 已完成 |
-| [T1557.001](./T1557/T1557.001-LLMNR-NBT-NS Poisoning and SMB Relay-LLMNR-NBT-NS中毒和SMB中继.md) | LLMNR/NBT-NS中毒和SMB中继 | ⭐⭐⭐ | 利用Windows网络协议漏洞，将自己伪装成目标服务器，捕获凭据 | ✅ 已完成 |
-| [T1557.002](./T1557/T1557.002-ARP Cache Poisoning-ARP缓存中毒.md) | ARP缓存中毒 | ⭐⭐⭐ | 在局域网内发送伪造ARP包，让受害者的网络流量经过攻击者 | ✅ 已完成 |
-| [T1557.003](./T1557/T1557.003-DHCP Spoofing-DHCP欺骗.md) | DHCP欺骗 | ⭐⭐⭐ | 篡改DHCP响应，让受害者使用攻击者控制的DNS服务器 | ✅ 已完成 |
-| [T1560.001](./T1560/T1560.001-Archive via Utility-使用工具归档.md) | 使用工具归档 | ⭐ | 使用WinRAR、7-Zip、WinZip等压缩工具进行打包 | ✅ 已完成 |
-| [T1560.002](./T1560/T1560.002-Archive via Library-通过库归档.md) | 通过库归档 | ⭐ | 使用编程语言的内置压缩库如Python的zipfile、.NET的System.IO.Compression | ✅ 已完成 |
-| [T1560.003](./T1560/T1560.003-Archive via Built-in Command-通过内置命令归档.md) | 通过内置命令归档 | ⭐ | 使用操作系统自带的压缩命令如tar、Compress-Archive、compact | ✅ 已完成 |
-| [T1602.001](./T1602/T1602.001-SMB-Windows Share Collection-通过SMB-Windows共享收集.md) | 通过SMB/Windows共享收集 | ⭐⭐ | 使用SMB协议访问Windows共享文件夹中的数据 | ✅ 已完成 |
-| [T1602.002](./T1602/T1602.002-Network Device Management Collection-通过网络设备管理收集.md) | 通过网络设备管理收集 | ⭐⭐ | 从网络设备（路由器、交换机、防火墙）的存储中收集数据 | ✅ 已完成 |
+| [T1056.001](./T1056/T1056.001-Keylogging.md) | 键盘记录 Keylogging | ⭐⭐ | 记录用户在键盘上的每次击键，最基础的输入捕获方式 | ✅ 已完成 |
+| [T1056.002](./T1056/T1056.002-GUI-Input-Capture.md) | GUI输入捕获 | ⭐⭐ | 通过伪造登录界面捕获用户在界面组件中的输入 | ✅ 已完成 |
+| [T1056.003](./T1056/T1056.003-Web-Portal-Capture.md) | Web门户捕获 | ⭐⭐ | 在被入侵的Web服务器上注入代码，捕获所有表单提交数据 | ✅ 已完成 |
+| [T1056.004](./T1056/T1056.004-Credential-API-Hooking.md) | 凭证API钩取 | ⭐⭐ | 钩取操作系统凭据输入API，拦截通过API提交的凭据 | ✅ 已完成 |
+| [T1074.001](./T1074/T1074.001-Local-Data-Staging.md) | 本地数据分段 | ⭐ | 在本地文件系统创建临时目录，把数据集中存放在本地 | ✅ 已完成 |
+| [T1074.002](./T1074/T1074.002-Remote-Data-Staging.md) | 远程数据分段 | ⭐ | 在远程系统或网络共享上创建分段目录，跨主机集中数据 | ✅ 已完成 |
+| [T1114.001](./T1114/T1114.001-Local-Email-Collection.md) | 本地邮件收集 | ⭐⭐ | 直接读取Outlook等邮件客户端在电脑上缓存的邮件文件 | ✅ 已完成 |
+| [T1114.002](./T1114/T1114.002-Remote-Email-Collection.md) | 远程邮件收集 | ⭐⭐ | 通过网络（IMAP/POP3）直接连接邮件服务器下载邮件 | ✅ 已完成 |
+| [T1114.003](./T1114/T1114.003-Email-API-Collection.md) | 邮件API收集 | ⭐⭐ | 通过微软Graph API、Gmail API等接口程序化获取邮件 | ✅ 已完成 |
+| [T1114.004](./T1114/T1114.004-Email-Forwarding-Rule.md) | 自动邮件转发 | ⭐⭐ | 设置邮件转发规则，让服务器自动把邮件转发给攻击者 | ✅ 已完成 |
+| [T1213](T1213-Data-from-Information-Repositories.md).001 | 从Confluence/Wiki收集 | ⭐⭐ | 从Confluence或企业Wiki中搜索和导出知识库文档 | ❌ 待编写 |
+| [T1213.002](./T1213/T1213.002-SharePoint-Data.md) | 从SharePoint收集 | ⭐⭐ | 从Microsoft SharePoint或OneDrive中下载共享文件和文档 | ✅ 已完成 |
+| [T1213.003](./T1213/T1213.003-Code-Repository-Data.md) | 从代码仓库收集 | ⭐⭐ | 从GitHub、GitLab、Bitbucket等代码仓库克隆代码库 | ✅ 已完成 |
+| [T1213.004](./T1213/T1213.004-Jira-Data.md) | 从Jira收集 | ⭐⭐ | 从Jira等项目管理工具中获取项目信息和关联文档 | ✅ 已完成 |
+| [T1557](T1557-Adversary-in-the-Middle.md).001 | LLMNR/NBT-NS中毒和SMB中继 | ⭐⭐⭐ | 利用Windows网络协议漏洞，将自己伪装成目标服务器，捕获凭据 | ❌ 待编写 |
+| [T1557.002](./T1557/T1557.002-ARP-Cache-Poisoning.md) | ARP缓存中毒 | ⭐⭐⭐ | 在局域网内发送伪造ARP包，让受害者的网络流量经过攻击者 | ✅ 已完成 |
+| [T1557.003](./T1557/T1557.003-DHCP-Spoofing.md) | DHCP欺骗 | ⭐⭐⭐ | 篡改DHCP响应，让受害者使用攻击者控制的DNS服务器 | ✅ 已完成 |
+| [T1560.001](./T1560/T1560.001-Archive-via-Utility.md) | 使用工具归档 | ⭐ | 使用WinRAR、7-Zip、WinZip等压缩工具进行打包 | ✅ 已完成 |
+| [T1560.002](./T1560/T1560.002-Archive-via-Library.md) | 通过库归档 | ⭐ | 使用编程语言的内置压缩库如Python的zipfile、.NET的System.IO.Compression | ✅ 已完成 |
+| [T1560.003](./T1560/T1560.003-Archive-via-Built-in-Command.md) | 通过内置命令归档 | ⭐ | 使用操作系统自带的压缩命令如tar、Compress-Archive、compact | ✅ 已完成 |
+| [T1602](T1602-Data-from-Configuration-Repository.md).001 | 通过SMB/Windows共享收集 | ⭐⭐ | 使用SMB协议访问Windows共享文件夹中的数据 | ❌ 待编写 |
+| [T1602.002](./T1602/T1602.002-Network-Device-Management-Collection.md) | 通过网络设备管理收集 | ⭐⭐ | 从网络设备（路由器、交换机、防火墙）的存储中收集数据 | ✅ 已完成 |
 
 ### 统计信息
 
 - **技术总数**：17 个
-- **子技术总数**：22 个
-- **已完成文档**：22 个
+- **子技术总数**：24 个
+- **已完成文档**：41 个（17 父技术 + 24 子技术）
 - **进行中文档**：0 个
 - **待编写文档**：0 个
 
@@ -195,3 +195,5 @@ graph LR
 - [7-Zip](https://www.7-zip.org/) - 开源压缩工具，攻击者常用其打包窃取的数据
 - [EvilGinx2](https://github.com/kgretzky/evilginx2) - AiTM钓鱼框架，用于会话劫持演练
 - [Ettercap](https://www.ettercap-project.org/) - 网络中间人攻击测试工具
+
+> **版本**: v19.1 | **更新**: 2026-07-28 | **模板**: 战术README v3.1

@@ -100,9 +100,9 @@ graph LR
 
 ### 统计信息
 
-- **技术总数**：10 个
+- **技术总数**：11 个
 - **子技术总数**：11 个
-- **已完成文档**：11 个
+- **已完成文档**：22 个（11 父技术 + 11 子技术）
 - **进行中文档**：0 个
 - **待编写文档**：0 个
 
@@ -181,3 +181,13 @@ graph LR
 - [Shodan](https://www.shodan.io/) - 互联网暴露面搜索引擎，发现暴露的服务和设备
 - [Nuclei](https://github.com/projectdiscovery/nuclei) - 基于模板的漏洞扫描工具
 - [GoPhish](https://getgophish.com/) - 开源钓鱼演练框架
+
+## 速查卡
+
+- **常用技术**：[T1566](T1566-Phishing.md)（钓鱼——最常用入口）、[T1190](T1190-Exploit-Public-Facing-Application.md)（利用公开应用漏洞）、[T1078](T1078-Valid-Accounts.md)（有效账户登录）、[T1133](T1133-External-Remote-Services.md)（VPN/RDP弱密码）
+- **关键检测信号**：异常登录时间/地点、失败的登录尝试激增、从未知IP的VPN连接、Office 365异常访问行为
+- **攻击者常用工具**：GoPhish、Evilginx（中间人钓鱼框架）、Nuclei、Metasploit、CrackMapExec
+- **防御要点**：启用多因素认证（MFA）、修补公开应用漏洞、邮件安全网关过滤钓鱼邮件、VPN配置证书认证
+- **蓝队关注点**：初始访问是攻击者最易暴露的阶段——登录日志、网络连接日志、邮件安全日志是核心监控源
+
+> **版本**: v19.1 | **更新**: 2026-07-28 | **模板**: 战术README v3.1
