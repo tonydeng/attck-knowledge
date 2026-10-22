@@ -32,16 +32,19 @@ import urllib.request
 from pathlib import Path
 
 # ============================================================
-# 路径自适配：脚本位于 _tools/ 下，知识库根目录为父目录
+# 路径自适配：脚本位于 src/_tools/ 下
+#   - SRC_DIR = src/（_data 数据目录所在层）
+#   - TACTICS_ROOT = src/enterprise/（战术目录所在层，双命名空间重构后）
 # ============================================================
 SCRIPT_DIR = Path(__file__).resolve().parent
-KB_ROOT = SCRIPT_DIR.parent
-DATA_DIR = KB_ROOT / "_data"
+SRC_DIR = SCRIPT_DIR.parent
+TACTICS_ROOT = SRC_DIR / "enterprise"
+DATA_DIR = SRC_DIR / "_data"
 LOCAL_SCAN_PATH = DATA_DIR / "_local_scan.json"
 MITRE_OFFICIAL_PATH = DATA_DIR / "_mitre_official.json"
 
 # ============================================================
-# 战术清单（v19.1：拆分 Defense Evasion 为 Stealth + Defense Impairment）
+# 战术清单（v20 起：拆分 Defense Evasion 为 Stealth + Defense Impairment）
 # ============================================================
 # (目录名, 战术ID, 中文战术名, 英文战术名)
 TACTICS = [
@@ -141,9 +144,50 @@ def ensure_data_dir():
 # 子命令 1：scan - 扫描本地知识库
 # ============================================================
 
+def parse_doc_meta(text, filename, tactic_id):
+    """从文档提取元数据：frontmatter 优先（历史兼容），否则回退到文件名 + H1。
+
+    文件名约定：T####-English-Name.md 或 T####.NNN-English-Name.md
+    H1 约定：# 中文名 (T####) 或 # 中文名 (T####.NNN)
+    """
+    fm = parse_frontmatter(text)
+    meta = {
+        "attack_id": fm.get("attack_id", ""),
+        "attack_name_en": fm.get("attack_name_en", ""),
+        "attack_name_cn": fm.get("attack_name_cn", ""),
+        "tactic_id": fm.get("tactic_id", ""),
+        "sub_techniques_count": fm.get("sub_techniques_count", "0"),
+        "status": fm.get("status", ""),
+        "parent_technique": fm.get("parent_technique", ""),
+        "parent_name_en": fm.get("parent_name_en", ""),
+        "parent_name_cn": fm.get("parent_name_cn", ""),
+    }
+
+    # --- 回退 1：文件名提取 attack_id / attack_name_en ---
+    m = re.match(r"^(T\d+(?:\.\d+)?)-(.+?)\.md$", filename)
+    if m:
+        if not meta["attack_id"]:
+            meta["attack_id"] = m.group(1)
+        if not meta["attack_name_en"]:
+            meta["attack_name_en"] = m.group(2).replace("-", " ")
+
+    # --- 回退 2：H1 提取 attack_name_cn ---
+    if not meta["attack_name_cn"]:
+        h1 = re.search(r"^#\s+(.+?)\s*$", text, re.MULTILINE)
+        if h1:
+            meta["attack_name_cn"] = re.sub(r"\s*\((?:AML\.)?T[\d.]+\)\s*$", "", h1.group(1)).strip()
+
+    # --- 回退 3：tactic_id 取目录所属战术 ---
+    if not meta["tactic_id"]:
+        meta["tactic_id"] = tactic_id or ""
+
+    return meta
+
+
 def scan_dir(tactic_dir):
     """扫描单个战术目录，返回父技术 + 子技术清单。"""
-    tactic_path = KB_ROOT / tactic_dir
+    tactic_id = DIR_TO_TID.get(tactic_dir, "")
+    tactic_path = TACTICS_ROOT / tactic_dir
     parents = []
     subtechs = []
     if not tactic_path.exists():
@@ -155,34 +199,24 @@ def scan_dir(tactic_dir):
             if entry.name in ("README.md",) or entry.name.startswith("模板") or entry.name == "MAPPING.md":
                 continue
             text = entry.read_text(encoding="utf-8", errors="replace")
-            fm = parse_frontmatter(text)
+            meta = parse_doc_meta(text, entry.name, tactic_id)
             parents.append({
                 "file": entry.name,
-                "path": str(entry.relative_to(KB_ROOT)),
-                "attack_id": fm.get("attack_id", ""),
-                "attack_name_en": fm.get("attack_name_en", ""),
-                "attack_name_cn": fm.get("attack_name_cn", ""),
-                "tactic_id": fm.get("tactic_id", ""),
-                "sub_techniques_count": fm.get("sub_techniques_count", "0"),
-                "status": fm.get("status", ""),
+                "path": str(entry.relative_to(TACTICS_ROOT)),
+                **{k: meta[k] for k in ("attack_id", "attack_name_en", "attack_name_cn", "tactic_id", "sub_techniques_count", "status")},
             })
         elif entry.is_dir():
             # 子目录 = Txxxx/，里面是 Txxxx.001-*.md 子技术文件
             for sub in sorted(entry.iterdir()):
                 if sub.is_file() and sub.suffix == ".md":
                     text = sub.read_text(encoding="utf-8", errors="replace")
-                    fm = parse_frontmatter(text)
+                    meta = parse_doc_meta(text, sub.name, tactic_id)
                     subtechs.append({
                         "file": sub.name,
-                        "path": str(sub.relative_to(KB_ROOT)),
+                        "path": str(sub.relative_to(TACTICS_ROOT)),
                         "parent_dir": entry.name,
-                        "attack_id": fm.get("attack_id", ""),
-                        "attack_name_en": fm.get("attack_name_en", ""),
-                        "attack_name_cn": fm.get("attack_name_cn", ""),
-                        "parent_technique": fm.get("parent_technique", ""),
-                        "parent_name_en": fm.get("parent_name_en", ""),
-                        "parent_name_cn": fm.get("parent_name_cn", ""),
-                        "status": fm.get("status", ""),
+                        **{k: meta[k] for k in ("attack_id", "attack_name_en", "attack_name_cn", "status")},
+                        "parent_technique": meta["parent_technique"] or entry.name,
                     })
 
     return {
@@ -197,7 +231,7 @@ def scan_dir(tactic_dir):
 def cmd_scan(args):
     """扫描本地知识库，输出 _data/_local_scan.json"""
     ensure_data_dir()
-    print(f"[scan] 知识库根目录: {KB_ROOT}")
+    print(f"[scan] 知识库根目录: {TACTICS_ROOT}")
     output = {}
     for tactic_dir, _, _, _ in TACTICS:
         print(f"  Scanning {tactic_dir}...", flush=True)
@@ -274,7 +308,7 @@ def parse_tactic_page(html):
 def cmd_fetch(args):
     """从 attack.mitre.org 抓取 15 个战术页，输出 _data/_mitre_official.json"""
     ensure_data_dir()
-    print(f"[fetch] 开始抓取 MITRE ATT&CK v19.1（15 个战术）")
+    print(f"[fetch] 开始抓取 MITRE ATT&CK v20（15 个战术）")
     result = {}
 
     for tactic_id, tactic_en in [(tid, en) for _, tid, _, en in TACTICS]:
@@ -404,7 +438,7 @@ def gen_mapping(tactic_dir, tactic_id, tactic_cn, tactic_en, local_data, mitre_d
     lines.append(f'tactic_id: "{tactic_id}"')
     lines.append(f'tactic_name_cn: "{tactic_cn}"')
     lines.append(f'tactic_name_en: "{tactic_en}"')
-    lines.append('attack_version: "v19.1"')
+    lines.append('attack_version: "v20"')
     lines.append(f'official_technique_count: {mitre_parent_count}')
     lines.append(f'official_subtechnique_count: {mitre_subtech_count}')
     lines.append(f'local_technique_count: {local_parent_count}')
@@ -416,10 +450,10 @@ def gen_mapping(tactic_dir, tactic_id, tactic_cn, tactic_en, local_data, mitre_d
     lines.append("")
     lines.append("## 概述")
     lines.append("")
-    lines.append(f"本文件记录 MITRE ATT&CK v19.1 中 {tactic_id} ({tactic_en}/{tactic_cn}) 战术的")
+    lines.append(f"本文件记录 MITRE ATT&CK v20 中 {tactic_id} ({tactic_en}/{tactic_cn}) 战术的")
     lines.append("官方技术清单与本地知识库文件的对应关系，用于完整性审计和补全指引。")
     lines.append("")
-    lines.append(f"- **官方版本**：MITRE ATT&CK Enterprise v19.1")
+    lines.append(f"- **官方版本**：MITRE ATT&CK Enterprise v20")
     lines.append(f"- **官方数据**：{mitre_parent_count} 项父技术 / {mitre_subtech_count} 项子技术")
     lines.append(f"- **本地数据**：{local_parent_count} 项父技术 / {local_subtech_count} 项子技术")
     lines.append(f"- **覆盖率**：{coverage}%")
@@ -458,7 +492,7 @@ def gen_mapping(tactic_dir, tactic_id, tactic_cn, tactic_en, local_data, mitre_d
     if local_only_parents:
         for lp in local_only_parents:
             actual_local_sub = sum(1 for s in local_subtechs if s.get("parent_technique") == lp.get("attack_id"))
-            lines.append(f"| {lp.get('attack_id', '?')} | - | {lp.get('attack_name_cn', '')} | ./{lp['file']} | 0/{actual_local_sub} | ⚠️ | 官方v19.1无此技术(可能已撤销/迁移) |")
+            lines.append(f"| {lp.get('attack_id', '?')} | - | {lp.get('attack_name_cn', '')} | ./{lp['file']} | 0/{actual_local_sub} | ⚠️ | 官方v20无此技术(可能已撤销/迁移) |")
 
     lines.append("")
     lines.append("## 子技术映射表")
@@ -484,7 +518,7 @@ def gen_mapping(tactic_dir, tactic_id, tactic_cn, tactic_en, local_data, mitre_d
     if local_only_subtechs:
         for ls in local_only_subtechs:
             file_path = f"./{ls['parent_dir']}/{ls['file']}"
-            lines.append(f"| {ls.get('attack_id', '?')} | - | {ls.get('attack_name_cn', '')} | {ls.get('parent_technique', '')} | {file_path} | ⚠️ | 官方v19.1无此子技术 |")
+            lines.append(f"| {ls.get('attack_id', '?')} | - | {ls.get('attack_name_cn', '')} | {ls.get('parent_technique', '')} | {file_path} | ⚠️ | 官方v20无此子技术 |")
 
     lines.append("")
     lines.append("## 状态图例")
@@ -493,7 +527,7 @@ def gen_mapping(tactic_dir, tactic_id, tactic_cn, tactic_en, local_data, mitre_d
     lines.append("- 📝 草稿：文件存在但 frontmatter status 非【已完成】")
     lines.append("- ❌ 缺失：官方有但本地无文件")
     lines.append("- 🔄 名称不一致：本地文件名/EN名与官方不符")
-    lines.append("- ⚠️ Revoked/迁移：本地有但官方v19.1已撤销或迁移")
+    lines.append("- ⚠️ Revoked/迁移：本地有但官方v20已撤销或迁移")
     lines.append("")
     lines.append("## 缺失与不一致清单")
     lines.append("")
@@ -512,12 +546,12 @@ def gen_mapping(tactic_dir, tactic_id, tactic_cn, tactic_en, local_data, mitre_d
     if local_only_parents:
         issues.append(f"### 本地多余父技术 ({len(local_only_parents)} 项) - 可能为已撤销/迁移技术")
         for p in local_only_parents:
-            issues.append(f"- **{p.get('attack_id', '?')}** {p.get('attack_name_en', '')}：官方v19.1无此ID")
+            issues.append(f"- **{p.get('attack_id', '?')}** {p.get('attack_name_en', '')}：官方v20无此ID")
         issues.append("")
     if local_only_subtechs:
         issues.append(f"### 本地多余子技术 ({len(local_only_subtechs)} 项)")
         for s in local_only_subtechs:
-            issues.append(f"- **{s.get('attack_id', '?')}** {s.get('attack_name_en', '')}：官方v19.1无此ID")
+            issues.append(f"- **{s.get('attack_id', '?')}** {s.get('attack_name_en', '')}：官方v20无此ID")
         issues.append("")
     if name_mismatches:
         issues.append(f"### 名称不一致 ({len(name_mismatches)} 项)")
@@ -526,14 +560,14 @@ def gen_mapping(tactic_dir, tactic_id, tactic_cn, tactic_en, local_data, mitre_d
         issues.append("")
 
     if not issues:
-        lines.append("无缺失或不一致项，本地知识库与 MITRE ATT&CK v19.1 官方数据完全对齐。")
+        lines.append("无缺失或不一致项，本地知识库与 MITRE ATT&CK v20 官方数据完全对齐。")
     else:
         lines.extend(issues)
 
     lines.append("## 参考来源")
     lines.append("")
     lines.append(f"- [MITRE ATT&CK - {tactic_id}](https://attack.mitre.org/tactics/{tactic_id}/)")
-    lines.append("- [MITRE ATT&CK STIX Data v19.1](https://github.com/mitre-attack/attack-stix-data)")
+    lines.append("- [MITRE ATT&CK STIX Data v20](https://github.com/mitre-attack/attack-stix-data)")
     lines.append(f"- 本地审计时间：{time.strftime('%Y-%m-%d')}")
     lines.append("")
 
@@ -542,7 +576,7 @@ def gen_mapping(tactic_dir, tactic_id, tactic_cn, tactic_en, local_data, mitre_d
 
 def cmd_generate(args):
     """读取两份 JSON，生成各战术目录下的 MAPPING.md"""
-    print(f"[generate] 知识库根目录: {KB_ROOT}")
+    print(f"[generate] 知识库根目录: {TACTICS_ROOT}")
 
     local = load_json(LOCAL_SCAN_PATH)
     if not local:
@@ -579,7 +613,7 @@ def cmd_generate(args):
             mitre_data = {"tactic_id": tactic_id, "tactic_name_en": tactic_en, "parent_techniques": []}
 
         content = gen_mapping(tactic_dir, tactic_id, tactic_cn, tactic_en, local_data, mitre_data)
-        out_path = KB_ROOT / tactic_dir / "MAPPING.md"
+        out_path = TACTICS_ROOT / tactic_dir / "MAPPING.md"
         out_path.write_text(content, encoding="utf-8")
         print(f"  写入: {tactic_dir}/MAPPING.md ({len(content)} 字节)")
 
@@ -717,7 +751,7 @@ def compute_expected(dir_name, local_data, official_by_id):
 def verify_one(dir_name, local_data, expected):
     """验证单个战术的 MAPPING.md。"""
     tid = expected["tactic_id"]
-    mapping_path = KB_ROOT / dir_name / "MAPPING.md"
+    mapping_path = TACTICS_ROOT / dir_name / "MAPPING.md"
     result = {
         "tactic_id": tid,
         "dir": dir_name,
@@ -852,7 +886,7 @@ def verify_one(dir_name, local_data, expected):
 
 def cmd_verify(args):
     """验证 15 个 MAPPING.md 与 JSON 数据的一致性。"""
-    print(f"[verify] 知识库根目录: {KB_ROOT}")
+    print(f"[verify] 知识库根目录: {TACTICS_ROOT}")
 
     local = load_json(LOCAL_SCAN_PATH)
     if not local:
@@ -942,7 +976,7 @@ def cmd_verify(args):
 
 def cmd_status(args):
     """打印总体统计表。"""
-    print(f"[status] 知识库根目录: {KB_ROOT}")
+    print(f"[status] 知识库根目录: {TACTICS_ROOT}")
 
     local = load_json(LOCAL_SCAN_PATH)
     official = load_json(MITRE_OFFICIAL_PATH)
@@ -970,7 +1004,7 @@ def cmd_status(args):
         os_ = sum(len(p.get("subtechniques", [])) for p in md.get("parent_techniques", []))
         lpc = ld.get("parent_count", 0)
         lsc = ld.get("subtech_count", 0)
-        mpath = KB_ROOT / d / "MAPPING.md"
+        mpath = TACTICS_ROOT / d / "MAPPING.md"
         ms = mpath.stat().st_size if mpath.exists() else 0
         ms_str = f"{ms}B" if ms < 1024 else f"{ms/1024:.1f}KB"
         print(f"{tid:<10}{d:<32}{op}/{os_:<10}{lpc}/{lsc:<10}{ms_str}")
@@ -979,7 +1013,7 @@ def cmd_status(args):
     print("-" * 80)
     print(f"TOTAL     {'':<32}{tp}/{ts:<10}{lp}/{ls}")
 
-    mp_files = list(KB_ROOT.rglob("MAPPING.md"))
+    mp_files = list(TACTICS_ROOT.rglob("MAPPING.md"))
     print(f"\nMAPPING.md 文件数: {len(mp_files)}")
     print(f"总字节数: {sum(p.stat().st_size for p in mp_files)} ({sum(p.stat().st_size for p in mp_files)/1024:.1f} KB)")
 

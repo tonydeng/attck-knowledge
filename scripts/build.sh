@@ -29,12 +29,20 @@ if [ "$CMD" != "build" ] && [ "$CMD" != "serve" ] && [ "$CMD" != "watch" ]; then
     exit 1
 fi
 
-# build 模式: mdbook build + CJK 搜索优化
+# build 模式: 链接检查 + SUMMARY 预生成 + mdbook build + CJK 搜索优化
 if [ "$CMD" = "build" ]; then
-    echo "[1/2] 执行 mdbook build..."
+    echo "[1/4] 检查内部链接..."
+    python scripts/check-links.py
+
+    # SUMMARY.md 必须在 mdbook 启动前生成：构建内预处理器只重写磁盘文件，
+    # 不修改管道中的 book 结构，新增文档要等下一次构建才会被渲染。
+    echo "[2/4] 预生成 SUMMARY.md..."
+    python scripts/gen-summary.py
+
+    echo "[3/4] 执行 mdbook build..."
     mdbook build
 
-    echo "[2/2] 优化 CJK 搜索索引..."
+    echo "[4/4] 优化 CJK 搜索索引..."
     node scripts/cjk-search.js
 
     echo "✅ 完成"

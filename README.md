@@ -1,11 +1,12 @@
-# ATT&CK 知识库
+# ATT&CK & ATLAS 知识库
 
 [![mdbook build](https://github.com/tonydeng/attck-knowledge/actions/workflows/deploy.yml/badge.svg)](https://github.com/tonydeng/attck-knowledge/actions/workflows/deploy.yml)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-brightgreen)](https://tonydeng.github.io/attck-knowledge/)
-[![MITRE ATT&CK v19.1.1](https://img.shields.io/badge/MITRE%20ATT%26CK-v19-blue)](https://attack.mitre.org/matrices/enterprise/)
+[![MITRE ATT&CK v20](https://img.shields.io/badge/MITRE%20ATT%26CK-v20-blue)](https://attack.mitre.org/matrices/enterprise/)
+[![MITRE ATLAS 2026.09](https://img.shields.io/badge/MITRE%20ATLAS-2026.09-blue)](https://atlas.mitre.org/)
 [![中文](https://img.shields.io/badge/lang-中文-red)](.)
 
-基于 [MITRE ATT&CK® v19 Enterprise](https://attack.mitre.org/matrices/enterprise/) 矩阵的完整中文知识库，覆盖全部 **15 个战术**、**254 个技术** 和 **617 个子技术**。
+基于 [MITRE ATT&CK® Enterprise](https://attack.mitre.org/matrices/enterprise/) 与 [MITRE ATLAS](https://atlas.mitre.org/) 双矩阵的中文对抗威胁知识库。**ATT&CK Enterprise 部分**覆盖全部 **15 个战术**、**254 个技术** 和 **617 个子技术**（871 篇文档）；**ATLAS 部分**（AI/ML 对抗威胁矩阵：16 战术 / 120 技术 / 88 子技术 / 73 案例研究）建设中，[设计 spec 见 issue #2](https://github.com/tonydeng/attck-knowledge/issues/2)。
 
 > 每篇技术文档包含：通俗理解、技术原理、真实案例、红蓝队视角、检测建议、动手实验。适合安全分析师、渗透测试工程师、蓝队防御人员、安全学习者阅读。
 
@@ -31,21 +32,21 @@
 
 | 序号 | 战术名称 | TA ID | 技术数 | 子技术数 | 目录 |
 |:---:|---------|:-----:|:------:|:--------:|------|
-| 01 | 侦察 | TA0043 | 12 | 34 | [`01-Reconnaissance`](./src/01-Reconnaissance/README.md) |
-| 02 | 资源开发 | TA0042 | 9 | 41 | [`02-Resource-Development`](./src/02-Resource-Development/README.md) |
-| 03 | 初始访问 | TA0001 | 11 | 11 | [`03-Initial-Access`](./src/03-Initial-Access/README.md) |
-| 04 | 执行 | TA0002 | 20 | 44 | [`04-Execution`](./src/04-Execution/README.md) |
-| 05 | 持久化 | TA0003 | 22 | 90 | [`05-Persistence`](./src/05-Persistence/README.md) |
-| 06 | 权限提升 | TA0004 | 13 | 83 | [`06-Privilege-Escalation`](./src/06-Privilege-Escalation/README.md) |
-| 07 | 隐蔽 | TA0005 | 30 | 118 | [`07-Stealth`](./src/07-Stealth/README.md) |
-| 08 | 防御削弱 | TA0112 | 18 | 38 | [`08-Defense-Impairment`](./src/08-Defense-Impairment/README.md) |
-| 09 | 凭证访问 | TA0006 | 17 | 50 | [`09-Credential-Access`](./src/09-Credential-Access/README.md) |
-| 10 | 发现 | TA0007 | 34 | 15 | [`10-Discovery`](./src/10-Discovery/README.md) |
-| 11 | 横向移动 | TA0008 | 9 | 14 | [`11-Lateral-Movement`](./src/11-Lateral-Movement/README.md) |
-| 12 | 收集 | TA0009 | 17 | 24 | [`12-Collection`](./src/12-Collection/README.md) |
-| 13 | 命令与控制 | TA0011 | 18 | 27 | [`13-Command-and-Control`](./src/13-Command-and-Control/README.md) |
-| 14 | 渗漏 | TA0010 | 9 | 10 | [`14-Exfiltration`](./src/14-Exfiltration/README.md) |
-| 15 | 影响 | TA0040 | 15 | 18 | [`15-Impact`](./src/15-Impact/README.md) |
+| 01 | 侦察 | TA0043 | 12 | 34 | [`01-Reconnaissance`](./src/enterprise/01-Reconnaissance/README.md) |
+| 02 | 资源开发 | TA0042 | 9 | 41 | [`02-Resource-Development`](./src/enterprise/02-Resource-Development/README.md) |
+| 03 | 初始访问 | TA0001 | 11 | 11 | [`03-Initial-Access`](./src/enterprise/03-Initial-Access/README.md) |
+| 04 | 执行 | TA0002 | 20 | 44 | [`04-Execution`](./src/enterprise/04-Execution/README.md) |
+| 05 | 持久化 | TA0003 | 22 | 90 | [`05-Persistence`](./src/enterprise/05-Persistence/README.md) |
+| 06 | 权限提升 | TA0004 | 13 | 83 | [`06-Privilege-Escalation`](./src/enterprise/06-Privilege-Escalation/README.md) |
+| 07 | 隐蔽 | TA0005 | 30 | 118 | [`07-Stealth`](./src/enterprise/07-Stealth/README.md) |
+| 08 | 防御削弱 | TA0112 | 18 | 38 | [`08-Defense-Impairment`](./src/enterprise/08-Defense-Impairment/README.md) |
+| 09 | 凭证访问 | TA0006 | 17 | 50 | [`09-Credential-Access`](./src/enterprise/09-Credential-Access/README.md) |
+| 10 | 发现 | TA0007 | 34 | 15 | [`10-Discovery`](./src/enterprise/10-Discovery/README.md) |
+| 11 | 横向移动 | TA0008 | 9 | 14 | [`11-Lateral-Movement`](./src/enterprise/11-Lateral-Movement/README.md) |
+| 12 | 收集 | TA0009 | 17 | 24 | [`12-Collection`](./src/enterprise/12-Collection/README.md) |
+| 13 | 命令与控制 | TA0011 | 18 | 27 | [`13-Command-and-Control`](./src/enterprise/13-Command-and-Control/README.md) |
+| 14 | 渗漏 | TA0010 | 9 | 10 | [`14-Exfiltration`](./src/enterprise/14-Exfiltration/README.md) |
+| 15 | 影响 | TA0040 | 15 | 18 | [`15-Impact`](./src/enterprise/15-Impact/README.md) |
 
 > **总计**：871 篇技术文档（254 个主技术 + 617 个子技术），覆盖 15 个战术
 
@@ -59,20 +60,24 @@ attck-knowledge/
 ├── book.toml                       # mdBook 配置（Catppuccin 主题 + Mermaid + CJK 搜索）
 ├── scripts/
 │   ├── preprocess-md.py            # 链接预处理（构建前自动修复 README.md 链接）
-│   ├── build.sh / build.bat        # 构建脚本（预处理 + mdbook build）
+│   ├── build.sh / build.bat        # 构建脚本（链接检查 + 预处理 + mdbook build）
 │   ├── setup.sh                    # 本地环境初始化
-│   ├── gen-summary.py              # SUMMARY.md 自动生成器
-│   └── strip-frontmatter.py        # YAML front matter 剥离（一次性）
+│   ├── gen-summary.py              # SUMMARY.md 自动生成器（双命名空间）
+│   ├── check-links.py              # 断链检查门禁（--write-baseline 重建基线）
+│   └── fix-broken-links.py         # 按技术 ID 锚定修复断链
 ├── theme/                          # 主题资源（Catppuccin CSS, Mermaid JS）
 └── src/                            # 文档源码
     ├── README.md                   # 知识库主页（攻击链全景图 + 战术速览）
-    ├── SUMMARY.md                  # mdBook 导航目录
-    ├── 01-Reconnaissance/          # 侦察 - 12 个技术
-    │   ├── README.md               # 战术概览
-    │   ├── T1589-Gather-Victim-Identity-Information.md
-    │   └── ...
-    ├── 02-Resource-Development/    # 资源开发 - 10 个技术
-    └── ...                         # 其余 13 个战术
+    ├── SUMMARY.md                  # mdBook 导航目录（Enterprise / ATLAS / 案例研究）
+    ├── _data/                      # 官方数据快照与断链基线（不参与渲染）
+    ├── _tools/                     # 审计脚本（不参与渲染）
+    ├── enterprise/                 # ATT&CK Enterprise 矩阵（15 个战术目录）
+    │   ├── 01-Reconnaissance/      # 侦察 - 12 个技术
+    │   │   ├── README.md           # 战术概览
+    │   │   ├── T1589-Gather-Victim-Identity-Information.md
+    │   │   └── T1589/              # 子技术目录
+    │   └── ...                     # 其余 14 个战术
+    └── atlas/                      # MITRE ATLAS 矩阵（建设中）
 ```
 
 ---
