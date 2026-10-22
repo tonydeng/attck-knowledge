@@ -918,6 +918,24 @@
 
 # MITRE ATLAS
 - [01 侦察 (AML.TA0002)](atlas/01-Reconnaissance/README.md)
+  - [AML.T0000 搜索开放技术数据库](atlas/01-Reconnaissance/AML.T0000-Search-Open-Technical-Databases.md)
+    - [期刊与会议论文集 (AML.T0000.000)](atlas/01-Reconnaissance/AML.T0000/AML.T0000.000-Journals-and-Conference-Proceedings.md)
+    - [预印本仓库 (AML.T0000.001)](atlas/01-Reconnaissance/AML.T0000/AML.T0000.001-Pre-Print-Repositories.md)
+    - [技术博客 (AML.T0000.002)](atlas/01-Reconnaissance/AML.T0000/AML.T0000.002-Technical-Blogs.md)
+    - [扫描数据库 (AML.T0000.003)](atlas/01-Reconnaissance/AML.T0000/AML.T0000.003-Scan-Databases.md)
+  - [AML.T0001 搜索公开 AI 漏洞分析](atlas/01-Reconnaissance/AML.T0001-Search-Open-AI-Vulnerability-Analysis.md)
+  - [AML.T0003 搜索受害者自有网站](atlas/01-Reconnaissance/AML.T0003-Search-Victim-Owned-Websites.md)
+  - [AML.T0004 搜索应用仓库](atlas/01-Reconnaissance/AML.T0004-Search-Application-Repositories.md)
+  - [AML.T0006 主动扫描](atlas/01-Reconnaissance/AML.T0006-Active-Scanning.md)
+    - [枚举托管AI资源 (AML.T0006.000)](atlas/01-Reconnaissance/AML.T0006/AML.T0006.000-Enumerate-Hosted-AI-Resources.md)
+    - [查询平台元数据API (AML.T0006.001)](atlas/01-Reconnaissance/AML.T0006/AML.T0006.001-Query-Platform-Metadata-APIs.md)
+    - [扫描暴露AI基础设施 (AML.T0006.002)](atlas/01-Reconnaissance/AML.T0006/AML.T0006.002-Scan-for-Exposed-AI-Infrastructure.md)
+    - [探测 AI 智能体触发通道 (AML.T0006.003)](atlas/01-Reconnaissance/AML.T0006/AML.T0006.003-Probe-AI-Agent-Trigger-Channels.md)
+  - [AML.T0064 收集 RAG 索引目标](atlas/01-Reconnaissance/AML.T0064-Gather-RAG-Indexed-Targets.md)
+  - [AML.T0087 收集受害者身份信息](atlas/01-Reconnaissance/AML.T0087-Gather-Victim-Identity-Information.md)
+  - [AML.T0095 搜索开放网站/域名](atlas/01-Reconnaissance/AML.T0095-Search-Open-Websites-Domains.md)
+    - [代码仓库 (AML.T0095.000)](atlas/01-Reconnaissance/AML.T0095/AML.T0095.000-Code-Repositories.md)
+  - [AML.T0116 自主侦察](atlas/01-Reconnaissance/AML.T0116-Autonomous-Reconnaissance.md)
 
 - [02 资源开发 (AML.TA0003)](atlas/02-Resource-Development/README.md)
 

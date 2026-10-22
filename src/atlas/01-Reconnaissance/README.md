@@ -75,19 +75,19 @@ graph LR
 
 ## 技术索引表
 
-> 本战术的技术文档尚未编写，以下技术 ID 与名称暂为纯文本，待文档落地后转换为链接。
+> 已完成文档直接链接。
 
 | 技术ID | 中文名称 | 难度 | 子技术数 | 一句话理解 | 关联ATT&CK | 文档状态 |
 |--------|---------|:----:|:-------:|-----------|-----------|:-------:|
-| AML.T0000 | 搜索开放技术数据库 | ⭐⭐⭐ | 4 | 从论文、预印本、技术博客中挖出目标组织的AI架构与研究底细 | [T1596](../../enterprise/01-Reconnaissance/T1596-Search-Open-Technical-Databases.md) | ⏳ 计划中 |
-| AML.T0001 | 搜索公开AI漏洞分析 | ⭐⭐ | 0 | 搜罗目标模型已有的漏洞研究和现成攻击实现，站在前人肩膀上攻击 | — | ⏳ 计划中 |
-| AML.T0003 | 搜索受害者网站 | ⭐⭐ | 0 | 浏览目标官网，摸清其AI产品细节与关键人员信息 | [T1594](../../enterprise/01-Reconnaissance/T1594-Search-Victim-Owned-Websites.md) | ⏳ 计划中 |
-| AML.T0004 | 搜索应用仓库 | ⭐⭐ | 0 | 在应用商店中搜索目标发布的含AI组件的应用 | — | ⏳ 计划中 |
-| AML.T0006 | 主动扫描 | ⭐⭐⭐ | 4 | 主动探测暴露在外的AI服务、开放端口与平台元数据 | [T1595](../../enterprise/01-Reconnaissance/T1595-Active-Scanning.md) | ⏳ 计划中 |
-| AML.T0064 | 收集RAG索引目标 | ⭐⭐ | 0 | 摸清RAG系统外挂了哪些数据源，为后续投毒做准备 | — | ⏳ 计划中 |
-| AML.T0087 | 收集受害者身份信息 | ⭐⭐⭐ | 0 | 收集员工姓名、邮箱、凭证等信息，用于深度伪造和钓鱼 | [T1589](../../enterprise/01-Reconnaissance/T1589-Gather-Victim-Identity-Information.md) | ⏳ 计划中 |
-| AML.T0095 | 搜索开放网站/域名 | ⭐⭐⭐ | 1 | 用搜索引擎和OSINT手法定位目标的AI资产与智能体接口 | [T1593](../../enterprise/01-Reconnaissance/T1593-Search-Open-Websites-Domains.md) | ⏳ 计划中 |
-| AML.T0116 | 自主侦察 | ⭐⭐⭐ | 0 | 放出AI智能体自主踩点，递归式侦察无需人类逐步指挥 | — | ⏳ 计划中 |
+| [AML.T0000](AML.T0000-Search-Open-Technical-Databases.md) | 搜索开放技术数据库 | ⭐⭐⭐ | 4 | 从论文、预印本、技术博客中挖出目标组织的AI架构与研究底细 | [T1596](../../enterprise/01-Reconnaissance/T1596-Search-Open-Technical-Databases.md) | ✅ 已完成 |
+| [AML.T0001](AML.T0001-Search-Open-AI-Vulnerability-Analysis.md) | 搜索公开AI漏洞分析 | ⭐⭐ | 0 | 搜罗目标模型已有的漏洞研究和现成攻击实现，站在前人肩膀上攻击 | — | ✅ 已完成 |
+| [AML.T0003](AML.T0003-Search-Victim-Owned-Websites.md) | 搜索受害者网站 | ⭐⭐ | 0 | 浏览目标官网，摸清其AI产品细节与关键人员信息 | [T1594](../../enterprise/01-Reconnaissance/T1594-Search-Victim-Owned-Websites.md) | ✅ 已完成 |
+| [AML.T0004](AML.T0004-Search-Application-Repositories.md) | 搜索应用仓库 | ⭐⭐ | 0 | 在应用商店中搜索目标发布的含AI组件的应用 | — | ✅ 已完成 |
+| [AML.T0006](AML.T0006-Active-Scanning.md) | 主动扫描 | ⭐⭐⭐ | 4 | 主动探测暴露在外的AI服务、开放端口与平台元数据 | [T1595](../../enterprise/01-Reconnaissance/T1595-Active-Scanning.md) | ✅ 已完成 |
+| [AML.T0064](AML.T0064-Gather-RAG-Indexed-Targets.md) | 收集RAG索引目标 | ⭐⭐ | 0 | 摸清RAG系统外挂了哪些数据源，为后续投毒做准备 | — | ✅ 已完成 |
+| [AML.T0087](AML.T0087-Gather-Victim-Identity-Information.md) | 收集受害者身份信息 | ⭐⭐⭐ | 0 | 收集员工姓名、邮箱、凭证等信息，用于深度伪造和钓鱼 | [T1589](../../enterprise/01-Reconnaissance/T1589-Gather-Victim-Identity-Information.md) | ✅ 已完成 |
+| [AML.T0095](AML.T0095-Search-Open-Websites-Domains.md) | 搜索开放网站/域名 | ⭐⭐⭐ | 1 | 用搜索引擎和OSINT手法定位目标的AI资产与智能体接口 | [T1593](../../enterprise/01-Reconnaissance/T1593-Search-Open-Websites-Domains.md) | ✅ 已完成 |
+| [AML.T0116](AML.T0116-Autonomous-Reconnaissance.md) | 自主侦察 | ⭐⭐⭐ | 0 | 放出AI智能体自主踩点，递归式侦察无需人类逐步指挥 | — | ✅ 已完成 |
 
 **平台覆盖说明**（依据官方数据）：
 
@@ -99,25 +99,25 @@ graph LR
 
 | 子技术ID | 中文名称 | 难度 | 一句话理解 | 文档状态 |
 |---------|---------|:----:|-----------|:-------:|
-| AML.T0000.000 | 期刊与会议论文集 | ⭐⭐⭐ | 翻目标员工发表的学术论文，推断其AI技术路线 | ⏳ 计划中 |
-| AML.T0000.001 | 预印本仓库 | ⭐⭐⭐ | 在arXiv等预印本平台搜索目标组织的最新AI研究 | ⏳ 计划中 |
-| AML.T0000.002 | 技术博客 | ⭐⭐⭐ | 读目标公司的技术博客，了解其AI系统实现细节 | ⏳ 计划中 |
-| AML.T0000.003 | 扫描数据库 | ⭐⭐⭐ | 用Shodan、Censys等平台识别可公开访问的AI服务 | ⏳ 计划中 |
-| AML.T0006.000 | 枚举托管AI资源 | ⭐⭐⭐ | 枚举云平台上托管的模型、端点等AI资源 | ⏳ 计划中 |
-| AML.T0006.001 | 查询平台元数据API | ⭐⭐⭐ | 调用云平台元数据接口获取AI服务的配置信息 | ⏳ 计划中 |
-| AML.T0006.002 | 扫描暴露AI基础设施 | ⭐⭐⭐ | 扫描发现错误配置或暴露在外的AI基础设施 | ⏳ 计划中 |
-| AML.T0006.003 | 探测AI智能体触发通道 | ⭐⭐⭐ | 探测AI智能体的邮件、Webhook等触发入口 | ⏳ 计划中 |
-| AML.T0095.000 | 代码仓库 | ⭐⭐⭐ | 从GitHub等代码仓库搜索目标泄露的AI系统细节与凭证 | ⏳ 计划中 |
+| [AML.T0000.000](AML.T0000/AML.T0000.000-Journals-and-Conference-Proceedings.md) | 期刊与会议论文集 | ⭐ | 翻目标员工发表的学术论文，推断其AI技术路线 | ✅ 已完成 |
+| [AML.T0000.001](AML.T0000/AML.T0000.001-Pre-Print-Repositories.md) | 预印本仓库 | ⭐⭐ | 在arXiv等预印本平台搜索目标组织的最新AI研究 | ✅ 已完成 |
+| [AML.T0000.002](AML.T0000/AML.T0000.002-Technical-Blogs.md) | 技术博客 | ⭐ | 读目标公司的技术博客，了解其AI系统实现细节 | ✅ 已完成 |
+| [AML.T0000.003](AML.T0000/AML.T0000.003-Scan-Databases.md) | 扫描数据库 | ⭐⭐⭐ | 用Shodan、Censys等平台识别可公开访问的AI服务 | ✅ 已完成 |
+| [AML.T0006.000](AML.T0006/AML.T0006.000-Enumerate-Hosted-AI-Resources.md) | 枚举托管AI资源 | ⭐ | 枚举云平台上托管的模型、端点等AI资源 | ✅ 已完成 |
+| [AML.T0006.001](AML.T0006/AML.T0006.001-Query-Platform-Metadata-APIs.md) | 查询平台元数据API | ⭐ | 调用云平台元数据接口获取AI服务的配置信息 | ✅ 已完成 |
+| [AML.T0006.002](AML.T0006/AML.T0006.002-Scan-for-Exposed-AI-Infrastructure.md) | 扫描暴露AI基础设施 | ⭐ | 扫描发现错误配置或暴露在外的AI基础设施 | ✅ 已完成 |
+| [AML.T0006.003](AML.T0006/AML.T0006.003-Probe-AI-Agent-Trigger-Channels.md) | 探测AI智能体触发通道 | ⭐⭐ | 探测AI智能体的邮件、Webhook等触发入口 | ✅ 已完成 |
+| [AML.T0095.000](AML.T0095/AML.T0095.000-Code-Repositories.md) | 代码仓库 | ⭐⭐⭐ | 从GitHub等代码仓库搜索目标泄露的AI系统细节与凭证 | ✅ 已完成 |
 
-> 注：子技术难度继承其父技术的官方 maturity 等级。
+> 注：子技术难度为各子技术官方 maturity 等级。
 
 ## 统计信息
 
 - **技术总数**：9 个
 - **子技术总数**：9 个
 - **难度分布**：⭐⭐⭐（Realized）5 个 / ⭐⭐（Demonstrated）4 个 / ⭐（Feasible）0 个
-- **已完成文档**：0 个
-- **待编写文档**：18 个（9 主技术 + 9 子技术）
+- **已完成文档**：18 个（9 主技术 + 9 子技术，全部完成）
+- **待编写文档**：0 个
 
 ## 推荐阅读顺序
 
