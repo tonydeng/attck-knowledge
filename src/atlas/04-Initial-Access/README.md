@@ -79,20 +79,20 @@ graph LR
 
 ## 技术索引表
 
-> 已完成文档直接链接；尚未编写的技术 ID 与名称暂为纯文本，待文档落地后转换为链接。
+> 全部 18 篇技术文档已完成，点击 ID 直达对应文档。
 
 | 技术ID | 中文名称 | 难度 | 子技术数 | 一句话理解 | 关联ATT&CK | 文档状态 |
 |--------|---------|:----:|:-------:|-----------|-----------|:-------:|
 | [AML.T0010](AML.T0010-AI-Supply-Chain-Compromise.md) | AI 供应链入侵 | ⭐⭐⭐ | 6 | 在硬件、AI软件、数据、模型等供应链任一环节植入恶意组件，随正常交付进入目标系统 | — | ✅ 已完成 |
-| AML.T0012 | 有效账户 | ⭐⭐⭐ | 0 | 偷取并滥用账户密码或API密钥，直接登录AI系统与云上AI资源 | [T1078](../../enterprise/03-Initial-Access/T1078-Valid-Accounts.md) | ⏳ 计划中 |
-| AML.T0015 | 规避 AI 模型 | ⭐⭐⭐ | 0 | 用对抗样本或深度伪造骗过AI模型，绕过AI检测或生物特征认证 | — | ⏳ 计划中 |
-| AML.T0049 | 利用面向公众的应用 | ⭐⭐⭐ | 0 | 攻击互联网暴露应用的漏洞，从入口突入目标网络触及AI系统 | [T1190](../../enterprise/03-Initial-Access/T1190-Exploit-Public-Facing-Application.md) | ⏳ 计划中 |
-| AML.T0052 | 网络钓鱼 | ⭐⭐⭐ | 2 | 用欺骗性消息骗取访问权限，LLM与深度伪造让钓鱼更规模化、更逼真 | [T1566](../../enterprise/03-Initial-Access/T1566-Phishing.md) | ⏳ 计划中 |
-| AML.T0078 | 路过式入侵 | ⭐⭐ | 0 | 用户或AI智能体浏览网页时，被页面中的提示词注入等内容改变AI行为 | [T1189](../../enterprise/03-Initial-Access/T1189-Drive-by-Compromise.md) | ⏳ 计划中 |
-| AML.T0093 | 通过公开应用进行提示词渗透 | ⭐⭐ | 0 | 把恶意提示词埋进邮件、共享文档、工单甚至图片，等RAG索引或AI智能体摄入后生效 | — | ⏳ 计划中 |
-| AML.T0119 | 利用自动化制品处理流水线 | ⭐⭐⭐ | 0 | 投递触发自动处理流水线的制品，利用处理逻辑漏洞以流水线worker权限执行代码或泄露数据 | — | ⏳ 计划中 |
-| AML.T0131 | 构造 AI 助手链接 | ⭐⭐⭐ | 0 | 构造自带恶意提示词的AI助手链接，目标一点开，智能体就按攻击者指令行事 | — | ⏳ 计划中 |
-| AML.T0132 | AI 服务配置错误或公开暴露 | ⭐⭐ | 0 | 利用LLM运行时缺失认证、权限过宽等配置错误，未授权直接访问暴露的AI服务 | — | ⏳ 计划中 |
+| [AML.T0012](AML.T0012-Valid-Accounts.md) | 有效账户 | ⭐⭐⭐ | 0 | 偷取并滥用账户密码或API密钥，直接登录AI系统与云上AI资源 | [T1078](../../enterprise/03-Initial-Access/T1078-Valid-Accounts.md) | ✅ 已完成 |
+| [AML.T0015](AML.T0015-Evade-AI-Model.md) | 规避 AI 模型 | ⭐⭐⭐ | 0 | 用对抗样本或深度伪造骗过AI模型，绕过AI检测或生物特征认证 | — | ✅ 已完成 |
+| [AML.T0049](AML.T0049-Exploit-Public-Facing-Application.md) | 利用面向公众的应用 | ⭐⭐⭐ | 0 | 攻击互联网暴露应用的漏洞，从入口突入目标网络触及AI系统 | [T1190](../../enterprise/03-Initial-Access/T1190-Exploit-Public-Facing-Application.md) | ✅ 已完成 |
+| [AML.T0052](AML.T0052-Phishing.md) | 网络钓鱼 | ⭐⭐⭐ | 2 | 用欺骗性消息骗取访问权限，LLM与深度伪造让钓鱼更规模化、更逼真 | [T1566](../../enterprise/03-Initial-Access/T1566-Phishing.md) | ✅ 已完成 |
+| [AML.T0078](AML.T0078-Drive-by-Compromise.md) | 路过式入侵 | ⭐⭐ | 0 | 用户或AI智能体浏览网页时，被页面中的提示词注入等内容改变AI行为 | [T1189](../../enterprise/03-Initial-Access/T1189-Drive-by-Compromise.md) | ✅ 已完成 |
+| [AML.T0093](AML.T0093-Prompt-Infiltration-via-Public-Facing-Application.md) | 通过公开应用进行提示词渗透 | ⭐⭐ | 0 | 把恶意提示词埋进邮件、共享文档、工单甚至图片，等RAG索引或AI智能体摄入后生效 | — | ✅ 已完成 |
+| [AML.T0119](AML.T0119-Exploit-Automated-Artifact-Processing-Pipeline.md) | 利用自动化制品处理流水线 | ⭐⭐⭐ | 0 | 投递触发自动处理流水线的制品，利用处理逻辑漏洞以流水线worker权限执行代码或泄露数据 | — | ✅ 已完成 |
+| [AML.T0131](AML.T0131-Crafted-AI-Assistant-Links.md) | 构造 AI 助手链接 | ⭐⭐⭐ | 0 | 构造自带恶意提示词的AI助手链接，目标一点开，智能体就按攻击者指令行事 | — | ✅ 已完成 |
+| [AML.T0132](AML.T0132-Misconfigured-or-Publicly-Exposed-AI-Services.md) | AI 服务配置错误或公开暴露 | ⭐⭐ | 0 | 利用LLM运行时缺失认证、权限过宽等配置错误，未授权直接访问暴露的AI服务 | — | ✅ 已完成 |
 
 **平台覆盖说明**（依据官方数据）：
 
@@ -111,8 +111,8 @@ graph LR
 | [AML.T0010.003](AML.T0010/AML.T0010.003-Model.md) | 模型 | ⭐⭐⭐ | 在模型文件或模型仓库中植入后门或恶意负载 | ✅ 已完成 |
 | [AML.T0010.004](AML.T0010/AML.T0010.004-Container-Registry.md) | 容器镜像仓库 | ⭐⭐ | 在存放AI容器镜像的仓库中投毒，随镜像拉取进入生产环境 | ✅ 已完成 |
 | [AML.T0010.005](AML.T0010/AML.T0010.005-AI-Agent-Tool.md) | AI智能体工具 | ⭐⭐⭐ | 在AI智能体调用的工具或插件中动手脚，借智能体之手作恶 | ✅ 已完成 |
-| AML.T0052.000 | 通过社会工程LLM进行鱼叉式钓鱼 | ⭐⭐⭐ | 用社会工程LLM批量生成高度个性化的鱼叉式钓鱼内容 | ⏳ 计划中 |
-| AML.T0052.001 | 深度伪造辅助钓鱼 | ⭐⭐⭐ | 用深度伪造的音视频冒充可信身份，为钓鱼增加可信度 | ⏳ 计划中 |
+| [AML.T0052.000](AML.T0052/AML.T0052.000-Spear-Phishing-via-Social-Engineering-LLM.md) | 通过社会工程LLM进行鱼叉式钓鱼 | ⭐⭐ | 用社会工程LLM批量生成高度个性化的鱼叉式钓鱼内容 | ✅ 已完成 |
+| [AML.T0052.001](AML.T0052/AML.T0052.001-Deepfake-Assisted-Phishing.md) | 深度伪造辅助钓鱼 | ⭐ | 用深度伪造的音视频冒充可信身份，为钓鱼增加可信度 | ✅ 已完成 |
 
 > 注：子技术难度继承其父技术的官方 maturity 等级。
 
@@ -121,8 +121,7 @@ graph LR
 - **技术总数**：10 个
 - **子技术总数**：8 个
 - **难度分布**：⭐⭐⭐（Realized）7 个 / ⭐⭐（Demonstrated）3 个 / ⭐（Feasible）0 个
-- **已完成文档**：7 个（AML.T0010 主技术 + 6 个子技术）
-- **待编写文档**：11 个（9 主技术 + 2 子技术）
+- **已完成文档**：18 个（10 主技术 + 8 子技术，全部完成 ✅）
 
 ## 推荐阅读顺序
 

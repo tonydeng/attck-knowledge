@@ -1003,6 +1003,17 @@
     - [模型 (AML.T0010.003)](atlas/04-Initial-Access/AML.T0010/AML.T0010.003-Model.md)
     - [容器镜像仓库 (AML.T0010.004)](atlas/04-Initial-Access/AML.T0010/AML.T0010.004-Container-Registry.md)
     - [AI 智能体工具 (AML.T0010.005)](atlas/04-Initial-Access/AML.T0010/AML.T0010.005-AI-Agent-Tool.md)
+  - [AML.T0012 有效账户](atlas/04-Initial-Access/AML.T0012-Valid-Accounts.md)
+  - [AML.T0015 规避 AI 模型](atlas/04-Initial-Access/AML.T0015-Evade-AI-Model.md)
+  - [AML.T0049 利用面向公众的应用](atlas/04-Initial-Access/AML.T0049-Exploit-Public-Facing-Application.md)
+  - [AML.T0052 网络钓鱼](atlas/04-Initial-Access/AML.T0052-Phishing.md)
+    - [通过社会工程 LLM 进行鱼叉式钓鱼 (AML.T0052.000)](atlas/04-Initial-Access/AML.T0052/AML.T0052.000-Spear-Phishing-via-Social-Engineering-LLM.md)
+    - [深度伪造辅助钓鱼 (AML.T0052.001)](atlas/04-Initial-Access/AML.T0052/AML.T0052.001-Deepfake-Assisted-Phishing.md)
+  - [AML.T0078 路过式入侵](atlas/04-Initial-Access/AML.T0078-Drive-by-Compromise.md)
+  - [AML.T0093 通过公开应用进行提示词渗透](atlas/04-Initial-Access/AML.T0093-Prompt-Infiltration-via-Public-Facing-Application.md)
+  - [AML.T0119 利用自动化制品处理流水线](atlas/04-Initial-Access/AML.T0119-Exploit-Automated-Artifact-Processing-Pipeline.md)
+  - [AML.T0131 构造 AI 助手链接](atlas/04-Initial-Access/AML.T0131-Crafted-AI-Assistant-Links.md)
+  - [AML.T0132 AI 服务配置错误或公开暴露](atlas/04-Initial-Access/AML.T0132-Misconfigured-or-Publicly-Exposed-AI-Services.md)
 
 - [05 AI 模型访问 (AML.TA0000)](atlas/05-AI-Model-Access/README.md)
 
