@@ -1,6 +1,6 @@
 # ATT&CK 知识库审计工具
 
-> 统一 CLI 工具，用于本地知识库与 MITRE ATT&CK v19.1 官方数据的完整性审计。
+> 统一 CLI 工具，用于本地知识库与 MITRE ATT&CK v20 官方数据的完整性审计。
 
 ## 工具说明
 
@@ -173,5 +173,5 @@ python F:/user-requ/ATTCK知识库/知识库/_tools/attack_mapping.py <子命令
 ## 版本
 
 - **工具版本**：1.0
-- **MITRE ATT&CK 版本**：v19.1
-- **最后更新**：2026-07-24
+- **MITRE ATT&CK 版本**：v20
+- **最后更新**：2026-10-22

@@ -1,7 +1,7 @@
 [book]
-title = "ATT&CK 知识库"
+title = "ATT&CK & ATLAS 知识库"
 authors = ["Tony Deng"]
-description = "基于MITRE ATT&CK® v19 Enterprise矩阵的完整中文知识库，覆盖全部15 个战术、254 个技术和900+ 个子技术"
+description = "MITRE ATT&CK® Enterprise 与 MITRE ATLAS 双矩阵中文知识库：ATT&CK Enterprise（15 战术 / 254 技术 / 617 子技术）+ MITRE ATLAS（AI/ML 对抗威胁矩阵，建设中）"
 language = "zh-CN"
 src = "src"
 

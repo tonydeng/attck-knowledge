@@ -428,6 +428,10 @@
           {
             "id": "T1608.006",
             "name_en": "SEO Poisoning"
+          },
+          {
+            "id": "T1608.007",
+            "name_en": "AI Result Poisoning"
           }
         ]
       }
@@ -624,6 +628,11 @@
         "subtechniques": []
       },
       {
+        "id": "T1699",
+        "name_en": "Direct Prompt Injection",
+        "subtechniques": []
+      },
+      {
         "id": "T1675",
         "name_en": "ESXi Administration Command",
         "subtechniques": []
@@ -686,6 +695,11 @@
             "name_en": "AppDomainManager"
           }
         ]
+      },
+      {
+        "id": "T1698",
+        "name_en": "Indirect Prompt Injection",
+        "subtechniques": []
       },
       {
         "id": "T1674",
@@ -1769,6 +1783,20 @@
         ]
       },
       {
+        "id": "T1696",
+        "name_en": "Anti-Automation Evasion",
+        "subtechniques": [
+          {
+            "id": "T1696.001",
+            "name_en": "Automate CAPTCHA Completion"
+          },
+          {
+            "id": "T1696.002",
+            "name_en": "Avoid CAPTCHA"
+          }
+        ]
+      },
+      {
         "id": "T1197",
         "name_en": "BITS Jobs",
         "subtechniques": []
@@ -2431,6 +2459,10 @@
           {
             "id": "T1685.006",
             "name_en": "Clear Linux or Mac System Logs"
+          },
+          {
+            "id": "T1685.007",
+            "name_en": "Impair Autonomous Defenses"
           }
         ]
       },
@@ -2862,6 +2894,11 @@
       {
         "id": "T1528",
         "name_en": "Steal Application Access Token",
+        "subtechniques": []
+      },
+      {
+        "id": "T1697",
+        "name_en": "Steal Application Specific Passwords",
         "subtechniques": []
       },
       {
@@ -3703,6 +3740,11 @@
     "tactic_id": "TA0010",
     "tactic_name_en": "Exfiltration",
     "parent_techniques": [
+      {
+        "id": "T1700",
+        "name_en": "AI-Enabled Exfiltration",
+        "subtechniques": []
+      },
       {
         "id": "T1020",
         "name_en": "Automated Exfiltration",
