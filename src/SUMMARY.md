@@ -1119,6 +1119,11 @@
   - [AML.T0127 数据暂存](atlas/13-Collection/AML.T0127-Data-Staged.md)
 
 - [14 命令与控制 (AML.TA0014)](atlas/14-Command-and-Control/README.md)
+  - [AML.T0072 网络通信信道](atlas/14-Command-and-Control/AML.T0072-Cyber-Communication-Channel.md)
+  - [AML.T0096 AI 服务 API](atlas/14-Command-and-Control/AML.T0096-AI-Service-API.md)
+  - [AML.T0108 AI 智能体](atlas/14-Command-and-Control/AML.T0108-AI-Agent.md)
+  - [AML.T0114 AI 服务 Web 界面](atlas/14-Command-and-Control/AML.T0114-AI-Service-Web-Interface.md)
+  - [AML.T0120 AI 制品仓库](atlas/14-Command-and-Control/AML.T0120-AI-Artifact-Repository.md)
 
 - [15 数据渗漏 (AML.TA0010)](atlas/15-Exfiltration/README.md)
 
