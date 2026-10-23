@@ -1103,6 +1103,10 @@
   - [AML.T0133 发现 AI 智能体运行时能力](atlas/11-Discovery/AML.T0133-Discover-AI-Agent-Runtime-Capabilities.md)
 
 - [12 横向移动 (AML.TA0015)](atlas/12-Lateral-Movement/README.md)
+  - [AML.T0091 使用备用认证材料](atlas/12-Lateral-Movement/AML.T0091-Use-Alternate-Authentication-Material.md)
+    - [应用访问令牌 (AML.T0091.000)](atlas/12-Lateral-Movement/AML.T0091/AML.T0091.000-Application-Access-Token.md)
+    - [Web会话Cookie (AML.T0091.001)](atlas/12-Lateral-Movement/AML.T0091/AML.T0091.001-Web-Session-Cookie.md)
+  - [AML.T0122 利用远程服务](atlas/12-Lateral-Movement/AML.T0122-Exploitation-of-Remote-Services.md)
 
 - [13 收集 (AML.TA0009)](atlas/13-Collection/README.md)
 

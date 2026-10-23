@@ -77,7 +77,7 @@ graph TD
 
 3. **执行转储**
    - 通俗描述：把柜子整个搬走，或当场翻印所有钥匙。
-   - 技术细节：经典手法包括 LSASS MiniDump（comsvcs.dll、ProcDump 等）、Mimikatz 内存抓取、impacket secretsdump 提取、/proc/<pid>/mem 读取，以及 AIKatz 式的进程内存扫描。转储可在失陷主机上现场解析，也可将转储文件外带离线处理以规避主机侧检测。
+   - 技术细节：经典手法包括 LSASS MiniDump（comsvcs.dll、ProcDump 等）、Mimikatz 内存抓取、impacket secretsdump 提取、`/proc/<pid>/mem` 读取，以及 AIKatz 式的进程内存扫描。转储可在失陷主机上现场解析，也可将转储文件外带离线处理以规避主机侧检测。
 
 4. **解析与提取凭证**
    - 通俗描述：把翻印的钥匙逐把试出对应哪扇门。
@@ -160,7 +160,7 @@ Mimikatz 由法国安全研究员 Benjamin Delpy 于 2007 年前后发布，本�
 
 3. **特权与调试能力滥用**
    - 日志来源：特权使用审计（4673/4674）、Linux audit
-   - 异常特征：非常规进程使用 SeDebugPrivilege；对他人进程的 ptrace 调用；/proc/<pid>/mem 与 /etc/shadow 的异常读取
+   - 异常特征：非常规进程使用 SeDebugPrivilege；对他人进程的 ptrace 调用；`/proc/<pid>/mem` 与 `/etc/shadow` 的异常读取
 
 4. **AI 服务端会话异常（转储的下游回声）**
    - 日志来源：API 网关、LLM 平台审计日志、模型注册表访问日志
@@ -189,7 +189,7 @@ Mimikatz 由法国安全研究员 Benjamin Delpy 于 2007 年前后发布，本�
 
 - Sysmon Event 10：进程对 lsass.exe 的内存读取访问（重点筛 0x1010/0x1410/0x143a 等访问掩码）
 - SeDebugPrivilege 的非常规使用（4673/4674）
-- Linux：/proc/<pid>/mem、/etc/shadow 的异常读取与 gcore/ptrace 调用
+- Linux：`/proc/<pid>/mem`、`/etc/shadow` 的异常读取与 gcore/ptrace 调用
 - 凭证类文件（kubeconfig、CLI 配置、.env）被非预期进程读取
 
 ### 应用层检测（AI 遥测）

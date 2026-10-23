@@ -89,12 +89,10 @@ graph LR
 
 ## 技术索引表
 
-> 本战术的技术文档尚未编写，以下技术 ID 与名称暂为纯文本，待文档落地后转换为链接。
-
 | 技术ID | 中文名称 | 难度 | 子技术数 | 一句话理解 | 关联ATT&CK | 文档状态 |
 |--------|---------|:----:|:-------:|-----------|-----------|:-------:|
-| AML.T0091 | 使用备用认证材料 | ⭐⭐⭐ | 2 | 不用猜密码，直接拿偷来的令牌或Cookie以合法身份访问其他AI服务 | [T1550](../../enterprise/11-Lateral-Movement/T1550-Use-Alternate-Authentication-Material.md) | ⏳ 计划中 |
-| AML.T0122 | 利用远程服务 | ⭐⭐⭐ | 0 | 抓住一个可达服务的软件或设计缺陷，借它跨过网络隔离边界 | [T1210](../../enterprise/11-Lateral-Movement/T1210-Exploitation-of-Remote-Services.md) | ⏳ 计划中 |
+| [AML.T0091](AML.T0091-Use-Alternate-Authentication-Material.md) | 使用备用认证材料 | ⭐⭐⭐ | 2 | 不用猜密码，直接拿偷来的令牌或Cookie以合法身份访问其他AI服务 | [T1550](../../enterprise/11-Lateral-Movement/T1550-Use-Alternate-Authentication-Material.md) | ✅ 已完成 |
+| [AML.T0122](AML.T0122-Exploitation-of-Remote-Services.md) | 利用远程服务 | ⭐⭐⭐ | 0 | 抓住一个可达服务的软件或设计缺陷，借它跨过网络隔离边界 | [T1210](../../enterprise/11-Lateral-Movement/T1210-Exploitation-of-Remote-Services.md) | ✅ 已完成 |
 
 **平台覆盖说明**（依据官方数据）：
 
@@ -106,18 +104,18 @@ graph LR
 
 | 子技术ID | 中文名称 | 难度 | 一句话理解 | 文档状态 |
 |---------|---------|:----:|-----------|:-------:|
-| AML.T0091.000 | 应用访问令牌 | ⭐⭐⭐ | 偷到平台发放的OAuth令牌，不用登录就能调用此前的所有AI接口 | ⏳ 计划中 |
-| AML.T0091.001 | Web会话Cookie | ⭐⭐⭐ | 复制浏览器的登录态Cookie，直接接管别人的AI平台会话 | ⏳ 计划中 |
+| [AML.T0091.000](AML.T0091/AML.T0091.000-Application-Access-Token.md) | 应用访问令牌 | ⭐⭐⭐ | 偷到平台发放的OAuth令牌，不用登录就能调用此前的所有AI接口 | ✅ 已完成 |
+| [AML.T0091.001](AML.T0091/AML.T0091.001-Web-Session-Cookie.md) | Web会话Cookie | ⭐⭐ | 复制浏览器的登录态Cookie，直接接管别人的AI平台会话 | ✅ 已完成 |
 
-> 注：子技术难度继承其父技术的官方 maturity 等级。
+> 注：子技术难度采用官方 maturity 等级（AML.T0091.000 继承父技术评定为 Realized；AML.T0091.001 官方独立评定为 Demonstrated）。
 
 ## 统计信息
 
 - **技术总数**：2 个
 - **子技术总数**：2 个
 - **难度分布**：⭐⭐⭐（Realized）2 个 / ⭐⭐（Demonstrated）0 个 / ⭐（Feasible）0 个
-- **已完成文档**：0 个
-- **待编写文档**：4 个（2 主技术 + 2 子技术）
+- **已完成文档**：4 个（2 主技术 + 2 子技术，全部完成 ✅）
+- **待编写文档**：0 个
 
 ## 推荐阅读顺序
 
@@ -197,4 +195,4 @@ graph LR
 
 ---
 
-> **版本**: ATLAS 2026.09 | **更新**: 2026-10-22 | **模板**: ATLAS 战术README v1.0
+> **版本**: ATLAS 2026.09 | **更新**: 2026-10-24 | **模板**: ATLAS 战术README v1.0
