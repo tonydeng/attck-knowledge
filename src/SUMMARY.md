@@ -1126,6 +1126,15 @@
   - [AML.T0120 AI 制品仓库](atlas/14-Command-and-Control/AML.T0120-AI-Artifact-Repository.md)
 
 - [15 数据渗漏 (AML.TA0010)](atlas/15-Exfiltration/README.md)
+  - [AML.T0024 通过 AI 推理 API 渗漏](atlas/15-Exfiltration/AML.T0024-Exfiltration-via-AI-Inference-API.md)
+    - [推断训练数据成员关系 (AML.T0024.000)](atlas/15-Exfiltration/AML.T0024/AML.T0024.000-Infer-Training-Data-Membership.md)
+    - [反演 AI 模型 (AML.T0024.001)](atlas/15-Exfiltration/AML.T0024/AML.T0024.001-Invert-AI-Model.md)
+    - [提取 AI 模型 (AML.T0024.002)](atlas/15-Exfiltration/AML.T0024/AML.T0024.002-Extract-AI-Model.md)
+  - [AML.T0025 通过网络手段渗漏](atlas/15-Exfiltration/AML.T0025-Exfiltration-via-Cyber-Means.md)
+  - [AML.T0056 提取 LLM 系统提示词](atlas/15-Exfiltration/AML.T0056-Extract-LLM-System-Prompt.md)
+  - [AML.T0057 LLM 数据泄露](atlas/15-Exfiltration/AML.T0057-LLM-Data-Leakage.md)
+  - [AML.T0077 LLM 响应渲染](atlas/15-Exfiltration/AML.T0077-LLM-Response-Rendering.md)
+  - [AML.T0086 通过 AI 智能体工具调用渗漏](atlas/15-Exfiltration/AML.T0086-Exfiltration-via-AI-Agent-Tool-Invocation.md)
 
 - [16 影响 (AML.TA0011)](atlas/16-Impact/README.md)
 
