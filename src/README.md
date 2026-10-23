@@ -1,6 +1,6 @@
 # ATT&CK & ATLAS 知识库
 
-> 基于 MITRE ATT&CK® Enterprise 与 MITRE ATLAS® 双矩阵的中文对抗威胁知识库。**ATT&CK Enterprise 部分**覆盖全部 **15 个战术（Tactics）**、**254 个技术（Techniques）** 和 **617 个子技术**（871 篇文档）；**MITRE ATLAS 部分**（AI/ML 对抗威胁矩阵：16 战术 / 120 技术 / 88 子技术 / 73 案例研究，锚定 2026.09）建设中。所有文档提供通俗理解、技术原理、真实案例、红蓝队视角、检测建议和动手实验。
+> 基于 MITRE ATT&CK® Enterprise 与 MITRE ATLAS® 双矩阵的中文对抗威胁知识库。**ATT&CK Enterprise 部分**覆盖全部 **15 个战术（Tactics）**、**254 个技术（Techniques）** 和 **617 个子技术**（871 篇文档，锚定 v20）；**MITRE ATLAS 部分**（AI/ML 对抗威胁矩阵：16 战术 / 120 技术 / 88 子技术 / 73 案例研究，锚定 2026.09）已全部完成。所有文档提供通俗理解、技术原理、真实案例、红蓝队视角、检测建议和动手实验。
 
 > **⚠️ 免责声明**
 >
@@ -617,10 +617,10 @@ C2通道的质量直接决定了攻击者能在目标网络中"存活"多久。
 
 - [MITRE ATT&CK® Enterprise Matrix v20](https://attack.mitre.org/matrices/enterprise/)
 - [MITRE ATT&CK STIX Data](https://github.com/mitre-attack/attack-stix-data)
-- [MITRE ATLAS](https://atlas.mitre.org/)（AI/ML 对抗威胁矩阵，建设中）
+- [MITRE ATLAS](https://atlas.mitre.org/)（AI/ML 对抗威胁矩阵）
 - [MITRE ATLAS Data](https://github.com/mitre-atlas/atlas-data)（Apache 2.0）
 - 互联网公开威胁情报、安全研究报告、APT 分析报告
 
 ---
 
-> **版本**: ATT&CK Enterprise v20 | ATLAS 2026.09（建设中） | **Enterprise 文档数**: 881 | **更新**: 2026-10-22
+> **版本**: ATT&CK Enterprise v20 | ATLAS 2026.09 | **Enterprise 文档数**: 881 | **更新**: 2026-10-24
