@@ -1109,6 +1109,14 @@
   - [AML.T0122 利用远程服务](atlas/12-Lateral-Movement/AML.T0122-Exploitation-of-Remote-Services.md)
 
 - [13 收集 (AML.TA0009)](atlas/13-Collection/README.md)
+  - [AML.T0035 AI 制品收集](atlas/13-Collection/AML.T0035-AI-Artifact-Collection.md)
+  - [AML.T0036 来自信息库的数据](atlas/13-Collection/AML.T0036-Data-from-Information-Repositories.md)
+  - [AML.T0037 来自本地系统的数据](atlas/13-Collection/AML.T0037-Data-from-Local-System.md)
+  - [AML.T0085 来自 AI 服务的数据](atlas/13-Collection/AML.T0085-Data-from-AI-Services.md)
+    - [RAG 数据库 (AML.T0085.000)](atlas/13-Collection/AML.T0085/AML.T0085.000-RAG-Databases.md)
+    - [AI 智能体工具 (AML.T0085.001)](atlas/13-Collection/AML.T0085/AML.T0085.001-AI-Agent-Tools.md)
+  - [AML.T0126 自动化收集](atlas/13-Collection/AML.T0126-Automated-Collection.md)
+  - [AML.T0127 数据暂存](atlas/13-Collection/AML.T0127-Data-Staged.md)
 
 - [14 命令与控制 (AML.TA0014)](atlas/14-Command-and-Control/README.md)
 

@@ -83,16 +83,14 @@ graph LR
 
 ## 技术索引表
 
-> 本战术的技术文档尚未编写，以下技术 ID 与名称暂为纯文本，待文档落地后转换为链接。
-
 | 技术ID | 中文名称 | 难度 | 子技术数 | 一句话理解 | 关联ATT&CK | 文档状态 |
 |--------|---------|:----:|:-------:|-----------|-----------|:-------:|
-| AML.T0035 | AI 制品收集 | ⭐⭐⭐ | 0 | 搜刮模型、数据集和模型交互遥测，为渗漏或后续攻击备料 | — | ⏳ 计划中 |
-| AML.T0036 | 来自信息库的数据 | ⭐⭐⭐ | 0 | 挖掘 SharePoint、Confluence、SQL Server 等信息仓库里的高价值数据 | [T1213](../../enterprise/12-Collection/T1213-Data-from-Information-Repositories.md) | ⏳ 计划中 |
-| AML.T0037 | 来自本地系统的数据 | ⭐⭐⭐ | 0 | 翻本地文件系统、配置文件和数据库，找出 SSH 密钥等敏感数据 | [T1005](../../enterprise/12-Collection/T1005-Data-from-Local-System.md) | ⏳ 计划中 |
-| AML.T0085 | 来自 AI 服务的数据 | ⭐⭐ | 2 | 滥用 AI 服务权限，借 RAG 数据库和智能体工具收集普通用户摸不到的数据 | — | ⏳ 计划中 |
-| AML.T0126 | 自动化收集 | ⭐⭐⭐ | 0 | 用脚本和智能体工具无人值守地批量收割模型、数据集、对话记录 | [T1119](../../enterprise/12-Collection/T1119-Automated-Collection.md) | ⏳ 计划中 |
-| AML.T0127 | 数据暂存 | ⭐⭐⭐ | 0 | 把各处搜刮来的数据先集中到一个地点，压缩打包后再渗漏 | [T1074](../../enterprise/12-Collection/T1074-Data-Staged.md) | ⏳ 计划中 |
+| AML.T0035 | [AI 制品收集](./AML.T0035-AI-Artifact-Collection.md) | ⭐⭐⭐ | 0 | 搜刮模型、数据集和模型交互遥测，为渗漏或后续攻击备料 | — | ✅ 已完成 |
+| AML.T0036 | [来自信息库的数据](./AML.T0036-Data-from-Information-Repositories.md) | ⭐⭐⭐ | 0 | 挖掘 SharePoint、Confluence、SQL Server 等信息仓库里的高价值数据 | [T1213](../../enterprise/12-Collection/T1213-Data-from-Information-Repositories.md) | ✅ 已完成 |
+| AML.T0037 | [来自本地系统的数据](./AML.T0037-Data-from-Local-System.md) | ⭐⭐⭐ | 0 | 翻本地文件系统、配置文件和数据库，找出 SSH 密钥等敏感数据 | [T1005](../../enterprise/12-Collection/T1005-Data-from-Local-System.md) | ✅ 已完成 |
+| AML.T0085 | [来自 AI 服务的数据](./AML.T0085-Data-from-AI-Services.md) | ⭐⭐ | 2 | 滥用 AI 服务权限，借 RAG 数据库和智能体工具收集普通用户摸不到的数据 | — | ✅ 已完成 |
+| AML.T0126 | [自动化收集](./AML.T0126-Automated-Collection.md) | ⭐⭐⭐ | 0 | 用脚本和智能体工具无人值守地批量收割模型、数据集、对话记录 | [T1119](../../enterprise/12-Collection/T1119-Automated-Collection.md) | ✅ 已完成 |
+| AML.T0127 | [数据暂存](./AML.T0127-Data-Staged.md) | ⭐⭐⭐ | 0 | 把各处搜刮来的数据先集中到一个地点，压缩打包后再渗漏 | [T1074](../../enterprise/12-Collection/T1074-Data-Staged.md) | ✅ 已完成 |
 
 **平台覆盖说明**（依据官方数据）：
 
@@ -104,18 +102,18 @@ graph LR
 
 | 子技术ID | 中文名称 | 难度 | 一句话理解 | 文档状态 |
 |---------|---------|:----:|-----------|:-------:|
-| AML.T0085.000 | RAG 数据库 | ⭐⭐ | 借 AI 服务的检索通道挖掘 RAG 知识库里的组织内部数据 | ⏳ 计划中 |
-| AML.T0085.001 | AI 智能体工具 | ⭐⭐ | 滥用智能体挂载的工具与数据源权限，越权收集用户无法直接访问的数据 | ⏳ 计划中 |
+| AML.T0085.000 | [RAG 数据库](./AML.T0085/AML.T0085.000-RAG-Databases.md) | ⭐⭐ | 借 AI 服务的检索通道挖掘 RAG 知识库里的组织内部数据 | ✅ 已完成 |
+| AML.T0085.001 | [AI 智能体工具](./AML.T0085/AML.T0085.001-AI-Agent-Tools.md) | ⭐⭐ | 滥用智能体挂载的工具与数据源权限，越权收集用户无法直接访问的数据 | ✅ 已完成 |
 
-> 注：子技术难度继承其父技术的官方 maturity 等级。
+> 注：子技术难度采用官方独立评定的 maturity 等级（两个子技术均为 Demonstrated）。
 
 ## 统计信息
 
 - **技术总数**：6 个
 - **子技术总数**：2 个
 - **难度分布**：⭐⭐⭐（Realized）5 个 / ⭐⭐（Demonstrated）1 个 / ⭐（Feasible）0 个
-- **已完成文档**：0 个
-- **待编写文档**：8 个（6 主技术 + 2 子技术）
+- **已完成文档**：8 个（6 主技术 + 2 子技术）
+- **待编写文档**：0 个
 
 ## 推荐阅读顺序
 
@@ -197,4 +195,4 @@ graph LR
 
 ---
 
-> **版本**: ATLAS 2026.09 | **更新**: 2026-10-22 | **模板**: ATLAS 战术README v1.0
+> **版本**: ATLAS 2026.09 | **更新**: 2026-10-24 | **模板**: ATLAS 战术README v1.0
