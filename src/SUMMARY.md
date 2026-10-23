@@ -1076,6 +1076,7 @@
 
 - [10 凭证访问 (AML.TA0013)](atlas/10-Credential-Access/README.md)
   - [AML.T0055 不安全的凭证](atlas/10-Credential-Access/AML.T0055-Unsecured-Credentials.md)
+  - [AML.T0082 RAG 凭证窃取](atlas/10-Credential-Access/AML.T0082-RAG-Credential-Harvesting.md)
   - [AML.T0083 从 AI 智能体配置获取凭证](atlas/10-Credential-Access/AML.T0083-Credentials-from-AI-Agent-Configuration.md)
   - [AML.T0090 操作系统凭证转储](atlas/10-Credential-Access/AML.T0090-OS-Credential-Dumping.md)
   - [AML.T0098 AI 智能体工具凭证窃取](atlas/10-Credential-Access/AML.T0098-AI-Agent-Tool-Credential-Harvesting.md)
@@ -1083,6 +1084,15 @@
   - [AML.T0113 窃取 Web 会话 Cookie](atlas/10-Credential-Access/AML.T0113-Steal-Web-Session-Cookie.md)
 
 - [11 发现 (AML.TA0008)](atlas/11-Discovery/README.md)
+  - [AML.T0007 发现 AI 制品](atlas/11-Discovery/AML.T0007-Discover-AI-Artifacts.md)
+  - [AML.T0013 发现 AI 模型本体](atlas/11-Discovery/AML.T0013-Discover-AI-Model-Ontology.md)
+  - [AML.T0014 发现 AI 模型家族](atlas/11-Discovery/AML.T0014-Discover-AI-Model-Family.md)
+  - [AML.T0062 发现 LLM 幻觉](atlas/11-Discovery/AML.T0062-Discover-LLM-Hallucinations.md)
+  - [AML.T0063 发现 AI 模型输出](atlas/11-Discovery/AML.T0063-Discover-AI-Model-Outputs.md)
+  - [AML.T0069 发现 LLM 系统信息](atlas/11-Discovery/AML.T0069-Discover-LLM-System-Information.md)
+  - [AML.T0075 企业资源发现](atlas/11-Discovery/AML.T0075-Enterprise-Resource-Discovery.md)
+  - [AML.T0089 企业环境发现](atlas/11-Discovery/AML.T0089-Enterprise-Environment-Discovery.md)
+  - [AML.T0133 发现 AI 智能体运行时能力](atlas/11-Discovery/AML.T0133-Discover-AI-Agent-Runtime-Capabilities.md)
 
 - [12 横向移动 (AML.TA0015)](atlas/12-Lateral-Movement/README.md)
 

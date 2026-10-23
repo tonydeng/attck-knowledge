@@ -90,13 +90,13 @@ graph LR
 
 | 技术ID | 中文名称 | 难度 | 子技术数 | 一句话理解 | 关联ATT&CK | 文档状态 |
 |--------|---------|:----:|:-------:|-----------|-----------|:-------:|
-| AML.T0055 | 不安全的凭证 | ⭐⭐⭐ | 0 | 翻遍失陷系统，搜刮明文文件、环境变量、注册表与私钥中随手存放的凭证 | [T1552](../../enterprise/09-Credential-Access/T1552-Unsecured-Credentials.md) | ⏳ 计划中 |
-| AML.T0082 | RAG 凭证窃取 | ⭐⭐ | 0 | 内部文档里的密码被误吞进 RAG 知识库，攻击者诱导 AI 帮忙"召回" | — | ⏳ 计划中 |
-| AML.T0083 | 从 AI 智能体配置获取凭证 | ⭐⭐ | 0 | 直接读取智能体配置文件，收割明文存放的 API 密钥、令牌与连接字符串 | — | ⏳ 计划中 |
-| AML.T0090 | 操作系统凭证转储 | ⭐⭐ | 0 | 从系统缓存与进程内存中"倒"出密码哈希与令牌，用于横向访问 AI 服务 | [T1003](../../enterprise/09-Credential-Access/T1003-OS-Credential-Dumping.md) | ⏳ 计划中 |
-| AML.T0098 | AI 智能体工具凭证窃取 | ⭐⭐ | 0 | 借 AI 智能体之手，翻遍其连接的网盘、代码仓库、邮箱与笔记偷凭证 | — | ⏳ 计划中 |
-| AML.T0106 | 凭证访问漏洞利用 | ⭐⭐ | 0 | 不偷不搜，直接利用软件漏洞攻破系统夺取凭证 | [T1211](../../enterprise/07-Stealth/T1211-Exploitation-for-Stealth.md) | ⏳ 计划中 |
-| AML.T0113 | 窃取 Web 会话 Cookie | ⭐⭐ | 0 | 偷走浏览器会话 Cookie，免密码免 MFA 直登 AI 控制台与智能体入口 | [T1539](../../enterprise/09-Credential-Access/T1539-Steal-Web-Session-Cookie.md) | ⏳ 计划中 |
+| [AML.T0055](AML.T0055-Unsecured-Credentials.md) | 不安全的凭证 | ⭐⭐⭐ | 0 | 翻遍失陷系统，搜刮明文文件、环境变量、注册表与私钥中随手存放的凭证 | [T1552](../../enterprise/09-Credential-Access/T1552-Unsecured-Credentials.md) | ✅ 已完成 |
+| [AML.T0082](AML.T0082-RAG-Credential-Harvesting.md) | RAG 凭证窃取 | ⭐⭐ | 0 | 内部文档里的密码被误吞进 RAG 知识库，攻击者诱导 AI 帮忙"召回" | — | ✅ 已完成 |
+| [AML.T0083](AML.T0083-Credentials-from-AI-Agent-Configuration.md) | 从 AI 智能体配置获取凭证 | ⭐⭐ | 0 | 直接读取智能体配置文件，收割明文存放的 API 密钥、令牌与连接字符串 | — | ✅ 已完成 |
+| [AML.T0090](AML.T0090-OS-Credential-Dumping.md) | 操作系统凭证转储 | ⭐⭐ | 0 | 从系统缓存与进程内存中"倒"出密码哈希与令牌，用于横向访问 AI 服务 | [T1003](../../enterprise/09-Credential-Access/T1003-OS-Credential-Dumping.md) | ✅ 已完成 |
+| [AML.T0098](AML.T0098-AI-Agent-Tool-Credential-Harvesting.md) | AI 智能体工具凭证窃取 | ⭐⭐ | 0 | 借 AI 智能体之手，翻遍其连接的网盘、代码仓库、邮箱与笔记偷凭证 | — | ✅ 已完成 |
+| [AML.T0106](AML.T0106-Exploitation-for-Credential-Access.md) | 凭证访问漏洞利用 | ⭐⭐ | 0 | 不偷不搜，直接利用软件漏洞攻破系统夺取凭证 | [T1211](../../enterprise/07-Stealth/T1211-Exploitation-for-Stealth.md) | ✅ 已完成 |
+| [AML.T0113](AML.T0113-Steal-Web-Session-Cookie.md) | 窃取 Web 会话 Cookie | ⭐⭐ | 0 | 偷走浏览器会话 Cookie，免密码免 MFA 直登 AI 控制台与智能体入口 | [T1539](../../enterprise/09-Credential-Access/T1539-Steal-Web-Session-Cookie.md) | ✅ 已完成 |
 
 **平台覆盖说明**（依据官方数据）：
 
@@ -110,8 +110,7 @@ graph LR
 - **子技术总数**：0 个
 - **难度分布**：⭐⭐⭐（Realized）1 个 / ⭐⭐（Demonstrated）6 个 / ⭐（Feasible）0 个
 - **平台覆盖**：Enterprise 4 个 / Agentic AI 3 个 / Generative AI 1 个（AML.T0082 同时覆盖两类 AI 平台，存在重叠）
-- **已完成文档**：0 个
-- **待编写文档**：7 个
+- **已完成文档**：7 个（全部完成 ✅）
 
 ## 推荐阅读顺序
 
