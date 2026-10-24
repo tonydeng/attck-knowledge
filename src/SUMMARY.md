@@ -855,7 +855,6 @@
   - [T1573 加密通道](enterprise/13-Command-and-Control/T1573-Encrypted-Channel.md)
     - [对称加密 (T1573.001)](enterprise/13-Command-and-Control/T1573/T1573.001-Symmetric-Cryptography.md)
     - [非对称加密 (T1573.002)](enterprise/13-Command-and-Control/T1573/T1573.002-Asymmetric-Cryptography.md)
-  - [T1659 Content Injection](enterprise/13-Command-and-Control/T1659-Content-Injection.md)
   - [T1665 隐藏基础设施](enterprise/13-Command-and-Control/T1665-Hide-Infrastructure.md)
 
 - [14 渗漏 (TA0010)](enterprise/14-Exfiltration/README.md)

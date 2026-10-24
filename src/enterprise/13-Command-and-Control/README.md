@@ -20,7 +20,7 @@
 - **加密与混淆**（[T1001](T1001-Data-Obfuscation.md)、[T1132](T1132-Data-Encoding.md)、[T1573](T1573-Encrypted-Channel.md)）：给 C2 数据"加密打包"逃避检测
 - **动态隐藏**（[T1205](T1205-Traffic-Signaling.md)、[T1568](T1568-Dynamic-Resolution.md)、[T1665](T1665-Hide-Infrastructure.md)）：让 C2 基础设施像变色龙一样变化
 - **备用通道**（[T1008](T1008-Fallback-Channels.md)、[T1104](T1104-Multi-Stage-Channels.md)）：主通道被阻断后自动切换备用方案
-- **第三方服务滥用**（[T1102](T1102-Web-Service.md)、[T1219](T1219-Remote-Access-Tools.md)、[T1659](T1659-Content-Injection.md)）：利用合法服务托管 C2 指令
+- **第三方服务滥用**（[T1102](T1102-Web-Service.md)、[T1219](T1219-Remote-Access-Tools.md)、[T1659](../03-Initial-Access/T1659-Content-Injection.md)）：利用合法服务托管 C2 指令
 - **离线通道**（[T1092](T1092-Communication-Through-Removable-Media.md)）：使用 USB 等物理介质在隔离网络间传递指令
 
 ## 战术在攻击链中的位置
@@ -67,7 +67,7 @@ graph LR
 |--------|----------|:----:|:--------:|------------|----------|
 | [T1071](./T1071-Application-Layer-Protocol.md) | 应用层协议 | ⭐⭐ | 5 | 把C2指令藏在HTTP、DNS等正常网络流量中，就像在人群中传纸条 | ✅ 已完成 |
 | [T1092](./T1092-Communication-Through-Removable-Media.md) | 通过可移动介质通信 | ⭐ | 0 | 用U盘在隔离网络间传递指令，像"人肉快递"送情报 | ✅ 已完成 |
-| [T1659](./T1659-Content-Injection.md) | 内容注入 | ⭐⭐⭐ | 0 | 篡改正常网页内容来藏C2指令，就像把情报贴在公告栏上 | ✅ 已完成 |
+| [T1659](../03-Initial-Access/T1659-Content-Injection.md) | 内容注入（跨战术） | ⭐⭐⭐ | 0 | 篡改正常网页内容来藏C2指令，就像把情报贴在公告栏上 | ✅ 已完成 |
 | [T1132](./T1132-Data-Encoding.md) | 数据编码 | ⭐ | 2 | 把C2数据改头换面（如Base64），让监控系统认不出来 | ✅ 已完成 |
 | [T1001](./T1001-Data-Obfuscation.md) | 数据混淆 | ⭐⭐ | 4 | 用各种手法把C2数据伪装成正常流量，像给情报穿上迷彩服 | ✅ 已完成 |
 | [T1568](./T1568-Dynamic-Resolution.md) | 动态解析 | ⭐⭐⭐ | 3 | 让C2地址像变色龙一样随时变化，黑名单根本来不及更新 | ✅ 已完成 |
@@ -117,9 +117,9 @@ graph LR
 
 ### 统计信息
 
-- **技术总数**：18 个
+- **技术总数**：17 个（另有 T1659 内容注入官方双归属初始访问/命令与控制，文档见[初始访问战术](../03-Initial-Access/T1659-Content-Injection.md)）
 - **子技术总数**：27 个
-- **已完成文档**：45 个（18 父技术 + 27 子技术）
+- **已完成文档**：44 个（17 父技术 + 27 子技术）
 - **进行中文档**：0 个
 - **待编写文档**：0 个
 
