@@ -272,7 +272,7 @@ ATLAS 官方数据未为本技术映射特定 ATT&CK 技术引用。以下为概
 
 - [Web 服务 (T1102)](../../enterprise/13-Command-and-Control/T1102-Web-Service.md) — 概念直系：借公共 Web 服务中继 C2——本技术把"公共服务"具体化为 AI 助手网页，并叠加 URL 抓取机制
 - [应用层协议 - Web 协议 (T1071.001)](../../enterprise/13-Command-and-Control/T1071/T1071.001-Web-Protocols.md) — 传输载体：普通 HTTPS 流量
-- [内容注入 (T1659)](../../enterprise/13-Command-and-Control/T1659-Content-Injection.md) — 手法近亲：把指令藏在正常服务返回的内容中
+- [内容注入 (T1659)](../../enterprise/03-Initial-Access/T1659-Content-Injection.md) — 手法近亲：把指令藏在正常服务返回的内容中
 
 **传统 Web 服务 C2 vs AI Web 界面 C2：**
 

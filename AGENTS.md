@@ -4,7 +4,7 @@
 
 本项目基于 mdBook 搭建，是**中文版对抗威胁双矩阵知识库**：
 
-- **`src/enterprise/`** — MITRE ATT&CK® Enterprise：15 战术 / 259 技术 / 622 子技术，共 881 篇文档，已完成（内容锚定 v20）。
+- **`src/enterprise/`** — MITRE ATT&CK® Enterprise：15 战术 / 258 技术 / 622 子技术，共 880 篇文档，已完成（内容锚定 v20）。
 - **`src/atlas/`** — MITRE ATLAS（AI/ML 对抗威胁矩阵）：规划 16 战术 / 120 技术 / 88 子技术 / 73 案例研究（锚定内容版 2026.09），建设中。
 
 完整设计决策见 [issue #2](https://github.com/tonydeng/attck-knowledge/issues/2)。
